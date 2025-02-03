@@ -1,0 +1,15 @@
+storage/docker/_db
+.git
+.idea
+.gitignore
+.gitattributes
+node_modules/
+storage/*.key
+.env.example
+npm-debug.log
+yarn-error.log
+Dockerfile
+docker-compose.yml
+docker-compose-swarm.yml
+README.md
+docker/nginx/

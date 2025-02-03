@@ -1,0 +1,106 @@
+name: ring
+
+version: "3.9"
+
+services:
+    # Web Server Service
+    webserver:
+        image: nginx:alpine
+        container_name: ring-webserver
+        restart: unless-stopped
+        volumes:
+            - ./:/var/www/
+            - ./docker/nginx/conf.d/:/etc/nginx/conf.d/
+            - ./storage/docker/logs/nginx/:/var/log/nginx
+        ports:
+            - "8000:80"
+        depends_on:
+            - app
+            - db
+        networks:
+            - ring-webserver-network
+
+    # Application Service
+    app:
+        build:
+            context: ./
+            dockerfile: ./docker/php/Dockerfile
+        container_name: ring-php-app
+        user: ${UID}:${GID}
+        restart: unless-stopped
+        volumes:
+            - ./:/var/www
+            - ./docker/php/extend-php.ini:/usr/local/etc/php/conf.d/extend-php.ini
+        depends_on:
+            - db
+        networks:
+            - ring-db-network
+            - ring-webserver-network
+        environment:
+            - HOME=/var/www
+
+    # Database Service
+    db:
+        image: postgis/postgis:14-3.4-alpine
+        restart: unless-stopped
+        container_name: ring-db
+        ports:
+            - "5432:5432"
+        environment:
+            POSTGRES_DB: ${DB_DATABASE}
+            POSTGRES_USER: ${DB_USERNAME}
+            POSTGRES_PASSWORD: ${DB_PASSWORD}
+            POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+        hostname: postgres
+        user: root
+        volumes:
+            - ./storage/docker/_db:/var/lib/postgresql/data
+        networks:
+            - ring-db-network
+            - pgadmin-db-network
+
+    # PgAdmin Postgres Service
+    pgadmin4:
+        image: dpage/pgadmin4
+        container_name: ring-pgadmin4
+        ports:
+            - "5050:80"
+        depends_on:
+            - db
+        environment:
+            PGADMIN_DEFAULT_EMAIL: nice.1711@mail.ru
+            PGADMIN_DEFAULT_PASSWORD: ABC123abc
+        hostname: pgadmin4
+        tty: true
+        networks:
+            - pgadmin-db-network
+            - ring-db-network
+
+    # Redis Service
+    redis:
+        image: redis:latest
+        container_name: ring-redis
+        restart: unless-stopped
+        ports:
+            - "6379:6379"
+        networks:
+            - ring-db-network
+            - ring-webserver-network
+
+    # RedisInsight Service
+    redisinsight:
+        image: redislabs/redisinsight:1.11.0
+        container_name: redisinsightservice
+        restart: unless-stopped
+        ports:
+            - "8002:8001"
+        depends_on:
+            - redis
+        networks:
+            - ring-db-network
+            - ring-webserver-network
+
+networks:
+    ring-webserver-network:
+    ring-db-network:
+    pgadmin-db-network:

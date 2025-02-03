@@ -1,0 +1,37 @@
+<?php
+
+namespace App\Models\Admin\Rubric;
+
+use App\Models\Admin\Article\Article;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Rubric extends Model
+{
+    use HasFactory;
+    protected $guarded = false;
+    protected $table = 'rubrics';
+
+    protected $fillable = [
+        'sort',
+        'activity',
+        'icon',
+        'title',
+        'url',
+        'short',
+        'description',
+        'views',
+        'image_url',
+        'seo_title',
+        'seo_alt',
+        'meta_title',
+        'meta_keywords',
+        'meta_desc',
+    ];
+
+    // Определите отношение многие ко многим с моделью Article
+    public function articles(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Article::class, 'article_has_rubrics');
+    }
+}
