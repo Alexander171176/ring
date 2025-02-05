@@ -89,17 +89,18 @@ const toggleAll = (event) => {
                             </td>
                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
                                 <div class="text-left">
-                                    <img :src="imagePath(rubric.image_url)"
-                                         :alt="rubric.seo_alt || t('defaultImageAlt')"
-                                         :title="rubric.seo_title || t('defaultImageTitle')"
-                                         class="h-8 w-8 object-cover rounded-full">
+                                    <div class="text-center" v-html="rubric.icon"></div>
                                 </div>
                             </td>
                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
-                                <div class="text-left text-teal-600 dark:text-violet-200">{{ rubric.title }}</div>
+                                <div class="text-left text-teal-600 dark:text-violet-200">
+                                    {{ rubric.translations.find(t => t.locale === $i18n.locale)?.title || '' }}
+                                </div>
                             </td>
                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
-                                <div class="text-left text-blue-600 dark:text-blue-200">{{ rubric.url }}</div>
+                                <div class="text-left text-blue-600 dark:text-blue-200">
+                                    {{ rubric.translations.find(t => t.locale === $i18n.locale)?.url || '' }}
+                                </div>
                             </td>
                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
                                 <div class="text-center">{{ rubric.views }}</div>

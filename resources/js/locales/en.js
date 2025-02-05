@@ -192,6 +192,7 @@ export default {
     inactive: 'Inactive',
     inTemplates: 'Which templates are used in (separated by commas, without spaces)',
     irreversibleOperation: 'This operation is irreversible and will permanently delete the data!',
+    kazakh: 'Kazakh',
     lastActive: 'Last active',
     lastUsed: 'Last used',
     leave: 'Leave',

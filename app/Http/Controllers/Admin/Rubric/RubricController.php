@@ -206,23 +206,37 @@ class RubricController extends Controller
      */
     public function clone(Request $request, $id): \Illuminate\Http\JsonResponse
     {
-        $rubric = Rubric::findOrFail($id);
+        DB::beginTransaction();
 
-        $clonedRubric = $rubric->replicate();
-        $clonedRubric->title = $rubric->title . ' 2';
-        $clonedRubric->url = $rubric->url . '-2';
+        try {
+            $rubric = Rubric::with('translations')->findOrFail($id);
 
-        if ($rubric->image_url) {
-            $clonedRubric->image_url = $rubric->image_url;
+            // Клонируем рубрику без ID
+            $clonedRubric = $rubric->replicate();
+            $clonedRubric->save();
+
+            // Клонируем переводы, добавляя -2 к title и url
+            foreach ($rubric->translations as $translation) {
+                $clonedTranslation = $translation->replicate();
+                $clonedTranslation->rubric_id = $clonedRubric->id;
+                $clonedTranslation->title = $translation->title . '-2'; // Добавляем -2 в конец title
+                $clonedTranslation->url = $translation->url . '-2'; // Добавляем -2 в конец url
+                $clonedTranslation->save();
+            }
+
+            DB::commit();
+
+            Log::info('Рубрика успешно клонирована: ', $clonedRubric->toArray());
+
+            $this->clearCache(['rubrics.all', 'rubrics.count']);
+
+            return response()->json(['success' => true, 'reload' => true]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Ошибка при клонировании рубрики: ', ['error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'Ошибка клонирования рубрики'], 500);
         }
-
-        $clonedRubric->save();
-
-        Log::info('Рубрика клонирована: ', $clonedRubric->toArray());
-
-        $this->clearCache(['rubrics.all', 'rubrics.count']);
-
-        return response()->json(['success' => true, 'reload' => true]);
     }
 
 }

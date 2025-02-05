@@ -42,7 +42,7 @@ const {t} = useI18n();
 
 <template>
     <ActionSection>
-        <template #title>{{ t('deleteAccount') }}</template>
+        <template #title>{{ t('deleteAccountButton') }}</template>
 
         <template #description>{{ t('deleteAccountDescription') }}</template>
 
@@ -52,12 +52,12 @@ const {t} = useI18n();
             </div>
 
             <div class="mt-5">
-                <DangerButton @click="confirmUserDeletion">{{ t('deleteAccount') }}</DangerButton>
+                <DangerButton @click="confirmUserDeletion">{{ t('deleteAccountButton') }}</DangerButton>
             </div>
 
             <!-- Delete Account Confirmation Modal -->
             <DialogModal :show="confirmingUserDeletion" @close="closeModal">
-                <template #title>{{ t('deleteAccount') }}</template>
+                <template #title>{{ t('deleteAccountButton') }}</template>
 
                 <template #content>
                     {{ t('deleteAccountConfirmation') }}
@@ -86,7 +86,7 @@ const {t} = useI18n();
                         :disabled="form.processing"
                         @click="deleteUser"
                     >
-                        {{ t('deleteAccount') }}
+                        {{ t('deleteAccountButton') }}
                     </DangerButton>
                 </template>
             </DialogModal>

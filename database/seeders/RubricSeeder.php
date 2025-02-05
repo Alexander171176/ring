@@ -44,6 +44,46 @@ class RubricSeeder extends Seeder
                     ['locale' => 'kz', 'title' => 'Сұхбат', 'short' => 'Мамандармен әңгімелер', 'description' => 'Қызықты адамдармен сұхбат'],
                 ],
             ],
+            [
+                'sort' => 4, 'activity' => 1, 'icon' => $defaultIcon, 'views' => $defaultViews, 'image_url' => $defaultImage,
+                'translations' => [
+                    ['locale' => 'en', 'title' => 'Reviews', 'short' => 'Analysis and opinions', 'description' => 'Review articles'],
+                    ['locale' => 'ru', 'title' => 'Обзоры', 'short' => 'Анализ и мнения', 'description' => 'Обзорные статьи'],
+                    ['locale' => 'kz', 'title' => 'Шолулар', 'short' => 'Талдау мен пікірлер', 'description' => 'Шолу мақалалары'],
+                ],
+            ],
+            [
+                'sort' => 5, 'activity' => 1, 'icon' => $defaultIcon, 'views' => $defaultViews, 'image_url' => $defaultImage,
+                'translations' => [
+                    ['locale' => 'en', 'title' => 'Results', 'short' => 'Event outcomes', 'description' => 'Match and tournament results'],
+                    ['locale' => 'ru', 'title' => 'Результаты', 'short' => 'Итоги событий', 'description' => 'Результаты матчей и турниров'],
+                    ['locale' => 'kz', 'title' => 'Нәтижелер', 'short' => 'Оқиғалардың нәтижелері', 'description' => 'Матчтар мен турнирлердің нәтижелері'],
+                ],
+            ],
+            [
+                'sort' => 6, 'activity' => 1, 'icon' => $defaultIcon, 'views' => $defaultViews, 'image_url' => $defaultImage,
+                'translations' => [
+                    ['locale' => 'en', 'title' => 'Open Ring en', 'short' => 'Open fights', 'description' => 'Event information'],
+                    ['locale' => 'ru', 'title' => 'Open Ring ru', 'short' => 'Открытые поединки', 'description' => 'Информация о мероприятиях'],
+                    ['locale' => 'kz', 'title' => 'Open Ring kz', 'short' => 'Ашық жекпе-жектер', 'description' => 'Іс-шаралар туралы ақпарат'],
+                ],
+            ],
+            [
+                'sort' => 7, 'activity' => 1, 'icon' => $defaultIcon, 'views' => $defaultViews, 'image_url' => $defaultImage,
+                'translations' => [
+                    ['locale' => 'en', 'title' => 'WBSS en', 'short' => 'World Boxing Super Series', 'description' => 'WBSS news and events'],
+                    ['locale' => 'ru', 'title' => 'WBSS ru', 'short' => 'Всемирная бокс-суперсерия', 'description' => 'Новости и события WBSS'],
+                    ['locale' => 'kz', 'title' => 'WBSS kz', 'short' => 'Әлемдік бокс суперсериясы', 'description' => 'WBSS жаңалықтары мен оқиғалары'],
+                ],
+            ],
+            [
+                'sort' => 8, 'activity' => 1, 'icon' => $defaultIcon, 'views' => $defaultViews, 'image_url' => $defaultImage,
+                'translations' => [
+                    ['locale' => 'en', 'title' => 'P4P Rating', 'short' => 'Top fighters', 'description' => 'Ranking of the best P4P fighters'],
+                    ['locale' => 'ru', 'title' => 'Рейтинг Р4Р', 'short' => 'Лучшие бойцы', 'description' => 'Рейтинг лучших бойцов P4P'],
+                    ['locale' => 'kz', 'title' => 'P4P рейтингі', 'short' => 'Үздік жекпе-жекшілер', 'description' => 'P4P үздік жекпе-жекшілер рейтингі'],
+                ],
+            ],
         ];
 
         foreach ($rubrics as $data) {

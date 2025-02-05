@@ -1,13 +1,13 @@
-// resources/js/utils/i18n.js
-
 import { createI18n } from 'vue-i18n';
 import en from '../locales/en.js';
 import ru from '../locales/ru.js';
+import kz from '../locales/kz.js'; // Импортируем казахский язык
 import axios from 'axios';
 
 const messages = {
     en,
     ru,
+    kz, // Добавляем казахский язык в объект сообщений
 };
 
 // Функция для загрузки сохраненного языка из базы данных

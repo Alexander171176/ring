@@ -79,6 +79,7 @@ const clearCache = async () => {
                         class="bg-slate-100 dark:bg-slate-300 form-select text-gray-900 dark:text-gray-700 px-3 py-0.5">
                     <option value="ru">{{ t('russian') }}</option>
                     <option value="en">{{ t('english') }}</option>
+                    <option value="kz">{{ t('kazakh') }}</option>
                 </select>
             </div>
         </div>
