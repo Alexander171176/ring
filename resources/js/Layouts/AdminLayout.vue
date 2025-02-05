@@ -8,7 +8,6 @@ import WidgetPanel from '@/Partials/Admin/WidgetPanel.vue';
 import ScrollButtons from '@/Components/Admin/Scroll/ScrollButtons.vue';
 import {usePermission} from '@/composables/permissions.js';
 import {useArticle} from '@/composables/articles.js';
-import {useGuide} from '@/composables/guides.js';
 import {useSetting} from '@/composables/settings.js';
 import {usePlugin} from '@/composables/plugins.js';
 
@@ -23,7 +22,6 @@ const {hasPlugin} = usePlugin();
 const {hasSetting} = useSetting();
 const {HasRole} = usePermission();
 const {HasRubric} = useArticle();
-const {HasTutorial} = useGuide();
 
 const sidebarOpen = ref(false);
 const showingNavigationDropdown = ref(false);

@@ -20,8 +20,6 @@ class RubricTranslationResource extends JsonResource
             'url' => $this->url,
             'short' => $this->short,
             'description' => $this->description,
-            'seo_title' => $this->seo_title,
-            'seo_alt' => $this->seo_alt,
             'meta_title' => $this->meta_title,
             'meta_keywords' => $this->meta_keywords,
             'meta_desc' => $this->meta_desc,

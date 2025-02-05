@@ -155,34 +155,6 @@ const {t} = useI18n();
             {{ t('posts') }}
         </template>
     </SidebarLink>
-    <SidebarLink :href="route('tutorials.index')"
-                 :active="route().current('tutorials.index')"
-                 :expanded="props.expanded">
-        <template #default>
-            <svg class="shrink-0 h-6 w-6" viewBox="0 0 24 24">
-                <circle class="fill-current text-blue-600" cx="16" cy="8" r="8"></circle>
-                <circle class="fill-current text-blue-400" cx="8" cy="16" r="8"></circle>
-            </svg>
-        </template>
-        <template #text>
-            {{ t('tutorials') }}
-        </template>
-    </SidebarLink>
-    <SidebarLink :href="route('guides.index')"
-                 :active="route().current('guides.index')"
-                 :expanded="props.expanded">
-        <template #default>
-            <svg class="shrink-0 h-6 w-6" viewBox="0 0 24 24">
-                <path class="fill-current text-blue-600" d="M8 1v2H3v19h18V3h-5V1h7v23H1V1z"></path>
-                <path class="fill-current text-blue-600" d="M1 1h22v23H1z"></path>
-                <path class="fill-current text-blue-400"
-                      d="M15 10.586L16.414 12 11 17.414 7.586 14 9 12.586l2 2zM5 0h14v4H5z"></path>
-            </svg>
-        </template>
-        <template #text>
-            {{ t('guides') }}
-        </template>
-    </SidebarLink>
     <SidebarLink :href="route('comments.index')"
                  :active="route().current('comments.index')"
                  :expanded="props.expanded">
@@ -269,34 +241,6 @@ const {t} = useI18n();
         </template>
         <template #text>
             {{ t('components') }}
-        </template>
-    </SidebarLink>
-    <SidebarLink :href="route('builders.index')"
-                 :active="route().current('builders.index')"
-                 :expanded="props.expanded">
-        <template #default>
-            <svg class="shrink-0 h-6 w-6" viewBox="0 0 24 24">
-                <path class="fill-current text-blue-600"
-                      d="M19 5h1v14h-2V7.414L5.707 19.707 5 19H4V5h2v11.586L18.293 4.293 19 5Z"></path>
-                <path class="fill-current text-blue-400"
-                      d="M5 9a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm14 0a4 4 0 1 1 0-8 4 4 0 0 1 0 8ZM5 23a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm14 0a4 4 0 1 1 0-8 4 4 0 0 1 0 8Z"></path>
-            </svg>
-        </template>
-        <template #text>
-            {{ t('blockBuilder') }}
-        </template>
-    </SidebarLink>
-    <SidebarLink :href="route('pages.index')"
-                 :active="route().current('pages.index')"
-                 :expanded="props.expanded">
-        <template #default>
-            <svg class="shrink-0 h-6 w-6" viewBox="0 0 24 24">
-                <path class="fill-current text-blue-600" d="M1 3h22v20H1z"></path>
-                <path class="fill-current text-blue-400" d="M21 3h2v4H1V3h2V1h4v2h10V1h4v2Z"></path>
-            </svg>
-        </template>
-        <template #text>
-            {{ t('pages') }}
         </template>
     </SidebarLink>
     <SidebarLink :href="route('plugins.index')"

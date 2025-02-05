@@ -32,7 +32,6 @@ use Illuminate\Support\Facades\Storage;
  *         @OA\Property(property="id", type="integer", description="Rubric ID"),
  *         @OA\Property(property="title", type="string", description="Rubric title"),
  *         @OA\Property(property="url", type="string", description="Rubric URL"),
- *         @OA\Property(property="image_url", type="string", description="Rubric image URL"),
  *         @OA\Property(property="description", type="string", description="Rubric description"),
  *         @OA\Property(property="created_at", type="string", format="date-time", description="Creation date"),
  *         @OA\Property(property="updated_at", type="string", format="date-time", description="Last update date")
@@ -90,10 +89,6 @@ class ApiRubricController extends Controller
     public function store(RubricRequest $request): \Illuminate\Http\JsonResponse
     {
         $data = $request->validated();
-
-        if ($request->hasFile('image_url')) {
-            $data['image_url'] = $request->file('image_url')->store('rubric_images', 'public');
-        }
 
         $rubric = Rubric::create($data);
 
@@ -153,15 +148,6 @@ class ApiRubricController extends Controller
     {
         $data = $request->validated();
 
-        if ($request->hasFile('image_url')) {
-            if ($rubric->image_url) {
-                Storage::disk('public')->delete($rubric->image_url);
-            }
-            $data['image_url'] = $request->file('image_url')->store('rubric_images', 'public');
-        } else {
-            $data['image_url'] = $rubric->image_url;
-        }
-
         $rubric->update($data);
 
         return response()->json(new RubricResource($rubric));
@@ -188,9 +174,6 @@ class ApiRubricController extends Controller
      */
     public function destroy(Rubric $rubric): \Illuminate\Http\JsonResponse
     {
-        if ($rubric->image_url) {
-            Storage::disk('public')->delete($rubric->image_url);
-        }
         $rubric->delete();
 
         return response()->json(null, 204);

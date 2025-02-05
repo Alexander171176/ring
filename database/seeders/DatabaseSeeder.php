@@ -17,13 +17,8 @@ class DatabaseSeeder extends Seeder
             RubricSeeder::class,
             ArticleSeeder::class,
             SettingSeeder::class,
-            PagesSeeder::class,
             PluginsSeeder::class,
-            SectionSeeder::class,
             CommentsSeeder::class,
-            ContactsSeeder::class,
-            TutorialSeeder::class,
-            GuideSeeder::class,
             // Добавьте сюда другие сидеры по мере необходимости
         ]);
     }

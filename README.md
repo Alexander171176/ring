@@ -123,10 +123,9 @@
 
 29) `npm install xlsx html2pdf.js jszip file-saver docx` <br>
 
-30) Create resource controllers ComponentController, BuilderController, PageController, EditorController <br>
+30) Create resource controllers ComponentController, BuilderController, EditorController <br>
     `docker exec ring-php-app php artisan make:controller Admin/Component/ComponentController --resource` <br>
     `docker exec ring-php-app php artisan make:controller Admin/Builder/BuilderController --resource` <br>
-    `docker exec ring-php-app php artisan make:controller Admin/Page/PageController --resource` <br>
     `docker exec ring-php-app php artisan make:controller Admin/Editor/EditorController --resource` <br>
 
 31) npm install codemirror @codemirror/lang-javascript @codemirror/state @codemirror/view @codemirror/theme-one-dark
@@ -155,18 +154,9 @@
 40) `docker exec ring-php-app php artisan make:controller Admin/Diagram/DiagramController --resource` <br>
 
 41) npm i flowchart <br> 
-42) npm i vue-echarts-v3 <br> 
+42) npm i vue-echarts-v3 <br>
 
-43) `docker exec ring-php-app php artisan make:model Admin/Page/Page -m` <br>
-    `docker exec ring-php-app php artisan migrate` <br>
-    `docker exec ring-php-app php artisan make:seeder PagesSeeder` <br>
-    `docker exec ring-php-app php artisan db:seed --class=PagesSeeder` <br>
-    `docker exec ring-php-app php artisan make:factory PageFactory --model=Page` <br>
-    `docker exec ring-php-app php artisan make:resource Admin/Page/PageResource` <br>
-    `docker exec ring-php-app php artisan make:request Admin/Page/PageRequest` <br>
-44) `docker exec ring-php-app php artisan make:controller Api/Page/ApiPageController` <br>
-
-45) `docker exec ring-php-app php artisan make:model Admin/Plugin/Plugin -mf` <br>
+43) `docker exec ring-php-app php artisan make:model Admin/Plugin/Plugin -mf` <br>
     `docker exec ring-php-app php artisan migrate` <br>
     `docker exec ring-php-app php artisan make:seeder PluginsSeeder` <br>
     `docker exec ring-php-app php artisan db:seed --class=PluginsSeeder` <br>
@@ -176,7 +166,7 @@
     `docker exec ring-php-app php artisan make:request Admin/Plugin/PluginRequest` <br>
     `docker exec ring-php-app php artisan make:controller Api/Plugin/ApiController --api` <br>
 
-46) composer require "darkaonline/l5-swagger" <br>
+44) composer require "darkaonline/l5-swagger" <br>
     `docker exec ring-php-app php artisan vendor:publish --provider "L5Swagger\L5SwaggerServiceProvider"` <br>
     `docker exec ring-php-app php artisan make:controller Api/Article/ApiArticleController --api` <br>
     `docker exec ring-php-app php artisan make:controller Api/Rubric/ApiRubricController --api` <br>
@@ -196,7 +186,7 @@
     `docker-compose restart` <br>
     `docker exec ring-php-app php artisan l5-swagger:generate` <br>
 
-47) Удалите существующие символические ссылки <br>
+45) Удалите существующие символические ссылки <br>
     `docker exec -it ring-php-app rm /var/www/public/storage` <br>
     `docker exec -it ring-php-app rm /var/www/storage/api-docs` <br>
     Создайте новые символические ссылки внутри контейнера <br>
@@ -218,20 +208,11 @@
     `docker restart ring-php-app`  <br>
     `docker exec -it ring-php-app php artisan route:list`  <br>
 
-48) `docker exec ring-php-app php artisan make:controller Public/Static/AboutController --resource` <br>
-49) `docker exec ring-php-app php artisan make:controller Admin/About/SectionController --resource` <br>
-    `docker exec ring-php-app php artisan make:model Admin/About/Section -m` <br>
-    `docker exec ring-php-app php artisan make:resource Admin/About/SectionResource` <br>
-    `docker exec ring-php-app php artisan make:request Admin/About/SectionRequest` <br>
-    `docker exec ring-php-app php artisan make:seeder SectionSeeder` <br>
-    `docker exec ring-php-app php artisan migrate` <br>
-    `docker exec ring-php-app php artisan db:seed --class=SectionSeeder` <br>
+46) `npm install date-fns` <br>
 
-50) `npm install date-fns` <br>
+47) `docker exec ring-php-app php artisan make:controller Admin/System/SystemController` <br>
 
-51) `docker exec ring-php-app php artisan make:controller Admin/System/SystemController` <br>
-
-52) `docker exec ring-php-app php artisan make:model Admin/Comment/Comment -m`
+48) `docker exec ring-php-app php artisan make:model Admin/Comment/Comment -m`
     `docker exec ring-php-app php artisan migrate` <br>
     `docker exec ring-php-app php artisan make:controller Admin/Comment/CommentController --resource` <br>
     `docker exec ring-php-app php artisan make:controller Public/CommentController --resource` <br>
@@ -241,49 +222,16 @@
     `docker exec ring-php-app php artisan db:seed --class=CommentsSeeder` <br>
     `docker exec ring-php-app php artisan make:resource Admin/Comment/CommentResource` <br>
 
-53) `docker exec ring-php-app php artisan make:model User/Like/ArticleLike` <br>
+49) `docker exec ring-php-app php artisan make:model User/Like/ArticleLike` <br>
     `docker exec ring-php-app php artisan make:migration create_article_likes_table --create=article_likes` <br>
     `docker exec ring-php-app php artisan migrate` <br>
 
-54) `docker exec ring-php-app php artisan make:model Admin/Contact/Contact -m` <br> 
-    `docker exec ring-php-app php artisan make:controller Admin/Contact/ContactController --resource` <br>
-    `docker exec ring-php-app php artisan make:resource Admin/Contact/ContactResource` <br>
-    `docker exec ring-php-app php artisan make:request Admin/Contact/ContactRequest` <br>
-    `docker exec ring-php-app php artisan make:controller Public/Default/ContactController --resource` <br>
-    `docker exec ring-php-app php artisan migrate` <br>
-    `docker exec ring-php-app php artisan make:seeder ContactsSeeder` <br>
-    `docker exec ring-php-app php artisan db:seed --class=ContactsSeeder` <br>
-
-55) Create model and migrations Tutorial, Guide, TutorialSeeder, GuideSeeder  <br>
-    `docker exec ring-php-app php artisan make:model Admin/Tutorial/Tutorial -mf` <br>
-    `docker exec ring-php-app php artisan make:model Admin/Guide/Guide -mf` <br>
-    `docker exec ring-php-app php artisan make:migration create_guide_has_tutorials_table` <br>
-    `docker exec ring-php-app php artisan migrate`<br>
-    `docker exec ring-php-app php artisan make:seeder TutorialSeeder` <br>
-    `docker exec ring-php-app php artisan make:seeder GuideSeeder` <br>
-    `docker exec ring-php-app php artisan db:seed --class=TutorialSeeder` <br>
-    `docker exec ring-php-app php artisan db:seed --class=GuideSeeder` <br>
-
-56) Create TutorialResource, GuideResource,  TutorialController, GuideController, TutorialRequest, GuideRequest <br>
-    `docker exec ring-php-app php artisan make:controller Admin/Tutorial/TutorialController --resource` <br>
-    `docker exec ring-php-app php artisan make:controller Admin/Guide/GuideController --resource` <br>
-    `docker exec ring-php-app php artisan make:resource Admin/Tutorial/TutorialResource` <br>
-    `docker exec ring-php-app php artisan make:resource Admin/Guide/GuideResource` <br>
-    `docker exec ring-php-app php artisan make:request Admin/Tutorial/TutorialRequest` <br>
-    `docker exec ring-php-app php artisan make:request Admin/Guide/GuideRequest` <br>
-    `docker exec ring-php-app php artisan make:controller Admin/Invokable/RemoveGuideFromTutorialController --invokable` <br>
-
-57) Create Api Controllers
-    `docker exec ring-php-app php artisan make:controller Api/Guide/ApiGuideController --api` <br>
-    `docker exec ring-php-app php artisan make:controller Api/Tutorial/ApiTutorialController --api` <br>
-    `docker exec ring-php-app php artisan l5-swagger:generate` <br>
-
-58) npm install highlight.js
+50) npm install highlight.js
 
 ____________________________
 
-59) Create model and migrations Rubric Translations <br>
+51) Create model and migrations Rubric Translations <br>
     `docker exec ring-php-app php artisan make:model Admin/Rubric/RubricTranslation -mf` <br>
 
-60) Create resource RubricTranslationResource <br>
+52) Create resource RubricTranslationResource <br>
     `docker exec ring-php-app php artisan make:resource Admin/Rubric/RubricTranslationResource` <br>

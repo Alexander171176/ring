@@ -24,7 +24,6 @@ class RubricRequest extends FormRequest
             'sort' => 'nullable|integer',
             'icon' => 'nullable|string',
             'views' => 'nullable|integer',
-            'image_url' => 'nullable|file|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'activity' => 'required|boolean',
 
             'translations' => 'required|array',
@@ -48,8 +47,6 @@ class RubricRequest extends FormRequest
             ],
             'translations.*.short' => 'nullable|string|max:255',
             'translations.*.description' => 'nullable|string',
-            'translations.*.seo_title' => 'nullable|string|max:255',
-            'translations.*.seo_alt' => 'nullable|string|max:255',
             'translations.*.meta_title' => 'nullable|string|max:255',
             'translations.*.meta_keywords' => 'nullable|string|max:255',
             'translations.*.meta_desc' => 'nullable|string|max:255',
@@ -83,8 +80,6 @@ class RubricRequest extends FormRequest
 
             'translations.*.description.string' => 'Описание рубрики должно быть строкой.',
 
-            'translations.*.seo_title.max' => 'SEO заголовок не должен превышать 255 символов.',
-            'translations.*.seo_alt.max' => 'SEO alt текст не должен превышать 255 символов.',
             'translations.*.meta_title.max' => 'Meta заголовок не должен превышать 255 символов.',
             'translations.*.meta_keywords.max' => 'Meta ключевые слова не должны превышать 255 символов.',
             'translations.*.meta_desc.max' => 'Meta описание не должно превышать 255 символов.',

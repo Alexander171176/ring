@@ -18,14 +18,6 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-// Маршрут проверки лайка статьи пользователем
-Route::get('/articles/{id}/is-liked', [\App\Http\Controllers\Public\Default\BlogController::class, 'isLiked'])
-    ->name('articles.isLiked');
-
-// Маршрут лайка статьи
-Route::post('/articles/{id}/like', [\App\Http\Controllers\Public\Default\BlogController::class, 'like'])
-    ->name('articles.like');
-
 // Просмотр всех комментариев доступных для статьи
 Route::get('comments/{article}', [\App\Http\Controllers\Public\CommentController::class, 'index'])->name('api.comments.index');
 // Создание нового комментария
@@ -73,14 +65,9 @@ Route::prefix('plugins/{pluginName}/blocks')->group(function () {
 // Swagger
 Route::resource('rubrics', \App\Http\Controllers\Api\Rubric\ApiRubricController::class);
 Route::resource('articles', \App\Http\Controllers\Api\Article\ApiArticleController::class);
-Route::resource('tutorials', \App\Http\Controllers\Api\Tutorial\ApiTutorialController::class);
-Route::resource('guides', \App\Http\Controllers\Api\Guide\ApiGuideController::class);
 Route::resource('users', \App\Http\Controllers\Api\User\ApiUserController::class);
 Route::resource('roles', \App\Http\Controllers\Api\Role\ApiRoleController::class);
 Route::resource('permissions', \App\Http\Controllers\Api\Permission\ApiPermissionController::class);
 Route::resource('parameters', \App\Http\Controllers\Api\Parameter\ApiParameterController::class);
-Route::resource('pages', \App\Http\Controllers\Api\Page\ApiPageController::class);
 Route::resource('plugins', \App\Http\Controllers\Api\Plugin\ApiPluginController::class);
 
-// получение страниц для динамического меню
-Route::get('/pages', [\App\Http\Controllers\Api\Page\ApiPageController::class, 'showMenu']);

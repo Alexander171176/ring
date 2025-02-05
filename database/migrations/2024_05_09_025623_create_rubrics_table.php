@@ -17,7 +17,6 @@ return new class extends Migration
             $table->boolean('activity')->default(false); // Активность рубрики
             $table->text('icon')->nullable(); // Иконка рубрики
             $table->unsignedBigInteger('views')->default(0); // Количество просмотров
-            $table->text('image_url')->nullable(); // Адрес изображения
             $table->timestamps();
         });
     }

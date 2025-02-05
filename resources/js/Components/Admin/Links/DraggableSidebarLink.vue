@@ -21,8 +21,6 @@ const linkInfo = {
     permissions: {label: t('permissions'), route: 'permissions.index'},
     rubrics: {label: t('rubrics'), route: 'rubrics.index'},
     articles: {label: t('posts'), route: 'articles.index'},
-    tutorials: {label: t('tutorials'), route: 'tutorials.index'},
-    guides: {label: t('guides'), route: 'guides.index'},
     comments: {label: t('comments'), route: 'comments.index'},
     reports: {label: t('reports'), route: 'reports.index'},
     charts: {label: t('charts'), route: 'charts.index'},
@@ -30,10 +28,6 @@ const linkInfo = {
     settings: {label: t('settings'), route: 'settings.index'},
     parameters: {label: t('parameters'), route: 'parameters.index'},
     components: {label: t('components'), route: 'components.index'},
-    builders: {label: t('builders'), route: 'builders.index'},
-    pages: {label: t('pages'), route: 'pages.index'},
-    abouts: {label: t('sections'), route: 'abouts.index'},
-    contact: {label: t('sectionContacts'), route: 'contacts.index'},
     plugins: {label: t('plugins'), route: 'plugins.index'},
 };
 

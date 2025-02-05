@@ -1,7 +1,7 @@
 <script setup>
-import { defineProps, ref, onMounted } from 'vue';
+import { defineProps, ref } from 'vue';
 import { transliterate } from '@/utils/transliteration';
-import {useI18n} from 'vue-i18n';
+import { useI18n } from 'vue-i18n';
 import { useForm } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import TitlePage from '@/Components/Admin/Headlines/TitlePage.vue';
@@ -16,110 +16,84 @@ import ActivityCheckbox from '@/Components/Admin/Checkbox/ActivityCheckbox.vue';
 import InputNumber from '@/Components/Admin/Input/InputNumber.vue';
 import InputText from '@/Components/Admin/Input/InputText.vue';
 import LabelInput from '@/Components/Admin/Input/LabelInput.vue';
-import SimpleImageUpload from '@/Components/Admin/Input/SimpleImageUpload.vue';
 
-const {t} = useI18n();
+const { t } = useI18n();
 
-// пропсы рубрик
+// Пропсы
 const props = defineProps({
     rubric: {
         type: Object,
         required: true
+    },
+    translations: {
+        type: Array,
+        required: true
     }
 });
 
-// данные полей формы
+// Форма
 const form = useForm({
     _method: 'PUT',
     sort: props.rubric.sort ?? 0,
     icon: props.rubric.icon ?? '',
-    title: props.rubric.title ?? '',
-    url: props.rubric.url ?? '',
-    short: props.rubric.short ?? '',
-    description: props.rubric.description ?? '',
-    image_url: null,
-    seo_title: props.rubric.seo_title ?? '',
-    seo_alt: props.rubric.seo_alt ?? '',
-    meta_title: props.rubric.meta_title ?? '',
-    meta_keywords: props.rubric.meta_keywords ?? '',
-    meta_desc: props.rubric.meta_desc ?? '',
     activity: Boolean(props.rubric.activity ?? false),
+    translations: props.translations.map((translation) => ({
+        locale: translation.locale,
+        title: translation.title,
+        url: translation.url,
+        short: translation.short,
+        description: translation.description,
+        meta_title: translation.meta_title,
+        meta_keywords: translation.meta_keywords,
+        meta_desc: translation.meta_desc
+    }))
 });
 
-// автоматическое заполнение поля url
-const handleUrlInputFocus = () => {
-    if (form.title) {
-        form.url = transliterate(form.title.toLowerCase());
+// Активный таб (устанавливается первый доступный язык)
+const activeTab = ref(form.translations.length > 0 ? form.translations[0].locale : null);
+
+// Автоматическое заполнение поля URL
+const handleUrlInputFocus = (translation) => {
+    if (translation.title) {
+        translation.url = transliterate(translation.title.toLowerCase());
     }
 };
 
-// автоматическое заполнение поля seo_alt
-const handleSeoAltFocus = () => {
-    if (form.seo_title && !form.seo_alt) {
-        form.seo_alt = form.seo_title;
-    }
-};
-
-// автоматическая генерация мета-тегов
+// Генерация мета-тегов
 const truncateText = (text, maxLength, addEllipsis = false) => {
-    if (!text) return ''; // Защита от пустых значений
+    if (!text) return '';
     if (text.length <= maxLength) return text;
     const truncated = text.substr(0, text.lastIndexOf(' ', maxLength));
     return addEllipsis ? `${truncated}...` : truncated;
 };
 
-const generateMetaFields = () => {
-    if (form.title && !form.meta_title) {
-        form.meta_title = truncateText(form.title, 160);
+const generateMetaFields = (translation) => {
+    if (translation.title && !translation.meta_title) {
+        translation.meta_title = truncateText(translation.title, 160);
     }
 
-    if (form.title && !form.meta_keywords) {
-        const keywords = form.title.split(' ').join(', ');
-        form.meta_keywords = truncateText(keywords, 160);
+    if (translation.title && !translation.meta_keywords) {
+        const keywords = translation.title.split(' ').join(', ');
+        translation.meta_keywords = truncateText(keywords, 160);
     }
 
-    if (form.short && !form.meta_desc) {
-        form.meta_desc = truncateText(form.short.replace(/(<([^>]+)>)/gi, ""), 255, true);
+    if (translation.short && !translation.meta_desc) {
+        translation.meta_desc = truncateText(translation.short.replace(/(<([^>]+)>)/gi, ""), 255, true);
     }
 };
 
-// Изображение
-const imagePreview = ref(props.rubric.image_url ? props.rubric.image_url : null); // Путь уже полный, без /storage/
-const imageFile = ref(null);
-
-const handleImageSelected = (file) => {
-    imageFile.value = file;
-};
-
-// метод сохранения
+// Метод сохранения
 const submitForm = async () => {
-    if (imageFile.value) {
-        form.image_url = imageFile.value;
-    }
-
     form.transform((data) => ({
         ...data,
         activity: data.activity ? 1 : 0,
     }));
 
-    // console.log("Форма для отправки заполнена:", form.data());
-
     form.post(route('rubrics.update', props.rubric.id), {
         errorBag: 'editRubric',
-        preserveScroll: true,
-        onSuccess: () => {
-            // console.log("Форма успешно обновлена.");
-        },
-        onError: (errors) => {
-            console.error("Не удалось обновить форму:", errors);
-        }
+        preserveScroll: true
     });
 };
-
-// путь к изображению
-onMounted(() => {
-    imagePreview.value = props.rubric.image_url ? props.rubric.image_url : null;
-});
 
 </script>
 
@@ -127,227 +101,96 @@ onMounted(() => {
     <AdminLayout :title="t('editRubric')">
         <template #header>
             <TitlePage>
-                {{ t('editRubric') }}: {{ props.rubric.title }}
+                {{ t('editRubric') }}: {{ props.rubric.translations[0]?.title }}
             </TitlePage>
         </template>
-        <div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-12xl mx-auto">
 
-            <div class="p-4 bg-slate-50 dark:bg-slate-700 border border-blue-400 dark:border-blue-200
-                        overflow-hidden shadow-lg shadow-gray-500 dark:shadow-slate-400
-                        bg-opacity-95 dark:bg-opacity-95">
-                <div class="sm:flex sm:justify-between sm:items-center mb-2">
-                    <!-- Кнопка назад -->
+        <div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-6xl mx-auto">
+            <div class="p-5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 shadow-lg rounded-lg">
+
+                <div class="flex justify-between mb-4">
                     <DefaultButton :href="route('rubrics.index')">
                         <template #icon>
-                            <!-- SVG -->
-                            <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">
-                                <path
-                                    d="M4.3 4.5c1.9-1.9 5.1-1.9 7 0 .7.7 1.2 1.7 1.4 2.7l2-.3c-.2-1.5-.9-2.8-1.9-3.8C10.1.4 5.7.4 2.9 3.1L.7.9 0 7.3l6.4-.7-2.1-2.1zM15.6 8.7l-6.4.7 2.1 2.1c-1.9 1.9-5.1 1.9-7 0-.7-.7-1.2-1.7-1.4-2.7l-2 .3c.2 1.5.9 2.8 1.9 3.8 1.4 1.4 3.1 2 4.9 2 1.8 0 3.6-.7 4.9-2l2.2 2.2.8-6.4z"></path>
+                            <svg class="w-4 h-4 fill-current text-white mr-2" viewBox="0 0 16 16">
+                                <path d="M4.3 4.5c1.9-1.9 5.1-1.9 7 0 .7.7 1.2 1.7 1.4 2.7l2-.3c-.2-1.5-.9-2.8-1.9-3.8C10.1.4 5.7.4 2.9 3.1L.7.9 0 7.3l6.4-.7-2.1-2.1zM15.6 8.7l-6.4.7 2.1 2.1c-1.9 1.9-5.1 1.9-7 0-.7-.7-1.2-1.7-1.4-2.7l-2 .3c.2 1.5.9 2.8 1.9 3.8 1.4 1.4 3.1 2 4.9 2 1.8 0 3.6-.7 4.9-2l2.2 2.2.8-6.4z"></path>
                             </svg>
                         </template>
                         {{ t('back') }}
                     </DefaultButton>
                 </div>
-                <form @submit.prevent="submitForm" enctype="multipart/form-data" class="p-3 w-full">
 
-                    <div class="mb-3 flex items-center">
-                        <div class="flex justify-between w-full">
-                            <div class="flex flex-row items-center">
-                                <ActivityCheckbox v-model="form.activity"/>
-                                <LabelCheckbox for="activity" :text="t('activity')"/>
-                            </div>
+                <form @submit.prevent="submitForm" enctype="multipart/form-data" class="space-y-5">
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="flex items-center space-x-3">
+                            <ActivityCheckbox v-model="form.activity"/>
+                            <LabelCheckbox for="activity" :text="t('activity')"/>
                         </div>
-                        <div class="flex flex-row items-center">
-                            <LabelInput for="sort" :value="t('sort')" class="mr-3"/>
-                            <InputNumber
-                                id="sort"
-                                type="number"
-                                v-model="form.sort"
-                                autocomplete="sort"
-                            />
-                            <InputError class="mt-2" :message="form.errors.sort"/>
+                        <div class="flex items-center space-x-3">
+                            <LabelInput for="sort" :value="t('sort')"/>
+                            <InputNumber id="sort" type="number" v-model="form.sort" autocomplete="off"/>
+                            <InputError :message="form.errors.sort"/>
                         </div>
                     </div>
 
-                    <div class="mb-3 flex flex-col items-start">
+                    <div>
                         <LabelInput for="meta_desc" :value="t('svg')"/>
                         <MetaDescTextarea v-model="form.icon" class="w-full"/>
-                        <InputError class="mt-2" :message="form.errors.icon"/>
+                        <InputError :message="form.errors.icon"/>
                     </div>
 
-                    <div class="mb-3 flex flex-col items-start">
-                        <LabelInput for="title" :value="t('rubricTitle')" />
-                        <InputText
-                            id="title"
-                            type="text"
-                            v-model="form.title"
-                            required
-                            autocomplete="title"
-                        />
-                        <InputError class="mt-2" :message="form.errors.title"/>
+                    <!-- Табы -->
+                    <div class="border-b border-gray-200 dark:border-gray-700">
+                        <nav class="flex space-x-4" role="tablist">
+                            <button
+                                v-for="(translation, index) in form.translations"
+                                :key="translation.locale"
+                                @click.prevent="activeTab = translation.locale"
+                                :class="['px-4 py-2 font-medium text-sm rounded-t-md transition',
+                                         activeTab === translation.locale ? 'text-blue-600 border-b-2 border-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400']"
+                                role="tab"
+                                :aria-selected="activeTab === translation.locale">
+                                {{ translation.locale.toUpperCase() }}
+                            </button>
+                        </nav>
                     </div>
 
-                    <!-- Поле url -->
-                    <div class="mb-3 flex flex-col items-start">
-                        <LabelInput for="url" :value="t('rubricUrl')"/>
-                        <InputText
-                            id="url"
-                            type="text"
-                            v-model="form.url"
-                            required
-                            autocomplete="url"
-                            @focus="handleUrlInputFocus"
-                        />
-                        <InputError class="mt-2" :message="form.errors.url"/>
-                    </div>
+                    <!-- Контент активного таба -->
+                    <div v-for="(translation, index) in form.translations" v-show="activeTab === translation.locale" :key="translation.locale" class="mt-4">
+                        <LabelInput :value="t('rubricTitle')"/>
+                        <InputText v-model="translation.title" required autofocus/>
+                        <InputError :message="form.errors[`translations.${index}.title`]"/>
 
-                    <div class="mb-3 flex flex-col items-start">
-                        <div class="flex justify-between w-full">
-                            <LabelInput for="meta_desc" :value="t('shortDescription')"/>
-                            <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
-                                {{ form.short.length }} / 255 {{ t('characters') }}
-                            </div>
-                        </div>
-                        <MetaDescTextarea v-model="form.short" class="w-full"/>
-                        <InputError class="mt-2" :message="form.errors.short"/>
-                    </div>
+                        <LabelInput :value="t('rubricUrl')"/>
+                        <InputText v-model="translation.url" required @focus="handleUrlInputFocus(translation)"/>
+                        <InputError :message="form.errors[`translations.${index}.url`]"/>
 
-                    <div class="mb-3 flex flex-col items-start">
-                        <LabelInput for="description" :value="t('description')"/>
-                        <CKEditor v-model="form.description" class="w-full"/>
-                        <InputError class="mt-2" :message="form.errors.description"/>
-                    </div>
+                        <LabelInput :value="t('shortDescription')"/>
+                        <MetaDescTextarea v-model="translation.short"/>
+                        <InputError :message="form.errors[`translations.${index}.short`]"/>
 
-                    <!-- Загрузка главного изображения -->
-                    <div class="p-5 mb-3 flex flex-col md:flex-row
-                                justify-center bg-white dark:bg-slate-800 shadow-md
-                                border border-slate-300 space-y-6 md:space-y-0 md:gap-6">
-
-                        <!-- Загрузка и Превью изображения -->
-                        <div class="md:w-1/2 w-full flex justify-start">
-                            <div class="w-full max-w-md">
-                                <LabelInput for="image_url" :value="t('currentImage')"
-                                            class="text-slate-800 dark:text-slate-100"/>
-                                <SimpleImageUpload @fileSelected="handleImageSelected" />
-                                <InputError :message="form.errors.image_url" />
-                                <div v-if="imagePreview" class="mt-2 w-full">
-                                    <img :src="imagePreview" :alt="t('currentImage')" class="w-full h-fit object-cover">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- SEO поля -->
-                        <div class="md:w-1/2 w-full space-y-1">
-                            <div class="flex flex-col items-start space-y-2">
-
-                                <LabelInput :value="t('metaTagsImage')"
-                                            class="text-slate-800 dark:text-slate-100"/>
-
-                                <div class="w-full flex flex-col items-start">
-                                    <LabelInput for="seo_title" :value="t('seoTitle')" />
-                                    <InputText
-                                        id="seo_title"
-                                        type="text"
-                                        v-model="form.seo_title"
-                                        autocomplete="url"
-                                    />
-                                    <InputError class="mt-2" :message="form.errors.seo_title" />
-                                </div>
-
-                                <div class="w-full flex flex-col items-start">
-                                    <LabelInput for="seo_alt" :value="t('seoAlt')" />
-                                    <InputText
-                                        id="seo_alt"
-                                        type="text"
-                                        v-model="form.seo_alt"
-                                        autocomplete="url"
-                                        @focus="handleSeoAltFocus"
-                                    />
-                                    <InputError class="mt-2" :message="form.errors.seo_alt" />
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <div class="mb-3 flex flex-col items-start">
-                        <div class="flex justify-between w-full">
-                            <LabelInput for="meta_title" :value="t('metaTitle')"/>
-                            <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
-                                {{ form.meta_title.length }} / 255 {{ t('characters') }}
-                            </div>
-                        </div>
-                        <InputText
-                            id="meta_title"
-                            type="text"
-                            v-model="form.meta_title"
-                            maxlength="255"
-                            autocomplete="url"
-                        />
-                        <InputError class="mt-2" :message="form.errors.meta_title"/>
-                    </div>
-
-                    <div class="mb-3 flex flex-col items-start">
-                        <div class="flex justify-between w-full">
-                            <LabelInput for="meta_keywords" :value="t('metaKeywords')"/>
-                            <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
-                                {{ form.meta_keywords.length }} / 255 {{ t('characters') }}
-                            </div>
-                        </div>
-                        <InputText
-                            id="meta_keywords"
-                            type="text"
-                            v-model="form.meta_keywords"
-                            maxlength="255"
-                            autocomplete="url"
-                        />
-                        <InputError class="mt-2" :message="form.errors.meta_keywords"/>
-                    </div>
-
-                    <div class="mb-3 flex flex-col items-start">
-                        <div class="flex justify-between w-full">
-                            <LabelInput for="meta_desc" :value="t('metaDescription')"/>
-                            <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
-                                {{ form.meta_desc.length }} / 255 {{ t('characters') }}
-                            </div>
-                        </div>
-                        <MetaDescTextarea v-model="form.meta_desc" class="w-full" />
-                        <InputError class="mt-2" :message="form.errors.meta_desc"/>
+                        <LabelInput :value="t('description')"/>
+                        <CKEditor v-model="translation.description"/>
+                        <InputError :message="form.errors[`translations.${index}.description`]"/>
                     </div>
 
                     <div class="flex justify-end mt-4">
                         <MetatagsButton @click.prevent="generateMetaFields">
                             <template #icon>
-                                <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">
-                                    <path
-                                        d="M4.3 4.5c1.9-1.9 5.1-1.9 7 0 .7.7 1.2 1.7 1.4 2.7l2-.3c-.2-1.5-.9-2.8-1.9-3.8C10.1.4 5.7.4 2.9 3.1L.7.9 0 7.3l6.4-.7-2.1-2.1zM15.6 8.7l-6.4.7 2.1 2.1c-1.9 1.9-5.1 1.9-7 0-.7-.7-1.2-1.7-1.4-2.7l-2 .3c.2 1.5.9 2.8 1.9 3.8 1.4 1.4 3.1 2 4.9 2 1.8 0 3.6-.7 4.9-2l2.2 2.2.8-6.4z"></path>
+                                <svg class="w-4 h-4 fill-current text-white mr-2" viewBox="0 0 16 16">
+                                    <path d="M4.3 4.5c1.9-1.9 5.1-1.9 7 0 .7.7 1.2 1.7 1.4 2.7l2-.3c-.2-1.5-.9-2.8-1.9-3.8C10.1.4 5.7.4 2.9 3.1L.7.9 0 7.3l6.4-.7-2.1-2.1zM15.6 8.7l-6.4.7 2.1 2.1c-1.9 1.9-5.1 1.9-7 0-.7-.7-1.2-1.7-1.4-2.7l-2 .3c.2 1.5.9 2.8 1.9 3.8 1.4 1.4 3.1 2 4.9 2 1.8 0 3.6-.7 4.9-2l2.2 2.2.8-6.4z"></path>
                                 </svg>
                             </template>
                             {{ t('generateMetaTags') }}
                         </MetatagsButton>
                     </div>
 
-                    <div class="flex items-center justify-center mt-4">
-                        <DefaultButton :href="route('rubrics.index')" class="mb-3">
-                            <template #icon>
-                                <!-- SVG -->
-                                <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">
-                                    <path d="M4.3 4.5c1.9-1.9 5.1-1.9 7 0 .7.7 1.2 1.7 1.4 2.7l2-.3c-.2-1.5-.9-2.8-1.9-3.8C10.1.4 5.7.4 2.9 3.1L.7.9 0 7.3l6.4-.7-2.1-2.1zM15.6 8.7l-6.4.7 2.1 2.1c-1.9 1.9-5.1 1.9-7 0-.7-.7-1.2-1.7-1.4-2.7l-2 .3c.2 1.5.9 2.8 1.9 3.8 1.4 1.4 3.1 2 4.9 2 1.8 0 3.6-.7 4.9-2l2.2 2.2.8-6.4z"></path>
-                                </svg>
-                            </template>
-                            {{ t('back') }}
-                        </DefaultButton>
-                        <PrimaryButton class="ms-4 mb-0" :class="{ 'opacity-25': form.processing }"
-                                       :disabled="form.processing">
-                            <template #icon>
-                                <svg class="w-4 h-4 fill-current text-slate-100" viewBox="0 0 16 16">
-                                    <path
-                                        d="M14.3 2.3L5 11.6 1.7 8.3c-.4-.4-1-.4-1.4 0-.4.4-.4 1 0 1.4l4 4c.2.2.4.3.7.3.3 0 .5-.1.7-.3l10-10c.4-.4.4-1 0-1.4-.4-.4-1-.4-1.4 0z"></path>
-                                </svg>
-                            </template>
+                    <div class="flex justify-end mt-4">
+                        <PrimaryButton @click.prevent="submitForm">
                             {{ t('save') }}
                         </PrimaryButton>
                     </div>
+
                 </form>
             </div>
         </div>

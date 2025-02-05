@@ -18,8 +18,6 @@ class RubricTranslation extends Model
         'url',
         'short',
         'description',
-        'seo_title',
-        'seo_alt',
         'meta_title',
         'meta_keywords',
         'meta_desc'];

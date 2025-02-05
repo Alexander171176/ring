@@ -19,8 +19,6 @@ return new class extends Migration
             $table->string('url')->unique(); // Адрес рубрики
             $table->string('short')->nullable(); // Краткое Описание
             $table->text('description')->nullable(); // Описание рубрики
-            $table->string('seo_title')->nullable(); // SEO Title
-            $table->string('seo_alt')->nullable(); // SEO Alt
             $table->string('meta_title')->nullable(); // meta title
             $table->string('meta_keywords')->nullable(); // meta keywords
             $table->string('meta_desc')->nullable(); // meta description

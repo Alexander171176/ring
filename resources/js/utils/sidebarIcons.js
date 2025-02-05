@@ -38,14 +38,6 @@ export const sidebarIcons = {
         <path class="fill-current text-blue-600" d="M1 1h22v23H1z"></path>
         <path class="fill-current text-blue-400" d="M15 10.586L16.414 12 11 17.414 7.586 14 9 12.586l2 2zM5 0h14v4H5z"></path>
     `,
-    tutorials: `
-        <path class="fill-current text-blue-600" d="M2 21V14C2 13.4 2.4 13 3 13H21C21.6 13 22 13.4 22 14V21C22 21.6 21.6 22 21 22H3C2.4 22 2 21.6 2 21Z"></path>
-        <path class="fill-current text-blue-400" d="M2 10V3C2 2.4 2.4 2 3 2H21C21.6 2 22 2.4 22 3V10C22 10.6 21.6 11 21 11H3C2.4 11 2 10.6 2 10Z"></path>
-    `,
-    guides: `
-        <path class="fill-current text-blue-600" d="M21.25 18.525L13.05 21.825C12.35 22.125 11.65 22.125 10.95 21.825L2.75 18.525C1.75 18.125 1.75 16.725 2.75 16.325L4.04999 15.825L10.25 18.325C10.85 18.525 11.45 18.625 12.05 18.625C12.65 18.625 13.25 18.525 13.85 18.325L20.05 15.825L21.35 16.325C22.35 16.725 22.35 18.125 21.25 18.525ZM13.05 16.425L21.25 13.125C22.25 12.725 22.25 11.325 21.25 10.925L13.05 7.62502C12.35 7.32502 11.65 7.32502 10.95 7.62502L2.75 10.925C1.75 11.325 1.75 12.725 2.75 13.125L10.95 16.425C11.65 16.725 12.45 16.725 13.05 16.425Z"></path>
-        <path class="fill-current text-blue-400" d="M11.05 11.025L2.84998 7.725C1.84998 7.325 1.84998 5.925 2.84998 5.525L11.05 2.225C11.75 1.925 12.45 1.925 13.15 2.225L21.35 5.525C22.35 5.925 22.35 7.325 21.35 7.725L13.05 11.025C12.45 11.325 11.65 11.325 11.05 11.025Z"></path>
-    `,
     comments: `
     <path class="fill-current text-blue-600" d="M14.5 7c4.695 0 8.5 3.184 8.5 7.111 0 1.597-.638 3.067-1.7 4.253V23l-4.108-2.148a10 10 0 01-2.692.37c-4.695 0-8.5-3.184-8.5-7.11C6 10.183 9.805 7 14.5 7z"></path>
     <path class="fill-current text-blue-400" d="M11 1C5.477 1 1 4.582 1 9c0 1.797.75 3.45 2 4.785V19l4.833-2.416C8.829 16.85 9.892 17 11 17c5.523 0 10-3.582 10-8s-4.477-8-10-8z"></path>
@@ -73,24 +65,6 @@ export const sidebarIcons = {
     components: `
         <circle class="fill-current text-blue-600" cx="16" cy="8" r="8"></circle>
         <circle class="fill-current text-blue-400" cx="8" cy="16" r="8"></circle>
-    `,
-    builders: `
-        <path class="fill-current text-blue-600" d="M3 .998h6a2 2 0 012 2v6a2 2 0 01-2 2H3a2 2 0 01-2-2v-6a2 2 0 012-2z"></path>
-        <path class="fill-current text-blue-400" d="M23.428 4.616L19.381.57a1.957 1.957 0 00-2.762 0l-4.047 4.046c-.76.765-.76 2 0 2.764l4.047 4.047c.764.76 1.998.76 2.762 0l4.047-4.046c.761-.764.761-2 0-2.765z"></path>
-        <path class="fill-current text-blue-600" d="M15 12.998h6a2 2 0 012 2v6a2 2 0 01-2 2h-6a2 2 0 01-2-2v-6a2 2 0 012-2z"></path>
-        <path class="fill-current text-blue-200" d="M3 12.998h6a2 2 0 012 2v6a2 2 0 01-2 2H3a2 2 0 01-2-2v-6a2 2 0 012-2z"></path>
-    `,
-    pages: `
-        <path class="fill-current text-blue-600" d="M1 3h22v20H1z"></path>
-        <path class="fill-current text-blue-400" d="M21 3h2v4H1V3h2V1h4v2h10V1h4v2Z"></path>
-    `,
-    abouts: `
-        <path class="fill-current text-blue-600" d="M8.07 16H10V8H8.07a8 8 0 110 8z"></path>
-        <path class="fill-current text-blue-400" d="M15 12L8 6v5H0v2h8v5z"></path>
-    `,
-    contact: `
-        <path class="fill-current text-blue-600" d="M8.07 16H10V8H8.07a8 8 0 110 8z"></path>
-        <path class="fill-current text-blue-400" d="M15 12L8 6v5H0v2h8v5z"></path>
     `,
     plugins: `
         <path class="fill-current text-blue-400" d="M13 15l11-7L11.504.136a1 1 0 00-1.019.007L0 7l13 8z"></path>

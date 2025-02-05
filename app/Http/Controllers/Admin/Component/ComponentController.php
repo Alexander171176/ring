@@ -17,7 +17,6 @@ class ComponentController extends Controller
         'Components' => 'js/Components',
         'Layouts' => 'js/Layouts',
         'locales' => 'js/locales',
-        'Pages' => 'js/Pages/templates/Default/pages',
         'PartialsUser' => 'js/Partials/User',
     ];
 

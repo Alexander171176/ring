@@ -25,17 +25,11 @@ const mainLinks = ref(JSON.parse(localStorage.getItem('mainLinks')) || [
     'settings',
     'parameters',
     'components',
-    'builders',
     'diagrams',
-    'pages',
-    'tutorials',
-    'guides',
     'plugins',
 ]);
 
 const hiddenLinks = ref(JSON.parse(localStorage.getItem('hiddenLinks')) || [
-    'abouts',
-    'contact',
     'apiTokens',
     'teamSettings',
 ]);

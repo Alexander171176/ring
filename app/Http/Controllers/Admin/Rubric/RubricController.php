@@ -54,10 +54,6 @@ class RubricController extends Controller
     {
         $data = $request->validated();
 
-        if ($request->hasFile('image_url')) {
-            $data['image_url'] = $request->file('image_url')->store('rubric_images', 'public');
-        }
-
         $rubric = Rubric::create($data);
 
         Log::info('Рубрика создана: ', $rubric->toArray());
@@ -75,17 +71,12 @@ class RubricController extends Controller
         $cacheTime = $this->getCacheTime();
 
         $rubric = Cache::store('redis')->remember("rubric.$id", $cacheTime, function () use ($id) {
-            $rubric = Rubric::findOrFail($id);
-
-            if ($rubric->image_url) {
-                $rubric->image_url = Storage::url($rubric->image_url);
-            }
-
-            return $rubric;
+            return Rubric::with('translations')->findOrFail($id);
         });
 
         return Inertia::render('Admin/Rubrics/Edit', [
             'rubric' => new RubricResource($rubric),
+            'translations' => $rubric->translations, // Передаём переводы
         ]);
     }
 
@@ -97,15 +88,6 @@ class RubricController extends Controller
         $rubric = Rubric::findOrFail($id);
 
         $data = $request->validated();
-
-        if ($request->hasFile('image_url')) {
-            if ($rubric->image_url) {
-                Storage::disk('public')->delete($rubric->image_url);
-            }
-            $data['image_url'] = $request->file('image_url')->store('rubric_images', 'public');
-        } else {
-            $data['image_url'] = $rubric->image_url;
-        }
 
         $rubric->update($data);
 
@@ -123,9 +105,6 @@ class RubricController extends Controller
     {
         $rubric = Rubric::findOrFail($id);
 
-        if ($rubric->image_url) {
-            Storage::disk('public')->delete($rubric->image_url);
-        }
         $rubric->delete();
 
         Log::info('Рубрика удалена: ', $rubric->toArray());
@@ -148,9 +127,6 @@ class RubricController extends Controller
         $rubricIds = $validated['ids'];
 
         Rubric::whereIn('id', $rubricIds)->each(function ($rubric) {
-            if ($rubric->image_url) {
-                Storage::disk('public')->delete($rubric->image_url);
-            }
             $rubric->delete();
         });
 
