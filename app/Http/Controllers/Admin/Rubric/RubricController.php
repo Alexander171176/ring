@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Rubric\RubricRequest;
 use App\Http\Resources\Admin\Rubric\RubricResource;
 use App\Models\Admin\Rubric\Rubric;
+use App\Models\Admin\Rubric\RubricTranslation;
 use App\Traits\CacheTimeTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -85,10 +86,32 @@ class RubricController extends Controller
     public function update(RubricRequest $request, string $id): \Illuminate\Http\RedirectResponse
     {
         $rubric = Rubric::findOrFail($id);
-
         $data = $request->validated();
 
-        $rubric->update($data);
+        DB::transaction(function () use ($rubric, $data) {
+            // Обновляем основную рубрику
+            $rubric->update([
+                'sort' => $data['sort'],
+                'icon' => $data['icon'],
+                'activity' => $data['activity'] ?? false,
+            ]);
+
+            // Обрабатываем переводы
+            foreach ($data['translations'] as $translationData) {
+                RubricTranslation::updateOrCreate(
+                    ['rubric_id' => $rubric->id, 'locale' => $translationData['locale']],
+                    [
+                        'title' => $translationData['title'],
+                        'url' => $translationData['url'],
+                        'short' => $translationData['short'],
+                        'description' => $translationData['description'],
+                        'meta_title' => $translationData['meta_title'],
+                        'meta_keywords' => $translationData['meta_keywords'],
+                        'meta_desc' => $translationData['meta_desc'],
+                    ]
+                );
+            }
+        });
 
         Log::info('Рубрика обновлена: ', $rubric->toArray());
 

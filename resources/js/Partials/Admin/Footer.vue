@@ -46,7 +46,7 @@ const clearCache = async () => {
         <div class="flex items-center justify-center sm:justify-between flex-wrap">
             <div class="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                 © {{ new Date().getFullYear() }}
-                <a href="/" target="_blank" class="font-semibold text-red-400 hover:text-rose-300">DigitalPro.</a>
+                <a href="/" target="_blank" class="font-semibold text-red-400 hover:text-rose-300">Pulsar CMS</a>
                 {{ t('allRightsReserved') }}
             </div>
 

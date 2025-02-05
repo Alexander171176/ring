@@ -1,5 +1,5 @@
 <script setup>
-import { defineProps, ref } from 'vue'
+import {defineProps, ref} from 'vue'
 
 const props = defineProps({
     href: {
@@ -25,9 +25,8 @@ const isPressed = ref(false)
     <span>
       <slot name="icon">
         <!-- По умолчанию ваш SVG будет тут -->
-        <svg class="w-4 h-4 fill-current text-white" viewBox="0 0 16 16">
-            <path
-                d="M14.3 2.3L5 11.6 1.7 8.3c-.4-.4-1-.4-1.4 0-.4.4-.4 1 0 1.4l4 4c.2.2.4.3.7.3.3 0 .5-.1.7-.3l10-10c.4-.4.4-1 0-1.4-.4-.4-1-.4-1.4 0z"></path>
+        <svg class="w-4 h-4 fill-current text-white shrink-0 mr-2" viewBox="0 0 16 16">
+            <path d="M13 7h2v6a1 1 0 01-1 1H4v2l-4-3 4-3v2h9V7zM3 9H1V3a1 1 0 011-1h10V0l4 3-4 3V4H3v5z"></path>
         </svg>
       </slot>
     </span>

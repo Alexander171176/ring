@@ -76,18 +76,18 @@ const toggleAll = (event) => {
                     <template #item="{ element: rubric }">
                         <tr class="text-sm font-semibold border-b-2 hover:bg-slate-100 dark:hover:bg-cyan-800">
                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
-                                <div class="text-center">{{ rubric.id }}</div>
+                                <div class="text-center text-blue-500 dark:text-blue-300 font-semibold">{{ rubric.id }}</div>
                             </td>
                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
                                 <div class="text-center" v-html="rubric.icon" />
                             </td>
                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
-                                <div class="text-left text-teal-600 dark:text-violet-200">
+                                <div class="text-left text-orange-500 dark:text-orange-300">
                                     {{ rubric.translations.find(t => t.locale === $i18n.locale)?.title || '' }}
                                 </div>
                             </td>
                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
-                                <div class="text-left text-blue-600 dark:text-blue-200">
+                                <div class="text-left text-violet-600 dark:text-violet-200">
                                     {{ rubric.translations.find(t => t.locale === $i18n.locale)?.url || '' }}
                                 </div>
                             </td>

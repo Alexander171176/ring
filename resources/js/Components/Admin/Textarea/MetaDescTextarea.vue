@@ -17,7 +17,7 @@ defineEmits(['update:modelValue']);
     <textarea
         :id="id"
         class="block w-full h-24 p-3 py-0.5
-               text-sm dark:text-slate-100
+               font-semibold text-sm dark:text-slate-100
                bg-white dark:bg-cyan-800
                border border-gray-400 rounded-sm shadow-sm
                focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent
