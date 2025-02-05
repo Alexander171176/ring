@@ -14,11 +14,10 @@ class RubricSeeder extends Seeder
     public function run(): void
     {
         $defaultIcon = '<svg class="w-4 h-4 fill-current text-slate-400 shrink-0 mr-3" viewBox="0 0 16 16"><path d="M15 15V5l-5-5H2c-.6 0-1 .4-1 1v14c0 .6 0 1 1 1h12c.6 0 1-.4 1-1zM3 2h6v4h4v8H3V2z"></path></svg>';
-        $defaultViews = 0;
 
         $rubrics = [
             [
-                'sort' => 1, 'activity' => 1, 'icon' => $defaultIcon, 'views' => $defaultViews,
+                'sort' => 1, 'activity' => 1, 'icon' => $defaultIcon,
                 'translations' => [
                     ['locale' => 'en', 'title' => 'News', 'short' => 'Latest news', 'description' => 'Up-to-date news'],
                     ['locale' => 'ru', 'title' => 'Новости', 'short' => 'Свежие новости', 'description' => 'Актуальные новости'],
@@ -26,7 +25,7 @@ class RubricSeeder extends Seeder
                 ],
             ],
             [
-                'sort' => 2, 'activity' => 1, 'icon' => $defaultIcon, 'views' => $defaultViews,
+                'sort' => 2, 'activity' => 1, 'icon' => $defaultIcon,
                 'translations' => [
                     ['locale' => 'en', 'title' => 'Schedule', 'short' => 'Upcoming events', 'description' => 'Event schedule'],
                     ['locale' => 'ru', 'title' => 'Расписание', 'short' => 'Ближайшие события', 'description' => 'Расписание мероприятий'],
@@ -34,7 +33,7 @@ class RubricSeeder extends Seeder
                 ],
             ],
             [
-                'sort' => 3, 'activity' => 1, 'icon' => $defaultIcon, 'views' => $defaultViews,
+                'sort' => 3, 'activity' => 1, 'icon' => $defaultIcon,
                 'translations' => [
                     ['locale' => 'en', 'title' => 'Interview', 'short' => 'Talks with experts', 'description' => 'Interviews with interesting people'],
                     ['locale' => 'ru', 'title' => 'Интервью', 'short' => 'Разговоры с экспертами', 'description' => 'Интервью с интересными людьми'],
@@ -42,7 +41,7 @@ class RubricSeeder extends Seeder
                 ],
             ],
             [
-                'sort' => 4, 'activity' => 1, 'icon' => $defaultIcon, 'views' => $defaultViews,
+                'sort' => 4, 'activity' => 1, 'icon' => $defaultIcon,
                 'translations' => [
                     ['locale' => 'en', 'title' => 'Reviews', 'short' => 'Analysis and opinions', 'description' => 'Review articles'],
                     ['locale' => 'ru', 'title' => 'Обзоры', 'short' => 'Анализ и мнения', 'description' => 'Обзорные статьи'],
@@ -50,7 +49,7 @@ class RubricSeeder extends Seeder
                 ],
             ],
             [
-                'sort' => 5, 'activity' => 1, 'icon' => $defaultIcon, 'views' => $defaultViews,
+                'sort' => 5, 'activity' => 1, 'icon' => $defaultIcon,
                 'translations' => [
                     ['locale' => 'en', 'title' => 'Results', 'short' => 'Event outcomes', 'description' => 'Match and tournament results'],
                     ['locale' => 'ru', 'title' => 'Результаты', 'short' => 'Итоги событий', 'description' => 'Результаты матчей и турниров'],
@@ -58,7 +57,7 @@ class RubricSeeder extends Seeder
                 ],
             ],
             [
-                'sort' => 6, 'activity' => 1, 'icon' => $defaultIcon, 'views' => $defaultViews,
+                'sort' => 6, 'activity' => 1, 'icon' => $defaultIcon,
                 'translations' => [
                     ['locale' => 'en', 'title' => 'Open Ring en', 'short' => 'Open fights', 'description' => 'Event information'],
                     ['locale' => 'ru', 'title' => 'Open Ring ru', 'short' => 'Открытые поединки', 'description' => 'Информация о мероприятиях'],
@@ -66,7 +65,7 @@ class RubricSeeder extends Seeder
                 ],
             ],
             [
-                'sort' => 7, 'activity' => 1, 'icon' => $defaultIcon, 'views' => $defaultViews,
+                'sort' => 7, 'activity' => 1, 'icon' => $defaultIcon,
                 'translations' => [
                     ['locale' => 'en', 'title' => 'WBSS en', 'short' => 'World Boxing Super Series', 'description' => 'WBSS news and events'],
                     ['locale' => 'ru', 'title' => 'WBSS ru', 'short' => 'Всемирная бокс-суперсерия', 'description' => 'Новости и события WBSS'],
@@ -74,7 +73,7 @@ class RubricSeeder extends Seeder
                 ],
             ],
             [
-                'sort' => 8, 'activity' => 1, 'icon' => $defaultIcon, 'views' => $defaultViews,
+                'sort' => 8, 'activity' => 1, 'icon' => $defaultIcon,
                 'translations' => [
                     ['locale' => 'en', 'title' => 'P4P Rating', 'short' => 'Top fighters', 'description' => 'Ranking of the best P4P fighters'],
                     ['locale' => 'ru', 'title' => 'Рейтинг Р4Р', 'short' => 'Лучшие бойцы', 'description' => 'Рейтинг лучших бойцов P4P'],

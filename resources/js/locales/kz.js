@@ -184,6 +184,8 @@ export default {
     notSelected: 'таңдалмаған',
     of: 'дан',
     options: 'Модульдің опциялары мен параметрлері',
+    page: 'бет',
+    pages: 'Беттер',
     parameter: 'Параметр',
     parameterCategory: 'Параметр санаты',
     parameterConstant: 'Параметр тұрақтысы',

@@ -23,7 +23,6 @@ class RubricRequest extends FormRequest
         return [
             'sort' => 'nullable|integer',
             'icon' => 'nullable|string',
-            'views' => 'nullable|integer',
             'activity' => 'required|boolean',
 
             'translations' => 'required|array',
@@ -85,11 +84,6 @@ class RubricRequest extends FormRequest
             'translations.*.meta_desc.max' => 'Meta описание не должно превышать 255 символов.',
 
             'sort.integer' => 'Поле сортировки должно быть числом.',
-            'views.integer' => 'Количество просмотров должно быть числом.',
-
-            'image_url.image' => 'Файл должен быть изображением.',
-            'image_url.mimes' => 'Изображение должно быть в формате jpeg, png, jpg, gif или svg.',
-            'image_url.max' => 'Размер изображения не должен превышать 2MB.',
 
             'activity.required' => 'Поле активности обязательно для заполнения.',
             'activity.boolean' => 'Поле активности должно быть логическим значением.',

@@ -19,7 +19,6 @@ class RubricResource extends JsonResource
             'sort' => $this->sort,
             'activity' => $this->activity,
             'icon' => $this->icon,
-            'views' => $this->views,
             'translations' => RubricTranslationResource::collection($this->translations),
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),

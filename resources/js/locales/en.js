@@ -184,6 +184,8 @@ export default {
     notSelected: 'not selected',
     of: 'of',
     options: 'Module options and settings',
+    page: 'page',
+    pages: 'Pages',
     parameter: 'Parameter',
     parameterCategory: 'Parameter Category',
     parameterConstant: 'Parameter Constant',

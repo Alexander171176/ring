@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Rubric\RubricRequest;
 use App\Http\Resources\Admin\Rubric\RubricResource;
 use App\Models\Admin\Rubric\Rubric;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * @OA\Info(

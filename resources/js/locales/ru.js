@@ -184,6 +184,8 @@ export default {
     notSelected: 'не выбрано',
     of: 'из',
     options: 'Опции и настройки модуля',
+    page: 'страница',
+    pages: 'Страницы',
     parameter: 'Параметр',
     parameterCategory: 'Категория Параметра',
     parameterConstant: 'Константа Параметра',

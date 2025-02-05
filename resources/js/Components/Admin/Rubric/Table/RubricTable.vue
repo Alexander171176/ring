@@ -57,16 +57,10 @@ const toggleAll = (event) => {
                         <div class="text-left font-medium">{{ t('icon') }}</div>
                     </th>
                     <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
-                        <div class="text-left font-medium">{{ t('image') }}</div>
-                    </th>
-                    <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
                         <div class="text-left font-medium">{{ t('title') }}</div>
                     </th>
                     <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
                         <div class="text-left font-medium">{{ t('url') }}</div>
-                    </th>
-                    <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
-                        <div class="text-center font-medium">{{ t('views') }}</div>
                     </th>
                     <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
                         <div class="text-center font-medium">{{ t('actions') }}</div>
@@ -88,11 +82,6 @@ const toggleAll = (event) => {
                                 <div class="text-center" v-html="rubric.icon" />
                             </td>
                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
-                                <div class="text-left">
-                                    <div class="text-center" v-html="rubric.icon"></div>
-                                </div>
-                            </td>
-                            <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
                                 <div class="text-left text-teal-600 dark:text-violet-200">
                                     {{ rubric.translations.find(t => t.locale === $i18n.locale)?.title || '' }}
                                 </div>
@@ -101,9 +90,6 @@ const toggleAll = (event) => {
                                 <div class="text-left text-blue-600 dark:text-blue-200">
                                     {{ rubric.translations.find(t => t.locale === $i18n.locale)?.url || '' }}
                                 </div>
-                            </td>
-                            <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
-                                <div class="text-center">{{ rubric.views }}</div>
                             </td>
                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
                                 <div class="flex justify-center space-x-2">

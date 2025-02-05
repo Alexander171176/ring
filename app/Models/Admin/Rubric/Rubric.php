@@ -12,7 +12,7 @@ class Rubric extends Model
     protected $guarded = false;
     protected $table = 'rubrics';
 
-    protected $fillable = ['sort', 'activity', 'icon', 'views'];
+    protected $fillable = ['sort', 'activity', 'icon'];
 
     public function translations(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
