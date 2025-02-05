@@ -279,3 +279,11 @@
     `docker exec ring-php-app php artisan l5-swagger:generate` <br>
 
 58) npm install highlight.js
+
+____________________________
+
+59) Create model and migrations Rubric Translations <br>
+    `docker exec ring-php-app php artisan make:model Admin/Rubric/RubricTranslation -mf` <br>
+
+60) Create resource RubricTranslationResource <br>
+    `docker exec ring-php-app php artisan make:resource Admin/Rubric/RubricTranslationResource` <br>

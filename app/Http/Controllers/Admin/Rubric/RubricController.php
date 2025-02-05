@@ -26,7 +26,7 @@ class RubricController extends Controller
         $cacheTime = $this->getCacheTime();
 
         $rubrics = Cache::store('redis')->remember('rubrics.all', $cacheTime, function () {
-            return Rubric::all();
+            return Rubric::with('translations')->get();
         });
 
         $rubricsCount = Cache::store('redis')->remember('rubrics.count', $cacheTime, function () {

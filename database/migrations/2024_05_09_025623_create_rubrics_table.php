@@ -16,17 +16,8 @@ return new class extends Migration
             $table->integer('sort')->default(0); // Поле для хранения порядка сортировки рубрик
             $table->boolean('activity')->default(false); // Активность рубрики
             $table->text('icon')->nullable(); // Иконка рубрики
-            $table->string('title')->unique(); // Заголовок рубрики
-            $table->text('url')->unique(); // Адрес рубрики
-            $table->string('short')->nullable(); // Краткое Описание
-            $table->text('description')->nullable(); // Описание рубрики
             $table->unsignedBigInteger('views')->default(0); // Количество просмотров
             $table->text('image_url')->nullable(); // Адрес изображения
-            $table->string('seo_title')->nullable(); // Title изображения
-            $table->string('seo_alt')->nullable(); // Title изображения
-            $table->string('meta_title')->nullable(); // meta title
-            $table->string('meta_keywords')->nullable(); // meta keywords
-            $table->string('meta_desc')->nullable(); // meta description
             $table->timestamps();
         });
     }

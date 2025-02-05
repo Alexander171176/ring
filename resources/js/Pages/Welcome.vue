@@ -38,23 +38,6 @@ const logout = () => {
                             <ApplicationMark class="block h-9 w-auto"/>
                         </div>
 
-                        <div class="hidden md:flex w-full flex-row flex-wrap items-center justify-end">
-                            <Link href="/frontend"
-                                  class="font-semibold
-                                             text-gray-600
-                                             text-lg
-                                             px-3 py-1
-                                             hover:text-gray-900
-                                             dark:text-gray-400
-                                             dark:hover:text-white
-                                             focus:outline
-                                             focus:outline-2
-                                             focus:rounded-sm
-                                             focus:outline-red-500">
-                                Фронтенд
-                            </Link>
-                        </div>
-
                         <div v-if="canLogin" class="hidden md:flex w-full flex-row flex-wrap items-center justify-end">
 
                             <!-- Navigation Links -->

@@ -8,7 +8,7 @@ use Illuminate\Validation\Rule;
 class RubricRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * Определяет, авторизован ли пользователь для выполнения запроса.
      */
     public function authorize(): bool
     {
@@ -16,76 +16,88 @@ class RubricRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * Возвращает правила валидации для запроса.
      */
     public function rules(): array
     {
         return [
             'sort' => 'nullable|integer',
             'icon' => 'nullable|string',
-            'title' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('rubrics', 'title')->ignore($this->route('rubric')),
-            ],
-            'url' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('rubrics', 'url')->ignore($this->route('rubric')),
-            ],
-            'short' => 'nullable|string|max:255',
-            'description' => 'nullable|string',
             'views' => 'nullable|integer',
             'image_url' => 'nullable|file|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'seo_title' => 'nullable|string|max:255',
-            'seo_alt' => 'nullable|string|max:255',
-            'meta_title' => 'nullable|string|max:255',
-            'meta_keywords' => 'nullable|string|max:255',
-            'meta_desc' => 'nullable|string|max:255',
             'activity' => 'required|boolean',
+
+            'translations' => 'required|array',
+            'translations.*.locale' => [
+                'required',
+                'string',
+                'size:2',
+                Rule::in(['ru', 'en', 'kz']), // Допустимые языки
+            ],
+            'translations.*.title' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('rubric_translations', 'title')->ignore($this->route('rubric'), 'rubric_id'),
+            ],
+            'translations.*.url' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('rubric_translations', 'url')->ignore($this->route('rubric'), 'rubric_id'),
+            ],
+            'translations.*.short' => 'nullable|string|max:255',
+            'translations.*.description' => 'nullable|string',
+            'translations.*.seo_title' => 'nullable|string|max:255',
+            'translations.*.seo_alt' => 'nullable|string|max:255',
+            'translations.*.meta_title' => 'nullable|string|max:255',
+            'translations.*.meta_keywords' => 'nullable|string|max:255',
+            'translations.*.meta_desc' => 'nullable|string|max:255',
         ];
     }
 
     /**
-     * Get custom messages for validator errors.
-     *
-     * @return array
+     * Сообщения об ошибках валидации.
      */
     public function messages(): array
     {
         return [
-            'title.required' => 'Заголовок рубрики обязателен для заполнения.',
-            'title.string' => 'Заголовок рубрики должен быть строкой.',
-            'title.max' => 'Заголовок рубрики не должен превышать 255 символов.',
-            'title.unique' => 'Рубрика с таким заголовком уже существует.',
+            'translations.required' => 'Требуется указать переводы для рубрики.',
+            'translations.*.locale.required' => 'Язык перевода обязателен.',
+            'translations.*.locale.string' => 'Язык должен быть строкой.',
+            'translations.*.locale.size' => 'Код языка должен состоять из 2 символов (например, "ru", "en", "kz").',
+            'translations.*.locale.in' => 'Допустимые языки: ru, en, kz.',
 
-            'url.required' => 'URL рубрики обязателен для заполнения.',
-            'url.string' => 'URL рубрики должен быть строкой.',
-            'url.max' => 'URL рубрики не должен превышать 255 символов.',
-            'url.unique' => 'Рубрика с таким URL уже существует.',
+            'translations.*.title.required' => 'Заголовок рубрики обязателен для заполнения.',
+            'translations.*.title.string' => 'Заголовок рубрики должен быть строкой.',
+            'translations.*.title.max' => 'Заголовок рубрики не должен превышать 255 символов.',
+            'translations.*.title.unique' => 'Рубрика с таким заголовком уже существует.',
 
-            'short.string' => 'Краткое описание должно быть строкой.',
-            'short.max' => 'Краткое описание не должно превышать 255 символов.',
+            'translations.*.url.required' => 'URL рубрики обязателен для заполнения.',
+            'translations.*.url.string' => 'URL рубрики должен быть строкой.',
+            'translations.*.url.max' => 'URL рубрики не должен превышать 255 символов.',
+            'translations.*.url.unique' => 'Рубрика с таким URL уже существует.',
 
-            'views.integer' => 'Количество просмотров должно быть целым числом.',
+            'translations.*.short.string' => 'Краткое описание должно быть строкой.',
+            'translations.*.short.max' => 'Краткое описание не должно превышать 255 символов.',
+
+            'translations.*.description.string' => 'Описание рубрики должно быть строкой.',
+
+            'translations.*.seo_title.max' => 'SEO заголовок не должен превышать 255 символов.',
+            'translations.*.seo_alt.max' => 'SEO alt текст не должен превышать 255 символов.',
+            'translations.*.meta_title.max' => 'Meta заголовок не должен превышать 255 символов.',
+            'translations.*.meta_keywords.max' => 'Meta ключевые слова не должны превышать 255 символов.',
+            'translations.*.meta_desc.max' => 'Meta описание не должно превышать 255 символов.',
+
+            'sort.integer' => 'Поле сортировки должно быть числом.',
+            'views.integer' => 'Количество просмотров должно быть числом.',
 
             'image_url.image' => 'Файл должен быть изображением.',
             'image_url.mimes' => 'Изображение должно быть в формате jpeg, png, jpg, gif или svg.',
             'image_url.max' => 'Размер изображения не должен превышать 2MB.',
 
-            'seo_title.max' => 'SEO заголовок не должен превышать 255 символов.',
-            'seo_alt.max' => 'SEO alt текст не должен превышать 255 символов.',
-            'meta_title.max' => 'Meta заголовок не должен превышать 255 символов.',
-            'meta_keywords.max' => 'Meta ключевые слова не должны превышать 255 символов.',
-            'meta_desc.max' => 'Meta описание не должно превышать 255 символов.',
-
             'activity.required' => 'Поле активности обязательно для заполнения.',
             'activity.boolean' => 'Поле активности должно быть логическим значением.',
         ];
     }
-
 }
