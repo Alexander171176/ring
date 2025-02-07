@@ -35,6 +35,7 @@ export default {
     browserSessionWarning: 'If necessary, you may log out of all of your other browser sessions across all of your devices. Some of your recent sessions are listed below; however, this list may not be exhaustive. If you feel your account has been compromised, you should also update your password.',
     bulkActions: 'Bulk actions on items:',
     cancel: 'Cancel',
+    category: 'Category',
     characters: 'characters',
     charts: 'Charts',
     class: 'tailwind css classes',

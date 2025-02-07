@@ -28,7 +28,7 @@ Route::get('/', function () {
     // Получаем настройку из базы данных
     $template = Setting::where('option', 'siteLayout')->value('value');
 
-    return Inertia::render('Welcome', [
+    return Inertia::render('Index', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
         'laravelVersion' => Application::VERSION,
