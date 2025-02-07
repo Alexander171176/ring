@@ -231,7 +231,5 @@
 ____________________________
 
 51) Create model and migrations Rubric Translations <br>
-    `docker exec ring-php-app php artisan make:model Admin/Rubric/RubricTranslation -mf` <br>
+    `docker exec ring-php-app php artisan make:middleware SetLocale` <br>
 
-52) Create resource RubricTranslationResource <br>
-    `docker exec ring-php-app php artisan make:resource Admin/Rubric/RubricTranslationResource` <br>

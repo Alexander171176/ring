@@ -22,33 +22,31 @@ class RubricRequest extends FormRequest
     {
         return [
             'sort' => 'nullable|integer',
-            'icon' => 'nullable|string',
+            'icon' => 'nullable|string|max:255',
             'activity' => 'required|boolean',
 
-            'translations' => 'required|array',
-            'translations.*.locale' => [
+            'locale' => [
                 'required',
                 'string',
                 'size:2',
-                Rule::in(['ru', 'en', 'kz']), // Допустимые языки
+                Rule::in(['ru', 'en', 'kz']),
             ],
-            'translations.*.title' => [
+            'title' => [
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('rubric_translations', 'title')->ignore($this->route('rubric'), 'rubric_id'),
+                Rule::unique('rubrics', 'title')->ignore($this->route('rubric')),
             ],
-            'translations.*.url' => [
+            'url' => [
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('rubric_translations', 'url')->ignore($this->route('rubric'), 'rubric_id'),
+                Rule::unique('rubrics', 'url')->ignore($this->route('rubric')),
             ],
-            'translations.*.short' => 'nullable|string|max:255',
-            'translations.*.description' => 'nullable|string',
-            'translations.*.meta_title' => 'nullable|string|max:255',
-            'translations.*.meta_keywords' => 'nullable|string|max:255',
-            'translations.*.meta_desc' => 'nullable|string|max:255',
+            'short' => 'nullable|string|max:255',
+            'meta_title' => 'nullable|string|max:255',
+            'meta_keywords' => 'nullable|string|max:255',
+            'meta_desc' => 'nullable|string|max:255',
         ];
     }
 
@@ -58,33 +56,29 @@ class RubricRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'translations.required' => 'Требуется указать переводы для рубрики.',
-            'translations.*.locale.required' => 'Язык перевода обязателен.',
-            'translations.*.locale.string' => 'Язык должен быть строкой.',
-            'translations.*.locale.size' => 'Код языка должен состоять из 2 символов (например, "ru", "en", "kz").',
-            'translations.*.locale.in' => 'Допустимые языки: ru, en, kz.',
+            'locale.required' => 'Язык рубрики обязателен.',
+            'locale.string' => 'Язык должен быть строкой.',
+            'locale.size' => 'Код языка должен состоять из 2 символов (например, "ru", "en", "kz").',
+            'locale.in' => 'Допустимые языки: ru, en, kz.',
 
-            'translations.*.title.required' => 'Заголовок рубрики обязателен для заполнения.',
-            'translations.*.title.string' => 'Заголовок рубрики должен быть строкой.',
-            'translations.*.title.max' => 'Заголовок рубрики не должен превышать 255 символов.',
-            'translations.*.title.unique' => 'Рубрика с таким заголовком уже существует.',
+            'title.required' => 'Заголовок рубрики обязателен.',
+            'title.string' => 'Заголовок рубрики должен быть строкой.',
+            'title.max' => 'Заголовок рубрики не должен превышать 255 символов.',
+            'title.unique' => 'Рубрика с таким заголовком уже существует.',
 
-            'translations.*.url.required' => 'URL рубрики обязателен для заполнения.',
-            'translations.*.url.string' => 'URL рубрики должен быть строкой.',
-            'translations.*.url.max' => 'URL рубрики не должен превышать 255 символов.',
-            'translations.*.url.unique' => 'Рубрика с таким URL уже существует.',
+            'url.required' => 'URL рубрики обязателен.',
+            'url.string' => 'URL рубрики должен быть строкой.',
+            'url.max' => 'URL рубрики не должен превышать 255 символов.',
+            'url.unique' => 'Рубрика с таким URL уже существует.',
 
-            'translations.*.short.string' => 'Краткое описание должно быть строкой.',
-            'translations.*.short.max' => 'Краткое описание не должно превышать 255 символов.',
+            'short.string' => 'Краткое описание должно быть строкой.',
+            'short.max' => 'Краткое описание не должно превышать 255 символов.',
 
-            'translations.*.description.string' => 'Описание рубрики должно быть строкой.',
-
-            'translations.*.meta_title.max' => 'Meta заголовок не должен превышать 255 символов.',
-            'translations.*.meta_keywords.max' => 'Meta ключевые слова не должны превышать 255 символов.',
-            'translations.*.meta_desc.max' => 'Meta описание не должно превышать 255 символов.',
+            'meta_title.max' => 'Meta заголовок не должен превышать 255 символов.',
+            'meta_keywords.max' => 'Meta ключевые слова не должны превышать 255 символов.',
+            'meta_desc.max' => 'Meta описание не должно превышать 255 символов.',
 
             'sort.integer' => 'Поле сортировки должно быть числом.',
-
             'activity.required' => 'Поле активности обязательно для заполнения.',
             'activity.boolean' => 'Поле активности должно быть логическим значением.',
         ];

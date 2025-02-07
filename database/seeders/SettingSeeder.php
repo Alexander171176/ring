@@ -24,15 +24,6 @@ class SettingSeeder extends Seeder
                 'activity' => true,
             ],
             [
-                'type' => 'string',
-                'option' => 'siteLayout',
-                'value' => 'Default',
-                'constant' => 'SITE_LAYOUT',
-                'category' => 'Шаблон сайта',
-                'description' => 'Шаблон публичной части сайта',
-                'activity' => true,
-            ],
-            [
                 'type' => 'checkbox',
                 'option' => 'downtimeSite',
                 'value' => 'false',

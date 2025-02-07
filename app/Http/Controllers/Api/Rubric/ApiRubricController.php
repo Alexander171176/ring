@@ -31,7 +31,6 @@ use App\Models\Admin\Rubric\Rubric;
  *         @OA\Property(property="id", type="integer", description="Rubric ID"),
  *         @OA\Property(property="title", type="string", description="Rubric title"),
  *         @OA\Property(property="url", type="string", description="Rubric URL"),
- *         @OA\Property(property="description", type="string", description="Rubric description"),
  *         @OA\Property(property="created_at", type="string", format="date-time", description="Creation date"),
  *         @OA\Property(property="updated_at", type="string", format="date-time", description="Last update date")
  *     }

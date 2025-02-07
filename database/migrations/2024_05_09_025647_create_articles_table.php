@@ -26,9 +26,9 @@ return new class extends Migration
             $table->text('image_url')->nullable()->default(''); // Адрес изображения
             $table->string('seo_title')->nullable()->default(''); // Title изображения
             $table->string('seo_alt')->nullable()->default(''); // Title изображения
-            $table->string('meta_title')->nullable()->default(''); // meta title
-            $table->string('meta_keywords')->nullable()->default(''); // meta keywords
-            $table->string('meta_desc')->nullable()->default(''); // meta description
+            $table->string('meta_title', 255)->nullable(); // meta title
+            $table->string('meta_keywords', 255)->nullable(); // meta keywords
+            $table->string('meta_desc', 255)->nullable(); // meta description
             $table->timestamps();
         });
     }

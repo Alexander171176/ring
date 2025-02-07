@@ -16,16 +16,6 @@ const props = defineProps({
 
 const emits = defineEmits(['toggle-activity', 'edit', 'delete', 'recalculate-sort', 'clone', 'toggle-select']);
 
-const imagePath = (path) => {
-    if (!path) {
-        return '/storage/rubric_images/default-image.png';
-    }
-    if (path.startsWith('http') || path.startsWith('https')) {
-        return path;
-    }
-    return `/storage/${path}`;
-};
-
 const recalculateSort = (event) => {
     emits('recalculate-sort', event);
 };
@@ -50,22 +40,25 @@ const toggleAll = (event) => {
                               bg-slate-200 dark:bg-cyan-900
                               border border-solid border-gray-300 dark:border-gray-700">
                 <tr>
-                    <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap w-px">
+                    <th class="px-2 first:pl-7 last:pr-7 py-3 whitespace-nowrap w-px">
                         <div class="text-center font-medium">{{ t('id') }}</div>
                     </th>
-                    <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
-                        <div class="text-left font-medium">{{ t('icon') }}</div>
+                    <th class="px-2 first:pl-7 last:pr-7 py-3 whitespace-nowrap">
+                        <div class="text-center font-medium">{{ t('icon') }}</div>
                     </th>
-                    <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
+                    <th class="px-2 first:pl-7 last:pr-7 py-3 whitespace-nowrap">
+                        <div class="text-center font-medium">{{ t('localization') }}</div>
+                    </th>
+                    <th class="px-2 first:pl-7 last:pr-7 py-3 whitespace-nowrap">
                         <div class="text-left font-medium">{{ t('title') }}</div>
                     </th>
-                    <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
+                    <th class="px-2 first:pl-7 last:pr-7 py-3 whitespace-nowrap">
                         <div class="text-left font-medium">{{ t('url') }}</div>
                     </th>
-                    <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
+                    <th class="px-2 first:pl-7 last:pr-7 py-3 whitespace-nowrap">
                         <div class="text-center font-medium">{{ t('actions') }}</div>
                     </th>
-                    <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
+                    <th class="px-2 first:pl-7 last:pr-7 py-3 whitespace-nowrap">
                         <div class="text-center font-medium">
                             <input type="checkbox" @change="toggleAll" />
                         </div>
@@ -75,23 +68,24 @@ const toggleAll = (event) => {
                 <draggable tag="tbody" :list="rubrics" @end="recalculateSort" itemKey="id">
                     <template #item="{ element: rubric }">
                         <tr class="text-sm font-semibold border-b-2 hover:bg-slate-100 dark:hover:bg-cyan-800">
-                            <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
-                                <div class="text-center text-blue-500 dark:text-blue-300 font-semibold">{{ rubric.id }}</div>
+                            <td class="px-2 first:pl-7 last:pr-7 py-1 whitespace-nowrap">
+                                <div class="text-center text-blue-600 dark:text-blue-200">{{ rubric.id }}</div>
                             </td>
-                            <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
-                                <div class="text-center" v-html="rubric.icon" />
+                            <td class="px-2 first:pl-7 last:pr-7 py-1 whitespace-nowrap">
+                                <div class="flex justify-center" v-html="rubric.icon" />
                             </td>
-                            <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
-                                <div class="text-left text-orange-500 dark:text-orange-300">
-                                    {{ rubric.translations.find(t => t.locale === $i18n.locale)?.title || '' }}
+                            <td class="px-2 first:pl-7 last:pr-7 py-1 whitespace-nowrap">
+                                <div class="text-center uppercase text-orange-500 dark:text-orange-200">
+                                    {{ rubric.locale }}
                                 </div>
                             </td>
-                            <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
-                                <div class="text-left text-violet-600 dark:text-violet-200">
-                                    {{ rubric.translations.find(t => t.locale === $i18n.locale)?.url || '' }}
-                                </div>
+                            <td class="px-2 first:pl-7 last:pr-7 py-1 whitespace-nowrap">
+                                <div class="text-left text-yellow-500 dark:text-yellow-200">{{ rubric.title }}</div>
                             </td>
-                            <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
+                            <td class="px-2 first:pl-7 last:pr-7 py-1 whitespace-nowrap">
+                                <div class="text-left text-violet-600 dark:text-violet-200">{{ rubric.url }}</div>
+                            </td>
+                            <td class="px-2 first:pl-7 last:pr-7 py-1 whitespace-nowrap">
                                 <div class="flex justify-center space-x-2">
                                     <ActivityToggle :isActive="rubric.activity"
                                                     @toggle-activity="$emit('toggle-activity', rubric)"
@@ -101,7 +95,7 @@ const toggleAll = (event) => {
                                     <DeleteIconButton @delete="$emit('delete', rubric.id)" />
                                 </div>
                             </td>
-                            <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
+                            <td class="px-2 first:pl-7 last:pr-7 py-1 whitespace-nowrap">
                                 <div class="text-center">
                                     <input type="checkbox" :checked="selectedRubrics.includes(rubric.id)" @change="$emit('toggle-select', rubric.id)" />
                                 </div>

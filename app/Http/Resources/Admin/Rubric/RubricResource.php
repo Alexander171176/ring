@@ -19,10 +19,16 @@ class RubricResource extends JsonResource
             'sort' => $this->sort,
             'activity' => $this->activity,
             'icon' => $this->icon,
-            'translations' => RubricTranslationResource::collection($this->translations),
-            'created_at' => $this->created_at->format('Y-m-d H:i:s'),
-            'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),
-            'articles_count' => $this->articles_count, // Используем количество статей
+            'locale' => $this->locale,
+            'title' => $this->title,
+            'url' => $this->url,
+            'short' => $this->short,
+            'meta_title' => $this->meta_title,
+            'meta_keywords' => $this->meta_keywords,
+            'meta_desc' => $this->meta_desc,
+            'created_at' => $this->created_at?->toDateTimeString(),
+            'updated_at' => $this->updated_at?->toDateTimeString(),
+            'articles_count' => $this->when(isset($this->articles_count), $this->articles_count),
         ];
     }
 }

@@ -16,7 +16,6 @@ import DefaultButton from '@/Components/Admin/Buttons/DefaultButton.vue';
 import axios from 'axios';
 
 const { t } = useI18n();
-const { locale } = useI18n(); // Получаем текущую локаль
 
 const props = defineProps(['rubrics', 'rubricsCount']);
 
@@ -82,21 +81,20 @@ const sortParam = ref('sort');
 
 // Функция сортировки
 const sortRubrics = (rubrics) => {
+    if (sortParam.value === 'activity') {
+        return rubrics.filter(rubric => rubric.activity);
+    }
+    if (sortParam.value === 'inactive') {
+        return rubrics.filter(rubric => !rubric.activity);
+    }
     return rubrics.slice().sort((a, b) => {
-        if (sortParam.value === 'activity') {
-            return b.activity - a.activity; // Сортировка по активности
+        if (a[sortParam.value] < b[sortParam.value]) {
+            return -1;
         }
-        if (sortParam.value === 'inactive') {
-            return a.activity - b.activity; // Сортировка по неактивным
+        if (a[sortParam.value] > b[sortParam.value]) {
+            return 1;
         }
-        if (sortParam.value === 'title') {
-            // Получаем title на текущем языке
-            const titleA = a.translations.find(t => t.locale === locale.value)?.title || '';
-            const titleB = b.translations.find(t => t.locale === locale.value)?.title || '';
-
-            return titleA.localeCompare(titleB); // Сортировка по алфавиту
-        }
-        return a[sortParam.value] - b[sortParam.value]; // Обычная числовая сортировка
+        return 0;
     });
 };
 
@@ -105,18 +103,13 @@ const filteredRubrics = computed(() => {
     let filtered = props.rubrics;
 
     if (searchQuery.value) {
-        filtered = filtered.filter(rubric => {
-            // Найти перевод для текущей локали
-            const translation = rubric.translations?.find(t => t.locale === locale.value);
-            // Проверяем, есть ли название и соответствует ли оно поисковому запросу
-            const title = translation ? translation.title.toLowerCase() : '';
-            return title.includes(searchQuery.value.toLowerCase());
-        });
+        filtered = filtered.filter(rubric =>
+            rubric.title.toLowerCase().includes(searchQuery.value.toLowerCase())
+        );
     }
 
     return sortRubrics(filtered);
 });
-
 
 // Пагинация
 const paginatedRubrics = computed(() => {
@@ -135,7 +128,7 @@ const recalculateSort = (event) => {
                 // response => console.log(`Обновлена сортировка по идентификатору ${rubric.id} на ${rubric.sort}`)
             )
             .catch(
-                 error => console.error(error.response.data)
+                error => console.error(error.response.data)
             );
     });
 };

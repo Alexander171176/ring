@@ -12,21 +12,22 @@ class Rubric extends Model
     protected $guarded = false;
     protected $table = 'rubrics';
 
-    protected $fillable = ['sort', 'activity', 'icon'];
-
-    public function translations(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(RubricTranslation::class);
-    }
-
-    public function translation($locale = null): \Illuminate\Database\Eloquent\Relations\HasOne
-    {
-        return $this->hasOne(RubricTranslation::class)->where('locale', $locale ?? app()->getLocale());
-    }
+    protected $fillable = [
+        'sort',
+        'activity',
+        'icon',
+        'locale',
+        'title',
+        'url',
+        'short',
+        'meta_title',
+        'meta_keywords',
+        'meta_desc'
+    ];
 
     // Определите отношение многие ко многим с моделью Article
     public function articles(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
-        return $this->belongsToMany(Article::class, 'article_has_rubrics');
+        return $this->belongsToMany(Article::class, 'article_has_rubrics', 'rubric_id', 'article_id');
     }
 }

@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Rubric\RubricRequest;
 use App\Http\Resources\Admin\Rubric\RubricResource;
 use App\Models\Admin\Rubric\Rubric;
-use App\Models\Admin\Rubric\RubricTranslation;
 use App\Traits\CacheTimeTrait;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -26,7 +25,7 @@ class RubricController extends Controller
         $cacheTime = $this->getCacheTime();
 
         $rubrics = Cache::store('redis')->remember('rubrics.all', $cacheTime, function () {
-            return Rubric::with('translations')->get();
+            return Rubric::all();
         });
 
         $rubricsCount = Cache::store('redis')->remember('rubrics.count', $cacheTime, function () {
@@ -40,7 +39,7 @@ class RubricController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Показ формы создания рубрики.
      */
     public function create(): \Inertia\Response
     {
@@ -53,11 +52,11 @@ class RubricController extends Controller
     public function store(RubricRequest $request): \Illuminate\Http\RedirectResponse
     {
         $data = $request->validated();
-
         $rubric = Rubric::create($data);
 
-        Log::info('Рубрика создана: ', $rubric->toArray());
+        Log::info('Рубрика успешно создана: ', $rubric->toArray());
 
+        // Очистка кэша после создания рубрики
         $this->clearCache(['rubrics.all', 'rubrics.count']);
 
         return redirect()->route('rubrics.index')->with('success', 'Рубрика успешно создана');
@@ -71,12 +70,11 @@ class RubricController extends Controller
         $cacheTime = $this->getCacheTime();
 
         $rubric = Cache::store('redis')->remember("rubric.$id", $cacheTime, function () use ($id) {
-            return Rubric::with('translations')->findOrFail($id);
+            return Rubric::findOrFail($id);
         });
 
         return Inertia::render('Admin/Rubrics/Edit', [
             'rubric' => new RubricResource($rubric),
-            'translations' => $rubric->translations, // Передаём переводы
         ]);
     }
 
@@ -87,31 +85,7 @@ class RubricController extends Controller
     {
         $rubric = Rubric::findOrFail($id);
         $data = $request->validated();
-
-        DB::transaction(function () use ($rubric, $data) {
-            // Обновляем основную рубрику
-            $rubric->update([
-                'sort' => $data['sort'],
-                'icon' => $data['icon'],
-                'activity' => $data['activity'] ?? false,
-            ]);
-
-            // Обрабатываем переводы
-            foreach ($data['translations'] as $translationData) {
-                RubricTranslation::updateOrCreate(
-                    ['rubric_id' => $rubric->id, 'locale' => $translationData['locale']],
-                    [
-                        'title' => $translationData['title'],
-                        'url' => $translationData['url'],
-                        'short' => $translationData['short'],
-                        'description' => $translationData['description'],
-                        'meta_title' => $translationData['meta_title'],
-                        'meta_keywords' => $translationData['meta_keywords'],
-                        'meta_desc' => $translationData['meta_desc'],
-                    ]
-                );
-            }
-        });
+        $rubric->update($data);
 
         Log::info('Рубрика обновлена: ', $rubric->toArray());
 
@@ -126,7 +100,6 @@ class RubricController extends Controller
     public function destroy(string $id): \Illuminate\Http\RedirectResponse
     {
         $rubric = Rubric::findOrFail($id);
-
         $rubric->delete();
 
         Log::info('Рубрика удалена: ', $rubric->toArray());
@@ -204,23 +177,16 @@ class RubricController extends Controller
      */
     public function clone(Request $request, $id): \Illuminate\Http\JsonResponse
     {
-        DB::beginTransaction();
+        DB::beginTransaction(); // Начало транзакции
 
         try {
-            $rubric = Rubric::with('translations')->findOrFail($id);
+            $rubric = Rubric::findOrFail($id);
 
             // Клонируем рубрику без ID
             $clonedRubric = $rubric->replicate();
+            $clonedRubric->title .= '-2'; // Обновляем название клона
+            $clonedRubric->url .= '-2';     // Обновляем URL клона
             $clonedRubric->save();
-
-            // Клонируем переводы, добавляя -2 к title и url
-            foreach ($rubric->translations as $translation) {
-                $clonedTranslation = $translation->replicate();
-                $clonedTranslation->rubric_id = $clonedRubric->id;
-                $clonedTranslation->title = $translation->title . '-2'; // Добавляем -2 в конец title
-                $clonedTranslation->url = $translation->url . '-2'; // Добавляем -2 в конец url
-                $clonedTranslation->save();
-            }
 
             DB::commit();
 
@@ -236,5 +202,4 @@ class RubricController extends Controller
             return response()->json(['success' => false, 'message' => 'Ошибка клонирования рубрики'], 500);
         }
     }
-
 }

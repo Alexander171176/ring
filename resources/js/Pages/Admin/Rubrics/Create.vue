@@ -1,8 +1,7 @@
 <script setup>
-import {ref} from 'vue';
 import {useI18n} from 'vue-i18n';
-import { transliterate } from '@/utils/transliteration';
-import { useForm } from '@inertiajs/vue3';
+import {transliterate} from '@/utils/transliteration';
+import {useForm} from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import TitlePage from '@/Components/Admin/Headlines/TitlePage.vue';
 import DefaultButton from '@/Components/Admin/Buttons/DefaultButton.vue';
@@ -10,13 +9,13 @@ import PrimaryButton from '@/Components/Admin/Buttons/PrimaryButton.vue';
 import MetatagsButton from '@/Components/Admin/Buttons/MetatagsButton.vue';
 import LabelCheckbox from '@/Components/Admin/Checkbox/LabelCheckbox.vue';
 import ActivityCheckbox from '@/Components/Admin/Checkbox/ActivityCheckbox.vue';
-import CKEditor from '@/Components/Admin/CKEditor/CKEditor.vue';
+import LocaleSelect from '@/Components/Admin/Select/LocaleSelect.vue';
 import MetaDescTextarea from '@/Components/Admin/Textarea/MetaDescTextarea.vue';
 import InputNumber from '@/Components/Admin/Input/InputNumber.vue';
 import LabelInput from '@/Components/Admin/Input/LabelInput.vue';
 import InputText from '@/Components/Admin/Input/InputText.vue';
 import InputError from '@/Components/Admin/Input/InputError.vue';
-import ImageUpload from '@/Components/Admin/Input/ImageUpload.vue';
+import CKEditor from "@/Components/Admin/CKEditor/CKEditor.vue";
 
 const {t} = useI18n();
 
@@ -24,13 +23,10 @@ const {t} = useI18n();
 const form = useForm({
     sort: '0',
     icon: '',
+    locale: '',
     title: '',
     url: '',
     short: '',
-    description: '',
-    image_url: null,
-    seo_title: '',
-    seo_alt: '',
     meta_title: '',
     meta_keywords: '',
     meta_desc: '',
@@ -44,18 +40,12 @@ const handleUrlInputFocus = () => {
     }
 };
 
-// автоматическое заполнение поля seo_alt
-const handleSeoAltFocus = () => {
-    if (form.seo_title && !form.seo_alt) {
-        form.seo_alt = form.seo_title;
-    }
-};
-
 // автоматическая генерация мета-тегов
 const truncateText = (text, maxLength, addEllipsis = false) => {
     if (!text) return ''; // Защита от пустых значений
     if (text.length <= maxLength) return text;
-    const truncated = text.substr(0, text.lastIndexOf(' ', maxLength));
+    const lastSpaceIndex = text.lastIndexOf(' ', maxLength);
+    const truncated = lastSpaceIndex === -1 ? text.substr(0, maxLength) : text.substr(0, lastSpaceIndex);
     return addEllipsis ? `${truncated}...` : truncated;
 };
 
@@ -64,8 +54,8 @@ const generateMetaFields = () => {
         form.meta_title = truncateText(form.title, 160);
     }
 
-    if (form.tags && !form.meta_keywords) {
-        form.meta_keywords = truncateText(form.tags, 200);
+    if (!form.meta_keywords && form.title) {
+        form.meta_keywords = truncateText(form.title, 200); // Используем title вместо tags
     }
 
     if (form.short && !form.meta_desc) {
@@ -73,27 +63,8 @@ const generateMetaFields = () => {
     }
 };
 
-// Изображение
-const imagePreview = ref(null);
-const imageInput = ref(null);
-
-const updateImagePreview = ({file, preview}) => {
-    imagePreview.value = preview;
-    imageInput.value = file;
-};
-
-const clearImageFileInput = () => {
-    if (imageInput.value) {
-        imageInput.value = null;
-        imagePreview.value = null;
-    }
-};
-
 // метод сохранения
 const submitForm = () => {
-    if (imageInput.value) {
-        form.image_url = imageInput.value;
-    }
 
     form.transform((data) => ({
         ...data,
@@ -106,7 +77,6 @@ const submitForm = () => {
         errorBag: 'createRubric',
         preserveScroll: true,
         onSuccess: () => {
-            clearImageFileInput();
             // console.log("Форма успешно отправлена.");
         },
         onError: (errors) => {
@@ -132,13 +102,16 @@ const submitForm = () => {
                         <template #icon>
                             <!-- SVG -->
                             <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">
-                                <path d="M4.3 4.5c1.9-1.9 5.1-1.9 7 0 .7.7 1.2 1.7 1.4 2.7l2-.3c-.2-1.5-.9-2.8-1.9-3.8C10.1.4 5.7.4 2.9 3.1L.7.9 0 7.3l6.4-.7-2.1-2.1zM15.6 8.7l-6.4.7 2.1 2.1c-1.9 1.9-5.1 1.9-7 0-.7-.7-1.2-1.7-1.4-2.7l-2 .3c.2 1.5.9 2.8 1.9 3.8 1.4 1.4 3.1 2 4.9 2 1.8 0 3.6-.7 4.9-2l2.2 2.2.8-6.4z"></path>
+                                <path
+                                    d="M4.3 4.5c1.9-1.9 5.1-1.9 7 0 .7.7 1.2 1.7 1.4 2.7l2-.3c-.2-1.5-.9-2.8-1.9-3.8C10.1.4 5.7.4 2.9 3.1L.7.9 0 7.3l6.4-.7-2.1-2.1zM15.6 8.7l-6.4.7 2.1 2.1c-1.9 1.9-5.1 1.9-7 0-.7-.7-1.2-1.7-1.4-2.7l-2 .3c.2 1.5.9 2.8 1.9 3.8 1.4 1.4 3.1 2 4.9 2 1.8 0 3.6-.7 4.9-2l2.2 2.2.8-6.4z"></path>
                             </svg>
                         </template>
                         {{ t('back') }}
                     </DefaultButton>
                 </div>
                 <form @submit.prevent="submitForm" enctype="multipart/form-data" class="p-3 w-full">
+
+                    <LocaleSelect v-model="form.locale" :error="form.errors.locale" />
 
                     <div class="mb-3 flex items-center">
                         <div class="flex justify-between w-full">
@@ -167,7 +140,9 @@ const submitForm = () => {
 
                     <!-- Поле title -->
                     <div class="mb-3 flex flex-col items-start">
-                        <LabelInput for="title" :value="t('rubricTitle')"/>
+                        <LabelInput for="title">
+                            <span class="text-red-500 dark:text-red-300 font-semibold">*</span> {{ t('rubricTitle') }}
+                        </LabelInput>
                         <InputText
                             id="title"
                             type="text"
@@ -180,7 +155,9 @@ const submitForm = () => {
 
                     <!-- Поле url -->
                     <div class="mb-3 flex flex-col items-start">
-                        <LabelInput for="url" :value="t('rubricUrl')"/>
+                        <LabelInput for="title">
+                            <span class="text-red-500 dark:text-red-300 font-semibold">*</span> {{ t('rubricUrl') }}
+                        </LabelInput>
                         <InputText
                             id="url"
                             type="text"
@@ -193,74 +170,9 @@ const submitForm = () => {
                     </div>
 
                     <div class="mb-3 flex flex-col items-start">
-                        <div class="flex justify-between w-full">
-                            <LabelInput for="short" :value="t('shortDescription')"/>
-                            <div class="text-xs text-gray-900 dark:text-gray-400 mt-1">
-                                {{ form.short.length }} / 255 {{ t('characters') }}
-                            </div>
-                        </div>
-                        <MetaDescTextarea v-model="form.short" class="w-full"/>
+                        <LabelInput for="short" :value="t('description')"/>
+                        <CKEditor v-model="form.short" class="w-full"/>
                         <InputError class="mt-2" :message="form.errors.short"/>
-                    </div>
-
-                    <div class="mb-3 flex flex-col items-start">
-                        <LabelInput for="description" :value="t('description')"/>
-                        <CKEditor v-model="form.description" class="w-full" />
-                        <InputError class="mt-2" :message="form.errors.description"/>
-                    </div>
-
-                    <div class="p-5 mb-3 flex flex-col md:flex-row
-                                justify-center bg-white dark:bg-slate-800 shadow-md
-                                border border-slate-300 space-y-6 md:space-y-0 md:gap-6">
-
-                        <div class="md:w-1/2 w-full flex justify-start">
-                            <div class="w-full max-w-md">
-                                <LabelInput for="image_url" :value="t('rubricImage')"
-                                            class="text-slate-800 dark:text-slate-100"/>
-                                <ImageUpload
-                                    id="image_url"
-                                    name="image_url"
-                                    :imagePreview="imagePreview"
-                                    :altText="t('currentImage')"
-                                    :titleText="t('currentImage')"
-                                    @change="updateImagePreview"
-                                />
-                                <InputError :message="form.errors.image_url" />
-                            </div>
-                        </div>
-
-                        <div class="md:w-1/2 w-full space-y-1">
-                            <div class="flex flex-col items-start space-y-2">
-
-                                <LabelInput :value="t('metaTagsImage')"
-                                            class="text-slate-700 dark:text-slate-100"/>
-
-                                <div class="w-full flex flex-col items-start">
-                                    <LabelInput for="seo_title" :value="t('seoTitle')"/>
-                                    <InputText
-                                        id="seo_title"
-                                        type="text"
-                                        v-model="form.seo_title"
-                                        autocomplete="url"
-                                    />
-                                    <InputError class="mt-2" :message="form.errors.seo_title"/>
-                                </div>
-
-                                <div class="w-full flex flex-col items-start">
-                                    <LabelInput for="seo_alt" :value="t('seoAlt')"/>
-                                    <InputText
-                                        id="seo_alt"
-                                        type="text"
-                                        v-model="form.seo_alt"
-                                        autocomplete="url"
-                                        @focus="handleSeoAltFocus"
-                                    />
-                                    <InputError class="mt-2" :message="form.errors.seo_alt"/>
-                                </div>
-
-                            </div>
-                        </div>
-
                     </div>
 
                     <div class="mb-3 flex flex-col items-start">
@@ -304,24 +216,34 @@ const submitForm = () => {
                                 {{ form.meta_desc.length }} / 255 {{ t('characters') }}
                             </div>
                         </div>
-                        <MetaDescTextarea v-model="form.meta_desc" class="w-full" />
+                        <MetaDescTextarea v-model="form.meta_desc" class="w-full"/>
                         <InputError class="mt-2" :message="form.errors.meta_desc"/>
                     </div>
 
                     <div class="flex justify-end mt-4">
                         <MetatagsButton @click.prevent="generateMetaFields">
                             <template #icon>
-                                <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">
+                                <svg class="w-4 h-4 fill-current text-slate-600 shrink-0 mr-2" viewBox="0 0 16 16">
                                     <path
-                                        d="M4.3 4.5c1.9-1.9 5.1-1.9 7 0 .7.7 1.2 1.7 1.4 2.7l2-.3c-.2-1.5-.9-2.8-1.9-3.8C10.1.4 5.7.4 2.9 3.1L.7.9 0 7.3l6.4-.7-2.1-2.1zM15.6 8.7l-6.4.7 2.1 2.1c-1.9 1.9-5.1 1.9-7 0-.7-.7-1.2-1.7-1.4-2.7l-2 .3c.2 1.5.9 2.8 1.9 3.8 1.4 1.4 3.1 2 4.9 2 1.8 0 3.6-.7 4.9-2l2.2 2.2.8-6.4z"></path>
+                                        d="M13 7h2v6a1 1 0 01-1 1H4v2l-4-3 4-3v2h9V7zM3 9H1V3a1 1 0 011-1h10V0l4 3-4 3V4H3v5z"></path>
                                 </svg>
                             </template>
                             {{ t('generateMetaTags') }}
                         </MetatagsButton>
                     </div>
 
-                    <div class="flex justify-center mt-4">
-                        <PrimaryButton class="ms-4" :class="{ 'opacity-25': form.processing }"
+                    <div class="flex items-center justify-center mt-4">
+                        <DefaultButton :href="route('rubrics.index')" class="mb-3">
+                            <template #icon>
+                                <!-- SVG -->
+                                <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">
+                                    <path
+                                        d="M4.3 4.5c1.9-1.9 5.1-1.9 7 0 .7.7 1.2 1.7 1.4 2.7l2-.3c-.2-1.5-.9-2.8-1.9-3.8C10.1.4 5.7.4 2.9 3.1L.7.9 0 7.3l6.4-.7-2.1-2.1zM15.6 8.7l-6.4.7 2.1 2.1c-1.9 1.9-5.1 1.9-7 0-.7-.7-1.2-1.7-1.4-2.7l-2 .3c.2 1.5.9 2.8 1.9 3.8 1.4 1.4 3.1 2 4.9 2 1.8 0 3.6-.7 4.9-2l2.2 2.2.8-6.4z"></path>
+                                </svg>
+                            </template>
+                            {{ t('back') }}
+                        </DefaultButton>
+                        <PrimaryButton class="ms-4 mb-0" :class="{ 'opacity-25': form.processing }"
                                        :disabled="form.processing">
                             <template #icon>
                                 <svg class="w-4 h-4 fill-current text-slate-100" viewBox="0 0 16 16">
