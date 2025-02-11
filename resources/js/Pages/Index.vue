@@ -37,9 +37,9 @@ const currentComponent = shallowRef(null);
 const fetchSettings = async () => {
     try {
         const response = await axios.get('/api/settings/downtimeSite');
-        console.log('Ответ API о состоянии заглушки:', response.data);
+        //console.log('Ответ API о состоянии заглушки:', response.data);
         downtimeSite.value = response.data.value === 'true';
-        console.log('Настройка downtimeSite после обработки:', downtimeSite.value);
+        //console.log('Настройка downtimeSite после обработки:', downtimeSite.value);
     } catch (error) {
         console.error('Ошибка при получении настроек:', error);
     } finally {
@@ -49,11 +49,11 @@ const fetchSettings = async () => {
 
 const updateComponent = () => {
     if (downtimeSite.value) {
-        console.log('Сайт на техническом обслуживании. Переключение на Maintenance.vue');
+        //console.log('Сайт на техническом обслуживании. Переключение на Maintenance.vue');
         currentComponent.value = Maintenance;
     } else {
         const template = props.template || 'Default';
-        console.log('Использование шаблона:', template);
+        //console.log('Использование шаблона:', template);
         currentComponent.value = components[template] || components['Default'];
     }
 };

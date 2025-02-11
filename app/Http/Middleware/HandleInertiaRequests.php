@@ -8,6 +8,7 @@ use App\Http\Resources\Admin\User\UserSharedResource;
 use App\Models\Admin\Plugin\Plugin;
 use App\Models\Admin\Setting\Setting; // Убедитесь, что импортируете правильную модель Setting
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
 
@@ -48,6 +49,7 @@ class HandleInertiaRequests extends Middleware
                 ...(new Ziggy)->toArray(),
                 'location' => $request->url(),
             ],
+            'locale' => App::getLocale(), // Добавляем текущую локаль
         ];
     }
 }

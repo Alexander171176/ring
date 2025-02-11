@@ -25,15 +25,20 @@ Route::post('/settings/locale', [\App\Http\Controllers\Admin\Setting\SettingCont
 Route::post('/admin/cache/clear', [App\Http\Controllers\Admin\System\SystemController::class, 'clearCache'])->name('cache.clear');
 
 Route::get('/', function () {
-    // Получаем настройку из базы данных
+
+    // Получаем текущую локаль
+    $locale = Setting::where('option', 'locale')->value('value');
+
+    // Получаем настройку шаблона из базы данных
     $template = Setting::where('option', 'siteLayout')->value('value');
 
-    return Inertia::render('Index', [
+    return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
-        'template' => ucfirst($template) // Передаем выбранный layout в компонент
+        'template' => ucfirst($template), // Передаем выбранный шаблон в компонент
+        'locale' => $locale, // Передаем текущую локаль в компонент
     ]);
 });
 

@@ -330,7 +330,8 @@ class ApiPluginController extends Controller
             return response()->json(['message' => 'Таблица модуля успешно создана.']);
         }
 
-        return response()->json(['message' => 'Таблица модуля уже существует.']);
+        // Возвращаем пустой ответ без сообщения
+        return response()->json(null, 204);
     }
 
     /**

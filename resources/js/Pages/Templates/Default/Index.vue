@@ -1,6 +1,6 @@
 <script setup>
 import {ref, onMounted, watch} from 'vue';
-import {Head, router} from '@inertiajs/vue3';
+import {Head, router, usePage} from '@inertiajs/vue3';
 import DefaultLayout from '@/Pages/Templates/Default/layouts/DefaultLayout.vue';
 import TitlePage from '@/Components/Admin/Headlines/TitlePage.vue';
 import Plugin from "@/Pages/Plugins/SamplePlugin/Index.vue";
@@ -9,8 +9,16 @@ import {useHead} from '@vueuse/head';
 
 const {t} = useI18n();
 
+// Получение локали из глобальных props
+const { locale } = usePage().props;
+console.log('Текущая локаль:', locale);
+
 const props = defineProps({
     title: String,
+    meta_title: String,
+    meta_desc: String,
+    meta_keywords: String,
+    og_image: String,
     canLogin: Boolean,
     canRegister: Boolean,
     laravelVersion: String,
@@ -28,7 +36,30 @@ const updateMetaTags = (title) => {
     useHead({
         title: title || 'Pulsar',
         meta: [
-            // мета теги
+            { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+            { name: 'description', content: props.meta_desc || 'Описание страницы' }, // Используем props.meta_desc
+            { name: 'keywords', content: props.meta_keywords || 'Ключевые слова страницы' }, // Используем props.meta_keywords
+            { property: 'og:title', content: props.meta_title || 'Open Graph заголовок' }, // Используем props.meta_title
+            { property: 'og:description', content: props.meta_desc || 'Open Graph описание' }, // Используем props.meta_desc
+            { property: 'og:image', content: props.og_image || 'default-image.png' }, // Используем props.og_image
+            { property: 'og:type', content: 'website' },
+            { property: 'og:url', content: window.location.href },
+            { property: 'og:site_name', content: 'Pulsar CMS' },
+            { property: 'og:locale', content: 'ru_RU' },
+            { name: 'DC.title', content: props.meta_title || 'Dublin Core заголовок' },
+            { name: 'DC.description', content: props.meta_desc || 'Dublin Core описание' },
+            { name: 'DC.subject', content: props.meta_keywords || 'Dublin Core ключевые слова' },
+            { name: 'DC.type', content: 'Text' },
+            { name: 'DC.creator', content: 'Pulsar CMS' },
+            { name: 'DC.publisher', content: 'Pulsar' },
+            { name: 'DC.date', content: new Date().toISOString() },
+            { name: 'twitter:card', content: 'summary_large_image' },
+            { name: 'twitter:site', content: '@yoursite' },
+            { name: 'twitter:title', content: props.meta_title || 'Default Title' },
+            { name: 'twitter:description', content: props.meta_desc || 'Default description' },
+            { name: 'twitter:image', content: props.og_image || 'default-image.png' },
+            { name: 'author', content: 'Александр Косолапов' },
+            { rel: 'canonical', href: window.location.href },
         ]
     });
 };

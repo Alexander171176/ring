@@ -163,7 +163,7 @@ class SettingController extends Controller
     public function updateLocaleSetting(Request $request): \Illuminate\Http\RedirectResponse
     {
         $validated = $request->validate([
-            'locale' => 'required|string|in:en,ru', // допустимые значения языков
+            'locale' => 'required|string|in:en,ru,kz', // добавляем 'kz'
         ]);
 
         Log::info('Полученный язык для обновления:', ['locale' => $validated['locale']]);
@@ -179,12 +179,12 @@ class SettingController extends Controller
             ]
         );
 
-        // Очистка кэша после обновления настроек
+        // Очистка кэша настроек и локали
         $this->clearCache(['settings']);
+        Cache::forget('app_locale');  // Очищаем кеш для локали
 
         Log::info('Язык интерфейса успешно обновлен.');
 
-        // Перезагрузка страницы
         return back()->with('success', 'Язык интерфейса успешно обновлен.');
     }
 

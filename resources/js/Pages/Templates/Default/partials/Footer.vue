@@ -1,35 +1,57 @@
 <script setup>
-import { ref, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
+import {ref, onMounted, watch} from 'vue';
+import {useI18n} from 'vue-i18n';
+import {router} from '@inertiajs/vue3';
 
-const { t, locale } = useI18n();
-const selectedLocale = ref(locale.value);
+const {t, locale} = useI18n();
 
+// Проверка локали из localStorage или текущей локали приложения
+const savedLocale = localStorage.getItem('locale') || locale.value;
+const selectedLocale = ref(savedLocale);
+
+// Устанавливаем локаль из localStorage при монтировании компонента
+onMounted(() => {
+    locale.value = savedLocale;
+});
+
+// Отправка выбранной локали на сервер и перезагрузка страницы
+const updateLocale = async (newLocale) => {
+    try {
+        await router.post('/settings/locale', {locale: newLocale}, {
+            preserveScroll: true,
+            onSuccess: () => {
+                console.log('Локаль успешно обновлена на сервере.');
+                localStorage.setItem('locale', newLocale);  // Сохраняем выбранную локаль в localStorage
+                window.location.reload();  // Перезагружаем страницу для применения новой локали
+            },
+            onError: (errors) => {
+                console.error('Ошибка при обновлении локали:', errors);
+            }
+        });
+    } catch (error) {
+        console.error('Ошибка при выполнении запроса:', error);
+    }
+};
+
+// Отслеживание изменения выбранной локали
 watch(selectedLocale, (newLocale) => {
-    locale.value = newLocale;
-    localStorage.setItem('locale', newLocale);
+    if (newLocale !== locale.value) {
+        updateLocale(newLocale);  // Обновляем локаль на сервере и сохраняем в localStorage
+    }
 });
 </script>
 
 <template>
-    <footer class="sticky
-                    px-4 py-2
-                    bottom-0
-                    bg-gradient-to-b from-slate-100 to-slate-300
-                    dark:bg-gradient-to-b dark:from-slate-700 dark:to-slate-900
-                    border-t border-slate-200 dark:border-slate-700
-                    z-20">
+    <footer
+        class="sticky px-4 py-2 bottom-0 bg-gradient-to-b from-slate-100 to-slate-300 dark:bg-gradient-to-b dark:from-slate-700 dark:to-slate-900 border-t border-slate-200 dark:border-slate-700 z-20">
         <div class="flex items-center justify-between flex-wrap">
             <div class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-2 sm:mb-0">
                 <a href="/" target="_blank" class="font-semibold text-red-400 hover:text-rose-300">Pulsar</a>
-                © {{ new Date().getFullYear() }}
-                {{ t('allRightsReserved') }}
+                © {{ new Date().getFullYear() }} {{ t('allRightsReserved') }}
             </div>
             <div class="flex items-center space-x-2">
                 <a href="https://t.me/k_a_v_www" target="_blank"
-                   class="flex items-center
-                            space-x-2
-                            text-blue-500 hover:text-blue-700 dark:text-blue-300 dark:hover:text-blue-500">
+                   class="flex items-center space-x-2 text-blue-500 hover:text-blue-700 dark:text-blue-300 dark:hover:text-blue-500">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"
                          class="w-5 h-5 sm:w-6 sm:h-6">
                         <path

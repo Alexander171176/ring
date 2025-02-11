@@ -1,10 +1,15 @@
 <script setup>
 import {ref} from "vue";
-import {Head, Link, router} from '@inertiajs/vue3'
+import {Head, Link, router, usePage} from '@inertiajs/vue3'
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue'
 import ApplicationMark from '@/Components/ApplicationMark.vue'
 import ThemeToggle from '@/Components/User/ThemeToggle/ThemeToggle.vue'
 import LogoutButton from '@/Components/User/Button/LogoutButton.vue'
+
+// Получаем доступ к глобальным свойствам страницы
+const { locale } = usePage().props;
+// Выводим текущую локаль в консоль
+console.log('Текущая локаль:', locale);
 
 defineProps({
     title: String,
