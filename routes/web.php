@@ -29,15 +29,11 @@ Route::get('/', function () {
     // Получаем текущую локаль
     $locale = Setting::where('option', 'locale')->value('value');
 
-    // Получаем настройку шаблона из базы данных
-    $template = Setting::where('option', 'siteLayout')->value('value');
-
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
-        'template' => ucfirst($template), // Передаем выбранный шаблон в компонент
         'locale' => $locale, // Передаем текущую локаль в компонент
     ]);
 });
