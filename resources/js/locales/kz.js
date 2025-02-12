@@ -18,6 +18,7 @@ export default {
     addUser: 'Пайдаланушыны қосу',
     added: 'Қосылды.',
     administrator: 'Әкімші',
+    administer: 'Әкімшілік',
     adminPanel: 'Әкімші панелі',
     agreeTerms1: 'Мен келісемін,',
     allRightsReserved: 'Барлық құқықтар қорғалған.',

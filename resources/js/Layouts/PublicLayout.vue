@@ -22,6 +22,6 @@ const props = defineProps({
         <slot />
     </main>
 
-    <Footer />
+    <Footer :can-login="canLogin" :can-register="canRegister" />
 
 </template>

@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Public\Default;
 
 use App\Http\Controllers\Controller;
 use App\Models\Admin\Rubric\Rubric;
+use App\Models\Admin\Setting\Setting;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Log;
 
 class RubricController extends Controller
@@ -17,19 +17,26 @@ class RubricController extends Controller
      */
     public function getRubrics(): JsonResponse
     {
-        Log::info('Метод getRubrics вызван');  // Проверка вызова метода
+        // Получаем текущую локаль
+        $locale = Setting::where('option', 'locale')->value('value');
 
-        $locale = App::getLocale();
-        Log::info("Текущая локаль: " . $locale);  // Проверка текущей локали
+        // Логирование для проверки текущей локали
+        //Log::info("Текущая локаль для фильтрации: " . $locale);
 
+        // Получаем рубрики с фильтрацией по активности и локали
         $rubrics = Rubric::where('activity', 1)
             ->where('locale', $locale)
             ->orderBy('sort')
             ->get(['id', 'title', 'url', 'locale']);
 
-        Log::info("Найденные рубрики:", $rubrics->toArray());  // Проверка данных рубрик
+        // Логирование результата перед отправкой
+        //Log::info("Найденные рубрики: ", $rubrics->toArray());
 
-        return response()->json($rubrics);
+        return response()->json([
+            'rubrics' => $rubrics,
+            'rubricsCount' => $rubrics->count()
+        ]);
     }
+
 
 }

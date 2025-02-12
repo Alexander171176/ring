@@ -18,6 +18,7 @@ export default {
     addUser: 'Add User',
     added: 'Added.',
     administrator: 'Administrator',
+    administer: 'Administer',
     adminPanel: 'Admin Panel',
     agreeTerms1: 'I agree to the',
     allRightsReserved: 'All rights reserved.',

@@ -18,6 +18,7 @@ export default {
     addUser: 'Добавить пользователя',
     added: 'Добавлен.',
     administrator: 'Администратор',
+    administer: 'Администрировать',
     adminPanel: 'Панель Администратора',
     agreeTerms1: 'Я согласен,',
     allRightsReserved: 'Все права защищены.',

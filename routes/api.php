@@ -18,8 +18,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-// Рубрики для меню
-Route::get('/rubrics', [\App\Http\Controllers\Public\Default\RubricController::class, 'getRubrics']);
+// Рубрики для меню (API маршрут)
+Route::get('/menu-rubrics', [\App\Http\Controllers\Public\Default\RubricController::class, 'getRubrics']);
 
 // Просмотр всех комментариев доступных для статьи
 Route::get('comments/{article}', [\App\Http\Controllers\Public\CommentController::class, 'index'])->name('api.comments.index');
