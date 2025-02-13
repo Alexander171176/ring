@@ -96,7 +96,7 @@ const clearCache = async () => {
                     <span class="text-xs sm:text-sm text-gray-500 dark:text-gray-400">{{ t('supportService') }}</span>
                 </a>
                 <select v-model="selectedLocale"
-                        class="bg-slate-100 dark:bg-slate-300 form-select text-gray-900 dark:text-gray-700 px-3 py-0.5">
+                        class="bg-slate-100 dark:bg-slate-300 form-select text-gray-900 dark:text-gray-700 px-3 py-0.5 w-32">
                     <option value="ru">{{ t('russian') }}</option>
                     <option value="en">{{ t('english') }}</option>
                     <option value="kz">{{ t('kazakh') }}</option>

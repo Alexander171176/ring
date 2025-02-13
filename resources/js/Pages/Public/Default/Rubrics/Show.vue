@@ -17,10 +17,32 @@ defineProps({
         :can-login="canLogin"
         :can-register="canRegister"
     >
-
         <Head>
+            <!-- Основные мета-теги -->
             <title>{{ rubric.title }}</title>
-            <meta name="description" :content="rubric.description || 'Default description'"/>
+            <meta name="title" :content="rubric.title || ''"/>
+            <meta name="keywords" :content="rubric.meta_keywords || ''"/>
+            <meta name="description" :content="rubric.meta_desc || ''"/>
+
+            <!-- Open Graph (Facebook, Twitter, LinkedIn) -->
+            <meta property="og:title" :content="rubric.title || ''"/>
+            <meta property="og:description" :content="rubric.meta_desc || ''"/>
+            <meta property="og:type" content="website"/>
+            <meta property="og:url" :content="`/rubrics/${rubric.url}`"/>
+            <meta property="og:image" :content="rubric.icon || ''"/>
+            <meta property="og:locale" :content="rubric.locale || 'ru_RU'"/>
+
+            <!-- Twitter Card -->
+            <meta name="twitter:card" content="summary_large_image"/>
+            <meta name="twitter:title" :content="rubric.title || ''"/>
+            <meta name="twitter:description" :content="rubric.meta_desc || ''"/>
+            <meta name="twitter:image" :content="rubric.icon || ''"/>
+
+            <!-- Dublin Core Metadata -->
+            <meta name="DC.title" :content="rubric.title || ''"/>
+            <meta name="DC.description" :content="rubric.meta_desc || ''"/>
+            <meta name="DC.identifier" :content="`/rubrics/${rubric.url}`"/>
+            <meta name="DC.language" :content="rubric.locale || 'ru'"/>
         </Head>
 
         <div class="relative sm:flex sm:justify-center sm:items-center min-h-screen
@@ -29,13 +51,18 @@ defineProps({
             <div class="max-w-8xl mx-auto">
 
                 <!-- Название рубрики -->
-                <h1 class="text-center text-3xl font-bolder text-gray-900 mb-4">
+                <h1 class="flex items-center justify-center mb-4
+                           text-center font-bolder text-2xl text-gray-900 dark:text-slate-100">
+                    <span class="flex justify-center" v-html="rubric.icon" />
                     {{ rubric.title }}
+                    <!-- Количество статей -->
+                    <span class="ml-2 text-sm font-semibold text-white px-3 py-1 bg-emerald-500 rounded-sm">
+                        {{ articlesCount }}
+                    </span>
                 </h1>
 
-                <!-- Количество статей -->
-                <p class="text-gray-600 text-sm mb-6">
-                    {{ $t('posts') }}: {{ articlesCount }}
+                <p class="flex items-center justify-center text-center text-lg text-gray-600 text-md mb-4">
+                    {{ rubric.short }}
                 </p>
 
                 <!-- Список статей -->
