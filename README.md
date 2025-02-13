@@ -230,9 +230,28 @@
 
 ____________________________
 
-51) Create RubricController <br>
+51) Create middleware SetLocaleFromSettings <br>
     `docker exec ring-php-app php artisan make:middleware SetLocaleFromSettings` <br>
 
 52) Create RubricController <br>
     `docker exec ring-php-app php artisan make:controller Public/Default/RubricController` <br>
 
+53) Create migration Tags, Images <br>
+    `docker exec ring-php-app php artisan make:model Admin/Article/Tag -mf` <br>
+    `docker exec ring-php-app php artisan make:migration create_article_has_tag_table --create=article_has_tag` <br>
+    `docker exec ring-php-app php artisan make:model Admin/Article/ArticleImage -mf` <br>
+    `docker exec ring-php-app php artisan make:migration create_article_has_images_table --create=article_has_images` <br>
+    
+54) Create resource Tag, ArticleImage
+    `docker exec ring-php-app php artisan make:resource Admin/Article/TagResource` <br>
+    `docker exec ring-php-app php artisan make:resource Admin/Article/ArticleImageResource` <br>
+ 
+55)  Create request Tag, ArticleImage
+    `docker exec ring-php-app php artisan make:request Admin/Article/TagRequest` <br>
+     `docker exec ring-php-app php artisan make:request Admin/Article/ArticleImageRequest` <br>
+ 
+56) Create seed Tag, ArticleImage
+    `docker exec ring-php-app php artisan make:seeder TagSeeder` <br>
+    `docker exec ring-php-app php artisan db:seed --class=TagSeeder` <br>
+    `docker exec ring-php-app php artisan make:seeder ArticleImageSeeder` <br>
+    `docker exec ring-php-app php artisan db:seed --class=ArticleImageSeeder` <br>

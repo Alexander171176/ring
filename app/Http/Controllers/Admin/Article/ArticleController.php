@@ -4,9 +4,13 @@ namespace App\Http\Controllers\Admin\Article;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Article\ArticleRequest;
+use App\Http\Resources\Admin\Article\ArticleImageResource;
 use App\Http\Resources\Admin\Article\ArticleResource;
+use App\Http\Resources\Admin\Article\TagResource;
 use App\Http\Resources\Admin\Rubric\RubricResource;
 use App\Models\Admin\Article\Article;
+use App\Models\Admin\Article\ArticleImage;
+use App\Models\Admin\Article\Tag;
 use App\Models\Admin\Rubric\Rubric;
 use App\Traits\CacheTimeTrait;
 use Illuminate\Http\Request;
@@ -29,7 +33,7 @@ class ArticleController extends Controller
         $cacheTime = $this->getCacheTime();
 
         $articles = Cache::store('redis')->remember('articles.all', $cacheTime, function () {
-            return Article::with('rubrics')->get();
+            return Article::with(['rubrics', 'tags', 'images'])->get();
         });
 
         $articlesCount = Cache::store('redis')->remember('articles.count', $cacheTime, function () {
@@ -49,12 +53,27 @@ class ArticleController extends Controller
      */
     public function create(): \Inertia\Response
     {
-        $rubrics = Cache::store('redis')->remember('rubrics.all', $this->getCacheTime(), function () {
+        $cacheTime = $this->getCacheTime();
+
+        // Загрузка рубрик
+        $rubrics = Cache::store('redis')->remember('rubrics.all', $cacheTime, function () {
             return Rubric::all();
         });
 
+        // Загрузка тегов
+        $tags = Cache::store('redis')->remember('tags.all', $cacheTime, function () {
+            return Tag::all();
+        });
+
+        // Загрузка изображений
+        $images = Cache::store('redis')->remember('images.all', $cacheTime, function () {
+            return ArticleImage::all();
+        });
+
         return Inertia::render('Admin/Articles/Create', [
-            'rubrics' => RubricResource::collection($rubrics)
+            'rubrics' => RubricResource::collection($rubrics),
+            'tags' => $tags,
+            'images' => $images,
         ]);
     }
 
@@ -68,20 +87,43 @@ class ArticleController extends Controller
     {
         $data = $request->validated();
 
-        if ($request->hasFile('image_url')) {
-            $data['image_url'] = $request->file('image_url')->store('article_images', 'public');
-        }
-
+        // Обработка рубрик
         $rubricIds = [];
         if ($request->has('rubrics')) {
             $rubricTitles = array_column($request->input('rubrics'), 'title');
             $rubricIds = Rubric::whereIn('title', $rubricTitles)->pluck('id')->toArray();
         }
 
+        // Обработка тегов
+        $tagIds = [];
+        if ($request->has('tags')) {
+            $tagTitles = array_column($request->input('tags'), 'name');
+            $tagIds = Tag::whereIn('name', $tagTitles)->pluck('id')->toArray();
+        }
+
+        // Обработка изображений
+        $imageIds = [];
+        if ($request->has('images')) {
+            $imageUrls = array_column($request->input('images'), 'path');
+            $imageIds = ArticleImage::whereIn('path', $imageUrls)->pluck('id')->toArray();
+        }
+
+        // Создание статьи
         $article = Article::create($data);
 
+        // Привязка рубрик
         if ($rubricIds) {
             $article->rubrics()->sync($rubricIds);
+        }
+
+        // Привязка тегов
+        if ($tagIds) {
+            $article->tags()->sync($tagIds);
+        }
+
+        // Привязка изображений
+        if ($imageIds) {
+            $article->images()->sync($imageIds);
         }
 
         Log::info('Статья создана: ', $article->toArray());
@@ -102,25 +144,32 @@ class ArticleController extends Controller
     {
         $cacheTime = $this->getCacheTime();
 
-        // Находим статью с рубриками
+        // Находим статью с рубриками, тегами и изображениями
         $article = Cache::store('redis')->remember("article.$id", $cacheTime, function () use ($id) {
-            return Article::with('rubrics')->findOrFail($id);
+            return Article::with(['rubrics', 'tags', 'images'])->findOrFail($id);
         });
-
-        // Проверка, есть ли изображение, и формирование правильного пути к нему
-        if ($article->image_url) {
-            $article->image_url = Storage::url($article->image_url);
-        }
 
         // Получаем все рубрики
         $rubrics = Cache::store('redis')->remember('rubrics.all', $cacheTime, function () {
             return Rubric::all();
         });
 
-        // Передаём статью и рубрики на страницу
+        // Получаем все теги
+        $tags = Cache::store('redis')->remember('tags.all', $cacheTime, function () {
+            return Tag::all();
+        });
+
+        // Получаем все изображения
+        $images = Cache::store('redis')->remember('images.all', $cacheTime, function () {
+            return ArticleImage::all();
+        });
+
+        // Передаём статью, рубрики, теги и изображения на страницу через ресурсы
         return Inertia::render('Admin/Articles/Edit', [
             'article' => new ArticleResource($article),
-            'rubrics' => RubricResource::collection($rubrics)
+            'rubrics' => RubricResource::collection($rubrics),
+            'tags' => TagResource::collection($tags),
+            'images' => ArticleImageResource::collection($images),
         ]);
     }
 
@@ -137,27 +186,34 @@ class ArticleController extends Controller
 
         $data = $request->validated();
 
-        if ($request->hasFile('image_url')) {
-            if ($article->image_url) {
-                Storage::disk('public')->delete($article->image_url);
-            }
-            $data['image_url'] = $request->file('image_url')->store('article_images', 'public');
-        } else {
-            $data['image_url'] = $article->image_url;
-        }
-
+        // Обработка рубрик
         if ($request->has('rubrics')) {
             $rubricTitles = array_column($request->input('rubrics'), 'title');
             $rubricIds = Rubric::whereIn('title', $rubricTitles)->pluck('id')->toArray();
             $article->rubrics()->sync($rubricIds);
         }
 
+        // Обработка тегов
+        if ($request->has('tags')) {
+            $tagTitles = array_column($request->input('tags'), 'name');
+            $tagIds = Tag::whereIn('name', $tagTitles)->pluck('id')->toArray();
+            $article->tags()->sync($tagIds);
+        }
+
+        // Обработка изображений
+        if ($request->has('images')) {
+            $imageUrls = array_column($request->input('images'), 'path');
+            $imageIds = ArticleImage::whereIn('path', $imageUrls)->pluck('id')->toArray();
+            $article->images()->sync($imageIds);
+        }
+
+        // Обновление статьи
         $article->update($data);
 
         Log::info('Статья обновлена: ', $article->toArray());
 
         // Очистка кэша
-        $this->clearCache(['articles.all', 'articles.count', 'rubrics.all']);
+        $this->clearCache(['articles.all', 'articles.count', 'rubrics.all', 'tags.all', 'images.all']);
 
         return redirect()->route('articles.index')->with('success', 'Статья успешно обновлена');
     }
@@ -171,10 +227,6 @@ class ArticleController extends Controller
     public function destroy(string $id): \Illuminate\Http\RedirectResponse
     {
         $article = Article::findOrFail($id);
-
-        if ($article->image_url) {
-            Storage::disk('public')->delete($article->image_url);
-        }
         $article->delete();
 
         Log::info('Статья удалена: ', $article->toArray());
@@ -201,9 +253,6 @@ class ArticleController extends Controller
         $articleIds = $validated['ids'];
 
         Article::whereIn('id', $articleIds)->each(function ($article) {
-            if ($article->image_url) {
-                Storage::disk('public')->delete($article->image_url);
-            }
             $article->delete();
         });
 
@@ -276,20 +325,34 @@ class ArticleController extends Controller
     {
         $article = Article::findOrFail($id);
 
+        // Клонирование статьи
         $clonedArticle = $article->replicate();
         $clonedArticle->title = $article->title . ' 2';
         $clonedArticle->url = $article->url . '-2';
         $clonedArticle->save();
 
+        // Копируем рубрики
         $rubricIds = $article->rubrics->pluck('id')->toArray();
         if ($rubricIds) {
             $clonedArticle->rubrics()->sync($rubricIds);
         }
 
+        // Копируем теги
+        $tagIds = $article->tags->pluck('id')->toArray();
+        if ($tagIds) {
+            $clonedArticle->tags()->sync($tagIds);
+        }
+
+        // Копируем изображения
+        $imageIds = $article->images->pluck('id')->toArray();
+        if ($imageIds) {
+            $clonedArticle->images()->sync($imageIds);
+        }
+
         Log::info('Статья клонирована: ', $clonedArticle->toArray());
 
         // Очистка кэша
-        $this->clearCache(['articles.all', 'rubrics.all']);
+        $this->clearCache(['articles.all', 'rubrics.all', 'tags.all', 'images.all']);
 
         return response()->json(['success' => true, 'reload' => true]);
     }

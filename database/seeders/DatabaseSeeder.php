@@ -14,9 +14,11 @@ class DatabaseSeeder extends Seeder
         // Добавляем все нужные сидеры
         $this->call([
 //            RoleSeeder::class,
+            SettingSeeder::class,
             RubricSeeder::class,
             ArticleSeeder::class,
-            SettingSeeder::class,
+            TagSeeder::class,
+            ArticleImageSeeder::class,
             PluginsSeeder::class,
             CommentsSeeder::class,
             // Добавьте сюда другие сидеры по мере необходимости

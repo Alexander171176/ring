@@ -3,40 +3,46 @@
 namespace App\Http\Resources\Admin\Article;
 
 use App\Http\Resources\Admin\Rubric\RubricResource;
+use App\Http\Resources\Admin\Article\ArticleImageResource;
+use App\Http\Resources\Admin\Article\TagResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class ArticleResource extends JsonResource
 {
     /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
+     * Преобразует ресурс в массив.
      */
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
-            'sort' => $this->sort,
-            'activity' => $this->activity,
-            'title' => $this->title,
-            'url' => $this->url,
-            'short' => $this->short,
-            'description' => $this->description,
-            'author' => $this->author,
-            'tags' => $this->tags,
-            'views' => $this->views,
-            'likes' => $this->likes,
-            'image_url' => $this->image_url,
-            'seo_title' => $this->seo_title,
-            'seo_alt' => $this->seo_alt,
-            'meta_title' => $this->meta_title,
+            'id'            => $this->id,
+            'sort'          => $this->sort,
+            'activity'      => $this->activity,
+            'locale'        => $this->locale,
+            'title'         => $this->title,
+            'short'         => $this->short,
+            'description'   => $this->description,
+            'author'        => $this->author,
+            'views'         => $this->views,
+            'likes'         => $this->likes,
+            'meta_title'    => $this->meta_title,
             'meta_keywords' => $this->meta_keywords,
-            'meta_desc' => $this->meta_desc,
-            'created_at' => $this->created_at->format('Y-m-d H:i:s'),
-            'updated_at' => $this->updated_at->format('Y-m-d H:i:s'),
-            'comments_count' => $this->comments_count, // количество комментариев
-            'rubrics' => RubricResource::collection($this->whenLoaded('rubrics'))
+            'meta_desc'     => $this->meta_desc,
+            'created_at'    => $this->created_at?->format('Y-m-d H:i:s'),
+            'updated_at'    => $this->updated_at?->format('Y-m-d H:i:s'),
+
+            // Количество комментариев
+            'comments_count' => $this->whenNotNull($this->comments_count, 0),
+
+            // Связанные рубрики
+            'rubrics' => RubricResource::collection($this->whenLoaded('rubrics')),
+
+            // Связанные изображения
+            'images' => ArticleImageResource::collection($this->whenLoaded('images')),
+
+            // Связанные теги
+            'tags' => TagResource::collection($this->whenLoaded('tags')),
         ];
     }
 }

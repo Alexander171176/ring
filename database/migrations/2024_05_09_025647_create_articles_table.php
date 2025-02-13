@@ -15,17 +15,14 @@ return new class extends Migration
             $table->id();
             $table->integer('sort')->default(0); // Поле для хранения порядка сортировки постов
             $table->boolean('activity')->default(false); // Активность поста
+            $table->string('locale', 2); // Язык (ru, en, kz)
             $table->string('title')->unique(); // Заголовок поста
             $table->text('url')->unique(); // Адрес поста
             $table->string('short')->nullable(); // Краткое Описание поста
             $table->text('description')->nullable(); // Описание поста
             $table->string('author')->nullable(); // Автор поста
-            $table->string('tags')->nullable(); // Теги поста
             $table->unsignedBigInteger('views')->default(0); // Количество просмотров поста
             $table->unsignedBigInteger('likes')->default(0); // Количество лайков поста
-            $table->text('image_url')->nullable()->default(''); // Адрес изображения
-            $table->string('seo_title')->nullable()->default(''); // Title изображения
-            $table->string('seo_alt')->nullable()->default(''); // Title изображения
             $table->string('meta_title', 255)->nullable(); // meta title
             $table->string('meta_keywords', 255)->nullable(); // meta keywords
             $table->string('meta_desc', 255)->nullable(); // meta description

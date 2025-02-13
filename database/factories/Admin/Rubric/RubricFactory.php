@@ -31,6 +31,8 @@ class RubricFactory extends Factory
             'meta_title' => $this->faker->optional()->sentence(5),
             'meta_keywords' => $this->faker->optional()->words(5, true),
             'meta_desc' => $this->faker->optional()->sentence(10),
+            'created_at' => now(),
+            'updated_at' => now(),
         ];
     }
 }
