@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\Admin\Setting\Setting;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Inertia\Inertia;
 
@@ -31,9 +32,11 @@ class AppServiceProvider extends ServiceProvider
 
         App::setLocale($locale);
 
-        // Передача текущей локали во все Inertia-компоненты
+        // Передача глобальных данных во все Inertia-компоненты
         Inertia::share([
             'locale' => App::getLocale(),
+            'canLogin' => fn () => Route::has('login'),
+            'canRegister' => fn () => Route::has('register'),
         ]);
     }
 }

@@ -24,30 +24,25 @@ Route::post('/settings/locale', [\App\Http\Controllers\Admin\Setting\SettingCont
 // Маршрут очищает весь кэш
 Route::post('/admin/cache/clear', [App\Http\Controllers\Admin\System\SystemController::class, 'clearCache'])->name('cache.clear');
 
-Route::get('/', function () {
+// Главная страница
+Route::get('/', fn() => Inertia::render('Welcome'));
 
-    // Получаем текущую локаль
-    $locale = Setting::where('option', 'locale')->value('value');
+// Отображение конкретной рубрики
+Route::get('/rubrics/{url}', [\App\Http\Controllers\Public\Default\RubricController::class, 'show'])->where('url', '.*');
 
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-        'locale' => $locale, // Передаем текущую локаль в компонент
-    ]);
-});
-
+// Профиль Пользователя
 Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',])->group(function () {
     Route::get('/dashboard', function () {return Inertia::render('Dashboard');})
         ->name('dashboard');
 });
 
+// Главная Панели Администратора
 Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',])->group(function () {
     Route::get('/admin', function () {return Inertia::render('Admin');})
         ->name('admin');
 });
 
+// Все маршруты Административной части
 Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])
     ->prefix('admin')
     ->group(function () {
@@ -156,10 +151,12 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
 
     });
 
+// Laravel File Manager для загрузки изображений
 Route::group(['prefix' => 'laravel-filemanager', 'middleware' => ['web', 'auth']], function () {
     \UniSharp\LaravelFilemanager\Lfm::routes();
 });
 
+// Проверка Redis
 Route::get('/redis-test', function () {
     Cache::put('key', 'value', 10);
     return Cache::get('key');

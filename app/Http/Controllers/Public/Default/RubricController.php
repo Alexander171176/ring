@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Public\Default;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Admin\Article\ArticleResource;
+use App\Http\Resources\Admin\Rubric\RubricResource;
 use App\Models\Admin\Rubric\Rubric;
 use App\Models\Admin\Setting\Setting;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Log;
+use Inertia\Inertia;
 
 class RubricController extends Controller
 {
@@ -15,7 +17,7 @@ class RubricController extends Controller
      *
      * @return JsonResponse
      */
-    public function getRubrics(): JsonResponse
+    public function index(): JsonResponse
     {
         // Получаем текущую локаль
         $locale = Setting::where('option', 'locale')->value('value');
@@ -38,5 +40,21 @@ class RubricController extends Controller
         ]);
     }
 
+    /*
+ * Страница показа рубрики
+ */
+    public function show(string $url): \Inertia\Response
+    {
+        // Извлекаем рубрику вместе с активными статьями
+        $rubric = Rubric::with(['articles' => function ($query) {
+            $query->where('activity', 1)->orderBy('created_at', 'desc');
+        }])->where('url', $url)->firstOrFail();
+
+        return Inertia::render('Public/Default/Rubrics/Show', [
+            'rubric' => new RubricResource($rubric),
+            'articles' => ArticleResource::collection($rubric->articles),
+            'articlesCount' => $rubric->articles->count(),
+        ]);
+    }
 
 }

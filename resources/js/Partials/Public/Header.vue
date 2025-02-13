@@ -1,7 +1,7 @@
 <script setup>
 import {defineEmits, ref} from "vue";
 import { Link, router, usePage } from "@inertiajs/vue3";
-import PageMenu from "@/Components/Public/Default/PageMenu.vue";
+import Rubrics from "@/Components/Public/Default/Rubrics.vue";
 import ApplicationMark from "@/Components/ApplicationMark.vue";
 import ThemeToggle from "@/Components/User/ThemeToggle/ThemeToggle.vue";
 import LogoutButton from "@/Components/User/Button/LogoutButton.vue";
@@ -26,7 +26,7 @@ const logout = () => {
 </script>
 
 <template>
-    <div class="w-full shadow z-10 font-sans">
+    <div class="w-full h-fit shadow z-10 font-sans">
         <nav class="bg-cyan-700 dark:bg-blue-950 border-b border-gray-100">
             <div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex items-center justify-between h-16">
@@ -37,7 +37,7 @@ const logout = () => {
                     </div>
 
                     <!-- Меню рубрик -->
-                    <PageMenu :isOpen="showingNavigationDropdown"
+                    <Rubrics :isOpen="showingNavigationDropdown"
                               class="hidden md:flex flex-grow justify-center space-x-2 px-4"/>
 
                     <!-- Меню пользователя -->
@@ -106,7 +106,7 @@ const logout = () => {
 
             <!-- Мобильное меню -->
             <div :class="{ block: showingNavigationDropdown, hidden: !showingNavigationDropdown }" class="md:hidden">
-                <PageMenu :isOpen="showingNavigationDropdown" class="px-4 py-2 border-t dark:border-gray-700"/>
+                <Rubrics :isOpen="showingNavigationDropdown" class="px-4 py-2 border-t dark:border-gray-700"/>
 
                 <div v-if="canLogin" class="pt-2 pb-3 space-y-1">
                     <ResponsiveNavLink v-if="auth.user" :href="route('dashboard')">{{ t('profile') }}</ResponsiveNavLink>

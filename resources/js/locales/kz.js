@@ -83,6 +83,7 @@ export default {
     currentPassword: 'Ағымдағы құпия сөз',
     dashboard: 'Жеке кабинет',
     data: 'Деректер',
+    dataUploaded: 'деректер жүктеледі...',
     deactivate: 'Белсенділікті өшіру',
     defaultImageAlt: 'Әдепкі сурет',
     defaultImageTitle: 'Сурет орнатылмаған',

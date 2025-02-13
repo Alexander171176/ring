@@ -83,6 +83,7 @@ export default {
     currentPassword: 'Текущий пароль',
     dashboard: 'Личный кабинет',
     data: 'Данные',
+    dataUploaded: 'данные загружаются...',
     deactivate: 'Выключить активность',
     defaultImageAlt: 'Изображение по умолчанию',
     defaultImageTitle: 'Изображение не задано',
