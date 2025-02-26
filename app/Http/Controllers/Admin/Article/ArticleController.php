@@ -154,9 +154,7 @@ class ArticleController extends Controller
         $cacheTime = $this->getCacheTime();
 
         // Находим статью с рубриками, тегами и изображениями
-        $article = Cache::store('redis')->remember("article.$id", $cacheTime, function () use ($id) {
-            return Article::with(['rubrics', 'tags', 'images'])->findOrFail($id);
-        });
+        $article = Article::with(['rubrics', 'tags', 'images'])->findOrFail($id);
 
         // Получаем все рубрики
         $rubrics = Cache::store('redis')->remember('rubrics.all', $cacheTime, function () {
@@ -168,17 +166,11 @@ class ArticleController extends Controller
             return Tag::all();
         });
 
-        // Получаем все изображения
-        $images = Cache::store('redis')->remember('images.all', $cacheTime, function () {
-            return ArticleImage::all();
-        });
-
-        // Передаём статью, рубрики, теги и изображения на страницу через ресурсы
+        // Передаём статью, рубрики и теги на страницу через ресурсы
         return Inertia::render('Admin/Articles/Edit', [
             'article' => new ArticleResource($article),
             'rubrics' => RubricResource::collection($rubrics),
             'tags' => TagResource::collection($tags),
-            'images' => ArticleImageResource::collection($images),
         ]);
     }
 
@@ -189,9 +181,12 @@ class ArticleController extends Controller
      * @param string $id
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function update(ArticleRequest $request, Article $article): \Illuminate\Http\RedirectResponse
+    public function update(ArticleRequest $request, string $id): \Illuminate\Http\RedirectResponse
     {
+        $article = Article::findOrFail($id);
         $data = $request->validated();
+
+        // ✅ Обновляем статью
         $article->update($data);
 
         // ✅ Привязываем рубрики
@@ -199,21 +194,22 @@ class ArticleController extends Controller
         if ($request->has('rubrics')) {
             $rubricTitles = array_column($request->input('rubrics'), 'title');
             $rubricIds = Rubric::whereIn('title', $rubricTitles)->pluck('id')->toArray();
-            $article->rubrics()->sync($rubricIds);
         }
+        $article->rubrics()->sync($rubricIds);
 
         // ✅ Привязываем теги
         $tagIds = [];
         if ($request->has('tags')) {
             $tagNames = array_column($request->input('tags'), 'name');
             $tagIds = Tag::whereIn('name', $tagNames)->pluck('id')->toArray();
-            $article->tags()->sync($tagIds);
         }
+        $article->tags()->sync($tagIds);
 
-        // ✅ Обновляем или загружаем изображения
+        // ✅ Обрабатываем изображения
         if ($request->has('images')) {
             foreach ($data['images'] as $imageData) {
                 if (isset($imageData['file']) && $imageData['file'] instanceof \Illuminate\Http\UploadedFile) {
+                    // Загружаем новое изображение
                     $path = $imageData['file']->store('article_images', 'public');
                     $image = ArticleImage::create([
                         'path' => $path,
@@ -222,6 +218,7 @@ class ArticleController extends Controller
                     ]);
                     $article->images()->attach($image->id);
                 } elseif (isset($imageData['id'])) {
+                    // ✅ Обновляем alt и caption существующего изображения
                     $existingImage = ArticleImage::find($imageData['id']);
                     if ($existingImage) {
                         $existingImage->update([
@@ -234,7 +231,10 @@ class ArticleController extends Controller
             }
         }
 
-        return redirect()->route('articles.index')->with('success', 'Статья обновлена.');
+        // ✅ Очистка кэша
+        $this->clearCache(['articles.all', 'articles.count', 'rubrics.all', 'tags.all']);
+
+        return redirect()->route('articles.index')->with('success', 'Статья успешно обновлена.');
     }
 
     /**

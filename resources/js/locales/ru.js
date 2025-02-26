@@ -114,6 +114,7 @@ export default {
     edit: 'Редактировать',
     editingFile: 'Редактирование файла: ',
     editArticle: 'Редактировать Статью',
+    editImages: 'Редактировать изображения',
     editModule: 'Редактировать регистрацию Модуля',
     editParameter: 'Редактировать Параметр',
     editPermission: 'Редактировать Разрешение',

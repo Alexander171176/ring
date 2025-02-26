@@ -114,6 +114,7 @@ export default {
     edit: 'Өңдеу',
     editingFile: 'Файлды өңдеу: ',
     editArticle: 'Мақаланы өңдеу',
+    editImages: 'Суреттерді өңдеу',
     editModule: 'Модульді тіркеуді өңдеу',
     editParameter: 'Параметрді өңдеу',
     editPermission: 'Рұқсатты өңдеу',

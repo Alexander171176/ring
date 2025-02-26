@@ -1,7 +1,7 @@
 <script setup>
-import { ref, defineProps, onMounted, watch } from 'vue';
+import { defineProps } from 'vue';
 import { transliterate } from '@/utils/transliteration';
-import {useI18n} from 'vue-i18n';
+import { useI18n } from 'vue-i18n';
 import { useForm } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import TitlePage from '@/Components/Admin/Headlines/TitlePage.vue';
@@ -16,69 +16,55 @@ import InputNumber from '@/Components/Admin/Input/InputNumber.vue';
 import LabelInput from '@/Components/Admin/Input/LabelInput.vue';
 import InputText from '@/Components/Admin/Input/InputText.vue';
 import InputError from '@/Components/Admin/Input/InputError.vue';
-import SimpleImageUpload from '@/Components/Admin/Input/SimpleImageUpload.vue';
+import SelectLocale from "@/Components/Admin/Select/SelectLocale.vue";
+import MultiImageEdit from "@/Components/Image/MultiImageEdit.vue";
 import VueMultiselect from 'vue-multiselect';
 
-const {t} = useI18n();
+const { t } = useI18n();
 
-// пропсы статей и рубрик
 const props = defineProps({
     article: {
         type: Object,
         required: true
     },
     rubrics: Array,
+    tags: Array
 });
 
-// данные полей формы
+// ✅ Инициализация формы
 const form = useForm({
     _method: 'PUT',
     sort: props.article.sort ?? 0,
+    locale: props.article.locale ?? '',
     title: props.article.title ?? '',
     url: props.article.url ?? '',
     short: props.article.short ?? '',
     description: props.article.description ?? '',
     author: props.article.author ?? '',
-    tags: props.article.tags ?? '',
     views: props.article.views ?? '',
     likes: props.article.likes ?? '',
-    image_url: null,
-    seo_title: props.article.seo_title ?? '',
-    seo_alt: props.article.seo_alt ?? '',
     meta_title: props.article.meta_title ?? '',
     meta_keywords: props.article.meta_keywords ?? '',
     meta_desc: props.article.meta_desc ?? '',
     activity: Boolean(props.article.activity ?? false),
-    rubrics: []
+    rubrics: props.article.rubrics ?? [],
+    tags: props.article.tags ?? [],
+    images: props.article.images.map(img => ({
+        id: img.id,
+        url: img.path ? `/storage/article_images/${img.path}` : null, // ✅ Используем path
+        alt: img.alt || '',
+        caption: img.caption || ''
+    }))
 });
 
-// автоматическое заполнение поля url
+// ✅ Автозаполнение `url`
 const handleUrlInputFocus = () => {
     if (form.title) {
         form.url = transliterate(form.title.toLowerCase());
     }
 };
 
-// автоматическое заполнение поля seo_alt
-const handleSeoAltFocus = () => {
-    if (form.seo_title && !form.seo_alt) {
-        form.seo_alt = form.seo_title;
-    }
-};
-
-// автоматическое заполнение поля tags
-const handleTagsInputFocus = () => {
-    const rubricsTitles = form.rubrics.map(rubric => rubric.title).filter(Boolean);
-    const tags = [...rubricsTitles];
-
-    if (form.author) {
-        tags.push(form.author);
-    }
-
-    form.tags = tags.join(', ');
-};
-
-// автоматическая генерация мета-тегов
+// ✅ Генерация мета-тегов
 const truncateText = (text, maxLength, addEllipsis = false) => {
     if (text.length <= maxLength) return text;
     const truncated = text.substr(0, text.lastIndexOf(' ', maxLength));
@@ -91,7 +77,8 @@ const generateMetaFields = () => {
     }
 
     if (form.tags && !form.meta_keywords) {
-        form.meta_keywords = truncateText(form.tags, 200);
+        const tagNames = form.tags.map(tag => tag.name).join(', ');
+        form.meta_keywords = truncateText(tagNames, 200);
     }
 
     if (form.short && !form.meta_desc) {
@@ -99,51 +86,33 @@ const generateMetaFields = () => {
     }
 };
 
-// Путь к изображению
-const imagePreview = ref(props.article.image_url ? props.article.image_url : null); // Путь уже полный, без /storage/
-const imageFile = ref(null);
-
-const handleImageSelected = (file) => {
-    imageFile.value = file;
-    // console.log('Выбранное изображение:', file); // Проверяем, что файл выбран
-};
-
-// метод сохранения
+// ✅ Обновление статьи
 const submitForm = async () => {
-    if (imageFile.value) {
-        form.image_url = imageFile.value;
-    }
-
-    //console.log('Форма перед отправкой:', form.data()); // Проверка данных формы
-
     form.transform((data) => ({
         ...data,
         activity: data.activity ? 1 : 0,
+
+        images: form.images.map(image => {
+            if (image.file) {
+                return { file: image.file, alt: image.alt, caption: image.caption }; // ✅ Новое изображение
+            }
+            if (image.id) {
+                return { id: Number(image.id), alt: image.alt, caption: image.caption }; // ✅ Существующее изображение
+            }
+        }).filter(Boolean) // ❌ Убираем `undefined` / `null`
     }));
 
     form.post(route('articles.update', props.article.id), {
-        errorBag: 'editArticle',
         preserveScroll: true,
         onSuccess: () => {
-            //console.log('Форма успешно обновлена.');
+            window.location.href = route('articles.index');
         },
         onError: (errors) => {
-            console.error('Ошибка при обновлении:', errors); // Выводим ошибки при обновлении
+            console.error("❌ Ошибка при обновлении статьи:", errors);
         }
     });
 };
 
-// путь к изображению и вывод рубрик
-onMounted(() => {
-    imagePreview.value = props.article.image_url ? props.article.image_url : null;
-    form.rubrics = props.article?.rubrics;
-});
-
-// вывод рубрик
-watch(
-    () => props.article,
-    () => (form.rubrics = props.article?.rubrics)
-);
 </script>
 
 <template>
@@ -172,23 +141,35 @@ watch(
                 </div>
                 <form @submit.prevent="submitForm" enctype="multipart/form-data" class="p-3 w-full">
 
-                    <div class="mb-3 flex items-center">
-                        <div class="flex justify-between w-full">
-                            <div class="flex flex-row items-center">
-                                <ActivityCheckbox v-model="form.activity"/>
-                                <LabelCheckbox for="activity" :text="t('activity')"/>
-                            </div>
+                    <div class="mb-3 flex justify-between flex-col lg:flex-row items-center gap-4">
+
+                        <!-- Активность -->
+                        <div class="flex flex-row items-center gap-2">
+                            <ActivityCheckbox v-model="form.activity"/>
+                            <LabelCheckbox for="activity" :text="t('activity')" class="text-sm h-8 flex items-center"/>
                         </div>
-                        <div class="flex flex-row items-center">
-                            <LabelInput for="sort" :value="t('sort')" class="mr-3"/>
+
+                        <!-- Локализация -->
+                        <div class="flex flex-row items-center gap-2 w-auto">
+                            <SelectLocale v-model="form.locale" :errorMessage="form.errors.locale"/>
+                            <InputError class="mt-2 lg:mt-0" :message="form.errors.locale"/>
+                        </div>
+
+                        <!-- Сортировка -->
+                        <div class="flex flex-row items-center gap-2">
+                            <div class="h-8 flex items-center">
+                                <LabelInput for="sort" :value="t('sort')" class="text-sm"/>
+                            </div>
                             <InputNumber
                                 id="sort"
                                 type="number"
                                 v-model="form.sort"
                                 autocomplete="sort"
+                                class="w-full lg:w-28"
                             />
-                            <InputError class="mt-2" :message="form.errors.sort"/>
+                            <InputError class="mt-2 lg:mt-0" :message="form.errors.sort"/>
                         </div>
+
                     </div>
 
                     <div class="mb-3 flex flex-col items-start">
@@ -257,15 +238,15 @@ watch(
                     </div>
 
                     <div class="mb-3 flex flex-col items-start">
-                        <LabelInput for="tags" :value="t('tags')"/>
-                        <InputText
-                            id="tags"
-                            type="text"
-                            v-model="form.tags"
-                            autocomplete="tags"
-                            @focus="handleTagsInputFocus"
+                        <LabelInput for="tags" :value="t('tags')" class="mb-1"/>
+                        <VueMultiselect v-model="form.tags"
+                                        :options="tags"
+                                        :multiple="true"
+                                        :close-on-select="true"
+                                        :placeholder="t('select')"
+                                        label="name"
+                                        track-by="name"
                         />
-                        <InputError class="mt-2" :message="form.errors.tags"/>
                     </div>
 
                     <div class="mb-3 flex justify-between">
@@ -290,58 +271,6 @@ watch(
                             />
                             <InputError class="mt-2" :message="form.errors.likes"/>
                         </div>
-                    </div>
-
-                    <!-- Загрузка главного изображения -->
-                    <div class="p-5 mb-3 flex flex-col md:flex-row
-                                justify-center bg-white dark:bg-slate-800 shadow-md
-                                border border-slate-300 space-y-6 md:space-y-0 md:gap-6">
-
-                        <!-- Загрузка и Превью изображения -->
-                        <div class="md:w-1/2 w-full flex justify-start">
-                            <div class="w-full max-w-md">
-                                <LabelInput for="image_url" :value="t('currentImage')"
-                                            class="text-slate-800 dark:text-slate-100"/>
-                                <SimpleImageUpload @fileSelected="handleImageSelected" />
-                                <InputError :message="form.errors.image_url" />
-                                <div v-if="imagePreview" class="mt-2 w-full">
-                                    <img :src="imagePreview" :alt="t('currentImage')" class="w-full h-fit object-cover">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- SEO поля -->
-                        <div class="md:w-1/2 w-full space-y-1">
-                            <div class="flex flex-col items-start space-y-2">
-
-                                <LabelInput :value="t('metaTagsImage')"
-                                            class="text-slate-800 dark:text-slate-100"/>
-
-                                <div class="w-full flex flex-col items-start">
-                                    <LabelInput for="seo_title" :value="t('seoTitle')" />
-                                    <InputText
-                                        id="seo_title"
-                                        type="text"
-                                        v-model="form.seo_title"
-                                        autocomplete="url"
-                                    />
-                                    <InputError class="mt-2" :message="form.errors.seo_title" />
-                                </div>
-
-                                <div class="w-full flex flex-col items-start">
-                                    <LabelInput for="seo_alt" :value="t('seoAlt')" />
-                                    <InputText
-                                        id="seo_alt"
-                                        type="text"
-                                        v-model="form.seo_alt"
-                                        autocomplete="url"
-                                        @focus="handleSeoAltFocus"
-                                    />
-                                    <InputError class="mt-2" :message="form.errors.seo_alt" />
-                                </div>
-                            </div>
-                        </div>
-
                     </div>
 
                     <div class="mb-3 flex flex-col items-start">
@@ -392,14 +321,17 @@ watch(
                     <div class="flex justify-end mt-4">
                         <MetatagsButton @click.prevent="generateMetaFields">
                             <template #icon>
-                                <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">
+                                <svg class="w-4 h-4 fill-current text-slate-600 shrink-0 mr-2" viewBox="0 0 16 16">
                                     <path
-                                        d="M4.3 4.5c1.9-1.9 5.1-1.9 7 0 .7.7 1.2 1.7 1.4 2.7l2-.3c-.2-1.5-.9-2.8-1.9-3.8C10.1.4 5.7.4 2.9 3.1L.7.9 0 7.3l6.4-.7-2.1-2.1zM15.6 8.7l-6.4.7 2.1 2.1c-1.9 1.9-5.1 1.9-7 0-.7-.7-1.2-1.7-1.4-2.7l-2 .3c.2 1.5.9 2.8 1.9 3.8 1.4 1.4 3.1 2 4.9 2 1.8 0 3.6-.7 4.9-2l2.2 2.2.8-6.4z"></path>
+                                        d="M13 7h2v6a1 1 0 01-1 1H4v2l-4-3 4-3v2h9V7zM3 9H1V3a1 1 0 011-1h10V0l4 3-4 3V4H3v5z"></path>
                                 </svg>
                             </template>
                             {{ t('generateMetaTags') }}
                         </MetatagsButton>
                     </div>
+
+                    <!-- Загрузка изображений -->
+                    <MultiImageEdit :existingImages="props.article.images" @update:images="form.images = $event" />
 
                     <div class="flex items-center justify-center mt-4">
                         <DefaultButton :href="route('articles.index')" class="mb-3">

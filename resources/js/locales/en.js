@@ -114,6 +114,7 @@ export default {
     edit: 'Edit',
     editingFile: 'Editing a file: ',
     editArticle: 'Edit Guide',
+    editImages: 'Edit Images',
     editModule: 'Edit module registration',
     editParameter: 'Edit Parameter',
     editPermission: 'Edit Permission',
