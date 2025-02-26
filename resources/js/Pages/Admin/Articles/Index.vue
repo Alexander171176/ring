@@ -88,6 +88,10 @@ const sortArticles = (articles) => {
         return articles.filter(article => !article.activity);
     }
     return articles.slice().sort((a, b) => {
+        if (sortParam.value === 'views' || sortParam.value === 'likes') {
+            // ✅ Сортировка в порядке убывания для просмотров и лайков
+            return b[sortParam.value] - a[sortParam.value];
+        }
         if (a[sortParam.value] < b[sortParam.value]) {
             return -1;
         }

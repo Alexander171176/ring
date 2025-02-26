@@ -16,16 +16,11 @@ import InputNumber from '@/Components/Admin/Input/InputNumber.vue';
 import LabelInput from '@/Components/Admin/Input/LabelInput.vue';
 import InputText from '@/Components/Admin/Input/InputText.vue';
 import InputError from '@/Components/Admin/Input/InputError.vue';
-import VueMultiselect from 'vue-multiselect';
+import SelectLocale from "@/Components/Admin/Select/SelectLocale.vue";
 import MultiImageUpload from "@/Components/Image/MultiImageUpload.vue";
+import VueMultiselect from 'vue-multiselect';
 
 const { t } = useI18n();
-
-const locales = ref([
-    { label: 'English', value: 'en' },
-    { label: 'Русский', value: 'ru' },
-    { label: 'Kazakh', value: 'kz' }
-]);
 
 // пустой массив рубрик
 defineProps({
@@ -61,18 +56,6 @@ const handleUrlInputFocus = () => {
     }
 };
 
-// автоматическое заполнение поля tags
-const handleTagsInputFocus = () => {
-    const rubricsTitles = form.rubrics.map(rubric => rubric.title).filter(Boolean);
-    const tags = [...rubricsTitles];
-
-    if (form.author) {
-        tags.push(form.author);
-    }
-
-    form.tags = tags.join(', ');
-};
-
 // автоматическая генерация мета-тегов
 const truncateText = (text, maxLength, addEllipsis = false) => {
     if (text.length <= maxLength) return text;
@@ -97,7 +80,7 @@ const generateMetaFields = () => {
 
 // метод сохранения
 const submitForm = () => {
-    console.log("📌 Отправляемые изображения перед трансформацией:", form.images);
+    //console.log("📌 Отправляемые изображения перед трансформацией:", form.images);
 
     form.transform((data) => ({
         ...data,
@@ -113,12 +96,12 @@ const submitForm = () => {
         }).filter(Boolean) // ❌ Убираем undefined/null
     }));
 
-    console.log("✅ Отправляемые изображения после трансформации:", form.images);
+    //console.log("✅ Отправляемые изображения после трансформации:", form.images);
 
     form.post(route('articles.store'), {
         preserveScroll: true,
         onSuccess: () => {
-            console.log("✔️ Форма успешно отправлена.");
+            //console.log("✔️ Форма успешно отправлена.");
             window.location.href = route('articles.index');
         },
         onError: (errors) => {
@@ -164,23 +147,7 @@ const submitForm = () => {
 
                         <!-- Локализация -->
                         <div class="flex flex-row items-center gap-2 w-auto">
-                            <div class="h-8 flex items-center">
-                                <LabelInput for="locale" :value="t('localization')" class="text-sm"/>
-                            </div>
-                            <select
-                                id="locale"
-                                v-model="form.locale"
-                                class="block w-full py-0.5
-                                       border-slate-500
-                                       font-semibold text-sm
-                                       focus:border-indigo-500 focus:ring-indigo-300
-                                       rounded-sm shadow-sm
-                                       dark:bg-cyan-800 dark:text-slate-100">
-                                <option value="" disabled>{{ t('selectLocale') }}</option>
-                                <option v-for="locale in locales" :key="locale.value" :value="locale.value">
-                                    {{ locale.label }}
-                                </option>
-                            </select>
+                            <SelectLocale v-model="form.locale" :errorMessage="form.errors.locale"/>
                             <InputError class="mt-2 lg:mt-0" :message="form.errors.locale"/>
                         </div>
 
