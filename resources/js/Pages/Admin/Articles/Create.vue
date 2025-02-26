@@ -16,48 +16,48 @@ import InputNumber from '@/Components/Admin/Input/InputNumber.vue';
 import LabelInput from '@/Components/Admin/Input/LabelInput.vue';
 import InputText from '@/Components/Admin/Input/InputText.vue';
 import InputError from '@/Components/Admin/Input/InputError.vue';
-import ImageUpload from '@/Components/Admin/Input/ImageUpload.vue';
 import VueMultiselect from 'vue-multiselect';
+import MultiImageUpload from "@/Components/Image/MultiImageUpload.vue";
 
 const { t } = useI18n();
+
+const locales = ref([
+    { label: 'English', value: 'en' },
+    { label: 'Русский', value: 'ru' },
+    { label: 'Kazakh', value: 'kz' }
+]);
 
 // пустой массив рубрик
 defineProps({
     rubrics: Array,
+    tags: Array,
+    images: Array // Добавляем этот пропс для передачи списка изображений
 })
 
 // пустая форма
 const form = useForm({
     sort: 0,
+    locale: '',
     title: '',
     url: '',
     short: '',
     description: '',
     author: '',
-    tags: '',
     views: '',
     likes: '',
-    image_url: null,
-    seo_title: '',
-    seo_alt: '',
     meta_title: '',
     meta_keywords: '',
     meta_desc: '',
     activity: false,
-    rubrics: []
+    rubrics: [],
+    tags: [],
+    images: [] // Добавляем массив для загруженных изображений
 });
 
 // автоматическое заполнение поля url
 const handleUrlInputFocus = () => {
     if (form.title) {
         form.url = transliterate(form.title.toLowerCase());
-    }
-};
-
-// автоматическое заполнение поля seo_alt
-const handleSeoAltFocus = () => {
-    if (form.seo_title && !form.seo_alt) {
-        form.seo_alt = form.seo_title;
     }
 };
 
@@ -86,7 +86,8 @@ const generateMetaFields = () => {
     }
 
     if (form.tags && !form.meta_keywords) {
-        form.meta_keywords = truncateText(form.tags, 200);
+        const tagNames = form.tags.map(tag => tag.name).join(', ');
+        form.meta_keywords = truncateText(tagNames, 200);
     }
 
     if (form.short && !form.meta_desc) {
@@ -94,47 +95,38 @@ const generateMetaFields = () => {
     }
 };
 
-// Изображение
-const imagePreview = ref(null);
-const imageInput = ref(null);
-
-const updateImagePreview = ({file, preview}) => {
-    imagePreview.value = preview;
-    imageInput.value = file;
-};
-
-const clearImageFileInput = () => {
-    if (imageInput.value) {
-        imageInput.value = null;
-        imagePreview.value = null;
-    }
-};
-
 // метод сохранения
 const submitForm = () => {
-    if (imageInput.value) {
-        form.image_url = imageInput.value;
-    }
+    console.log("📌 Отправляемые изображения перед трансформацией:", form.images);
 
     form.transform((data) => ({
         ...data,
         activity: data.activity ? 1 : 0,
+
+        images: form.images.map(image => {
+            if (image.file) {
+                return { file: image.file, alt: image.alt, caption: image.caption }; // ✅ Новое изображение
+            }
+            if (image.id) {
+                return { id: Number(image.id), alt: image.alt, caption: image.caption }; // ✅ Существующее изображение
+            }
+        }).filter(Boolean) // ❌ Убираем undefined/null
     }));
 
-    // console.log("Форма для отправки заполнена:", form.data());
+    console.log("✅ Отправляемые изображения после трансформации:", form.images);
 
     form.post(route('articles.store'), {
-        errorBag: 'createArticle',
         preserveScroll: true,
         onSuccess: () => {
-            clearImageFileInput();
-            // console.log("Форма успешно отправлена.");
+            console.log("✔️ Форма успешно отправлена.");
+            window.location.href = route('articles.index');
         },
         onError: (errors) => {
-            // console.error("Не удалось отправить форму:", errors);
+            console.error("❌ Ошибка при отправке формы:", errors);
         }
     });
 };
+
 </script>
 
 <template>
@@ -162,23 +154,51 @@ const submitForm = () => {
                 </div>
                 <form @submit.prevent="submitForm" enctype="multipart/form-data" class="p-3 w-full">
 
-                    <div class="mb-3 flex items-center">
-                        <div class="flex justify-between w-full">
-                            <div class="flex flex-row items-center">
-                                <ActivityCheckbox v-model="form.activity"/>
-                                <LabelCheckbox for="activity" :text="t('activity')"/>
-                            </div>
+                    <div class="mb-3 flex justify-between flex-col lg:flex-row items-center gap-4">
+
+                        <!-- Активность -->
+                        <div class="flex flex-row items-center gap-2">
+                            <ActivityCheckbox v-model="form.activity"/>
+                            <LabelCheckbox for="activity" :text="t('activity')" class="text-sm h-8 flex items-center"/>
                         </div>
-                        <div class="flex flex-row items-center">
-                            <LabelInput for="sort" :value="t('sort')" class="mr-3"/>
+
+                        <!-- Локализация -->
+                        <div class="flex flex-row items-center gap-2 w-auto">
+                            <div class="h-8 flex items-center">
+                                <LabelInput for="locale" :value="t('localization')" class="text-sm"/>
+                            </div>
+                            <select
+                                id="locale"
+                                v-model="form.locale"
+                                class="block w-full py-0.5
+                                       border-slate-500
+                                       font-semibold text-sm
+                                       focus:border-indigo-500 focus:ring-indigo-300
+                                       rounded-sm shadow-sm
+                                       dark:bg-cyan-800 dark:text-slate-100">
+                                <option value="" disabled>{{ t('selectLocale') }}</option>
+                                <option v-for="locale in locales" :key="locale.value" :value="locale.value">
+                                    {{ locale.label }}
+                                </option>
+                            </select>
+                            <InputError class="mt-2 lg:mt-0" :message="form.errors.locale"/>
+                        </div>
+
+                        <!-- Сортировка -->
+                        <div class="flex flex-row items-center gap-2">
+                            <div class="h-8 flex items-center">
+                                <LabelInput for="sort" :value="t('sort')" class="text-sm"/>
+                            </div>
                             <InputNumber
                                 id="sort"
                                 type="number"
                                 v-model="form.sort"
                                 autocomplete="sort"
+                                class="w-full lg:w-28"
                             />
-                            <InputError class="mt-2" :message="form.errors.sort"/>
+                            <InputError class="mt-2 lg:mt-0" :message="form.errors.sort"/>
                         </div>
+
                     </div>
 
                     <div class="mb-3 flex flex-col items-start">
@@ -247,15 +267,15 @@ const submitForm = () => {
                     </div>
 
                     <div class="mb-3 flex flex-col items-start">
-                        <LabelInput for="tags" :value="t('tags')"/>
-                        <InputText
-                            id="tags"
-                            type="text"
-                            v-model="form.tags"
-                            autocomplete="tags"
-                            @focus="handleTagsInputFocus"
+                        <LabelInput for="tags" :value="t('tags')" class="mb-1"/>
+                        <VueMultiselect v-model="form.tags"
+                                        :options="tags"
+                                        :multiple="true"
+                                        :close-on-select="true"
+                                        :placeholder="t('select')"
+                                        label="name"
+                                        track-by="name"
                         />
-                        <InputError class="mt-2" :message="form.errors.tags"/>
                     </div>
 
                     <div class="mb-3 flex justify-between">
@@ -280,60 +300,6 @@ const submitForm = () => {
                             />
                             <InputError class="mt-2" :message="form.errors.likes"/>
                         </div>
-                    </div>
-
-                    <div class="p-5 mb-3 flex flex-col md:flex-row
-                                justify-center bg-white dark:bg-slate-800 shadow-md
-                                border border-slate-300 space-y-6 md:space-y-0 md:gap-6">
-
-                        <div class="md:w-1/2 w-full flex justify-start">
-                            <div class="w-full max-w-md">
-                                <LabelInput for="image_url" :value="t('postImage')"
-                                            class="text-slate-800 dark:text-slate-100"/>
-                                <ImageUpload
-                                    id="image_url"
-                                    name="image_url"
-                                    :imagePreview="imagePreview"
-                                    :altText="t('currentImage')"
-                                    :titleText="t('currentImage')"
-                                    @change="updateImagePreview"
-                                />
-                                <InputError :message="form.errors.image_url" />
-                            </div>
-                        </div>
-
-                        <div class="md:w-1/2 w-full space-y-1">
-                            <div class="flex flex-col items-start space-y-2">
-
-                                <LabelInput :value="t('metaTagsImage')"
-                                            class="text-slate-700 dark:text-slate-100"/>
-
-                                <div class="w-full flex flex-col items-start">
-                                    <LabelInput for="seo_title" :value="t('seoTitle')"/>
-                                    <InputText
-                                        id="seo_title"
-                                        type="text"
-                                        v-model="form.seo_title"
-                                        autocomplete="url"
-                                    />
-                                    <InputError class="mt-2" :message="form.errors.seo_title"/>
-                                </div>
-
-                                <div class="w-full flex flex-col items-start">
-                                    <LabelInput for="seo_alt" :value="t('seoAlt')"/>
-                                    <InputText
-                                        id="seo_alt"
-                                        type="text"
-                                        v-model="form.seo_alt"
-                                        autocomplete="url"
-                                        @focus="handleSeoAltFocus"
-                                    />
-                                    <InputError class="mt-2" :message="form.errors.seo_alt"/>
-                                </div>
-
-                            </div>
-                        </div>
-
                     </div>
 
                     <div class="mb-3 flex flex-col items-start">
@@ -393,6 +359,8 @@ const submitForm = () => {
                         </MetatagsButton>
                     </div>
 
+                    <MultiImageUpload @update:images="form.images = $event" />
+
                     <div class="flex justify-center mt-4">
                         <PrimaryButton class="ms-4" :class="{ 'opacity-25': form.processing }"
                                        :disabled="form.processing">
@@ -405,6 +373,7 @@ const submitForm = () => {
                             {{ t('save') }}
                         </PrimaryButton>
                     </div>
+
                 </form>
             </div>
         </div>

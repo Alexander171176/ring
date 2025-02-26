@@ -11,13 +11,14 @@ const { t } = useI18n();
 
 const props = defineProps({
     articles: Array,
+    tags: Array,
     selectedArticles: Array
 });
 
 const emits = defineEmits(['toggle-activity', 'edit', 'delete', 'recalculate-sort', 'clone', 'toggle-select']);
 
 const imagePath = (path) => {
-    if (!path) {
+    if (!path || path === 'default-image.png') {
         return '/storage/article_images/default-image.png';
     }
     if (path.startsWith('http') || path.startsWith('https')) {
@@ -85,9 +86,15 @@ const toggleAll = (event) => {
                             </td>
                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
                                 <div class="text-left">
-                                    <img :src="imagePath(article.image_url)"
-                                         :alt="article.seo_alt || t('defaultImageAlt')"
-                                         :title="article.seo_title || t('defaultImageTitle')"
+                                    <img v-if="article.images && article.images.length"
+                                         :src="imagePath(article.images[0].path)"
+                                         :alt="article.images[0].alt || t('defaultImageAlt')"
+                                         :title="article.images[0].caption || t('postImage')"
+                                         class="h-8 w-8 object-cover rounded-full"
+                                         @click="console.log('Изображения:', article.images)">
+                                    <img v-else
+                                         :src="imagePath('default-image.png')"
+                                         :alt="t('defaultImageTitle')"
                                          class="h-8 w-8 object-cover rounded-full">
                                 </div>
                             </td>
@@ -98,7 +105,7 @@ const toggleAll = (event) => {
                                 <div class="text-left">
                                     <span v-for="rubric in article.rubrics" :key="rubric.id"
                                           class="py-0.5 px-2 badge bg-blue-500 rounded-sm text-xs text-slate-100">
-                                        {{ rubric.title }}
+                                        {{ rubric.id }}
                                     </span>
                                 </div>
                             </td>

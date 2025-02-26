@@ -2,9 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Models\Admin\Article\Article;
 use App\Models\Admin\Article\Tag;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class TagSeeder extends Seeder
 {
@@ -13,21 +14,36 @@ class TagSeeder extends Seeder
      */
     public function run(): void
     {
+        // Очистка таблиц перед добавлением новых записей
+        DB::table('tags')->truncate();
+        DB::table('article_has_tag')->truncate();
+
+        // Список тегов
         $tags = [
-            ['title' => 'HTML', 'url' => 'html'],
-            ['title' => 'CSS', 'url' => 'css'],
-            ['title' => 'JavaScript', 'url' => 'javascript'],
-            ['title' => 'Vue.js', 'url' => 'vuejs'],
-            ['title' => 'Laravel', 'url' => 'laravel'],
-            ['title' => 'Tailwind CSS', 'url' => 'tailwind-css'],
-            ['title' => 'Web-разработка', 'url' => 'web-development'],
-            ['title' => 'SEO', 'url' => 'seo'],
-            ['title' => 'UI/UX', 'url' => 'ui-ux'],
-            ['title' => 'Программирование', 'url' => 'programming'],
+            ['name' => 'HTML', 'slug' => 'html', 'locale' => 'ru',],
+            ['name' => 'CSS', 'slug' => 'css', 'locale' => 'ru',],
+            ['name' => 'JavaScript', 'slug' => 'javascript', 'locale' => 'ru',],
+            ['name' => 'Vue.js', 'slug' => 'vuejs', 'locale' => 'ru',],
+            ['name' => 'Laravel', 'slug' => 'laravel', 'locale' => 'ru',],
+            ['name' => 'Tailwind CSS', 'slug' => 'tailwind-css', 'locale' => 'ru',],
+            ['name' => 'Web-разработка', 'slug' => 'web-development', 'locale' => 'ru',],
+            ['name' => 'SEO', 'slug' => 'seo', 'locale' => 'ru',],
+            ['name' => 'UI/UX', 'slug' => 'ui-ux', 'locale' => 'ru',],
+            ['name' => 'Программирование', 'slug' => 'programming', 'locale' => 'ru',],
         ];
 
+        // Создаем теги
+        $createdTags = [];
         foreach ($tags as $tag) {
-            Tag::create($tag);
+            $createdTags[] = Tag::create($tag);
+        }
+
+        // Привязываем теги к статьям
+        $articles = Article::all();
+        foreach ($articles as $article) {
+            // Случайно выбираем 1-3 тега для каждой статьи
+            $randomTags = collect($createdTags)->random(rand(1, 3))->pluck('id');
+            $article->tags()->sync($randomTags);
         }
     }
 }

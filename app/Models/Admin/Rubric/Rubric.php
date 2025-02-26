@@ -29,7 +29,7 @@ class Rubric extends Model
     // Определите отношение многие ко многим с моделью Article
     public function articles(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
-        return $this->belongsToMany(Article::class, 'article_has_rubrics', 'rubric_id', 'article_id')
-            ->withTimestamps();
+        return $this->belongsToMany(Article::class, 'article_has_rubrics', 'rubric_id', 'article_id');
     }
+
 }

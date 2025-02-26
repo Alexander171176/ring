@@ -38,11 +38,12 @@ class ArticleResource extends JsonResource
             // Связанные рубрики
             'rubrics' => RubricResource::collection($this->whenLoaded('rubrics')),
 
+            // Связанные теги
+            'tags' => TagResource::collection($this->whenLoaded('tags')),
+
             // Связанные изображения
             'images' => ArticleImageResource::collection($this->whenLoaded('images')),
 
-            // Связанные теги
-            'tags' => TagResource::collection($this->whenLoaded('tags')),
         ];
     }
 }

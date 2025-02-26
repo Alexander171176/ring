@@ -47,7 +47,7 @@ class RubricController extends Controller
     {
         // Извлекаем рубрику вместе с активными статьями
         $rubric = Rubric::with(['articles' => function ($query) {
-            $query->where('activity', 1)->orderBy('created_at', 'desc');
+            $query->where('activity', 1)->orderBy('sort', 'asc'); // используем id или другой существующий столбец
         }])->where('url', $url)->firstOrFail();
 
         return Inertia::render('Public/Default/Rubrics/Show', [

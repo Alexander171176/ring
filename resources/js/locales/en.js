@@ -225,6 +225,7 @@ export default {
     profileInformationDescription: 'Update your account\'s profile information and email address.',
     quantity: 'Quantity',
     readme: 'Instruction manual',
+    readMore: 'Read more',
     recoverCode: 'Recovery Code',
     recoverCodeDescription: 'Please confirm access to your account by entering one of your emergency recovery codes.',
     recoverCodesMessage: 'Save these recovery codes in a secure password manager. They can be used to recover access to your account if your two-factor authentication device is lost.',

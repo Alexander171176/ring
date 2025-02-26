@@ -57,7 +57,7 @@ fieldset[disabled] .multiselect {
     display: block;
     position: relative;
     width: 100%;
-    min-height: 40px;
+    min-height: 32px;
     text-align: left;
     color: #35495e;
 }
@@ -100,7 +100,7 @@ fieldset[disabled] .multiselect {
     min-height: 30px;
     line-height: 20px;
     border: none;
-    border-radius: 5px;
+    border-radius: 3px;
     background: #fff;
     padding: 0 0 0 5px;
     width: calc(100%);
@@ -139,8 +139,8 @@ fieldset[disabled] .multiselect {
 .multiselect__tags {
     min-height: 30px;
     display: block;
-    padding: 5px 40px 0 8px;
-    border-radius: 5px;
+    padding: 3px 40px 0 8px;
+    border-radius: 3px;
     border: 1px solid #666666;
     background: #F8F8FF;
     font-size: 14px;
@@ -150,7 +150,7 @@ fieldset[disabled] .multiselect {
     position: relative;
     display: inline-block;
     padding: 4px 26px 4px 10px;
-    border-radius: 5px;
+    border-radius: 3px;
     margin-right: 10px;
     color: #fff;
     line-height: 1;
@@ -175,7 +175,7 @@ fieldset[disabled] .multiselect {
     text-align: center;
     line-height: 22px;
     transition: all 0.2s ease;
-    border-radius: 5px;
+    border-radius: 3px;
 }
 
 .multiselect__tag-icon::after {
@@ -191,7 +191,7 @@ fieldset[disabled] .multiselect {
 
 .multiselect__current {
     line-height: 16px;
-    min-height: 40px;
+    min-height: 32px;
     box-sizing: border-box;
     display: block;
     overflow: hidden;
@@ -200,7 +200,7 @@ fieldset[disabled] .multiselect {
     white-space: nowrap;
     margin: 0;
     text-decoration: none;
-    border-radius: 5px;
+    border-radius: 3px;
     border: 1px solid #e8e8e8;
     cursor: pointer;
 }
@@ -211,7 +211,7 @@ fieldset[disabled] .multiselect {
     position: absolute;
     box-sizing: border-box;
     width: 40px;
-    height: 38px;
+    height: 32px;
     right: 1px;
     top: 1px;
     padding: 4px 8px;
@@ -226,11 +226,11 @@ fieldset[disabled] .multiselect {
     position: relative;
     right: 0;
     top: 65%;
-    color: #999;
+    color: #FF4747;
     margin-top: 4px;
     border-style: solid;
     border-width: 5px 5px 0 5px;
-    border-color: #999 transparent transparent transparent;
+    border-color: #FF4747 transparent transparent transparent;
     content: "";
 }
 
@@ -291,7 +291,7 @@ fieldset[disabled] .multiselect {
 .multiselect__option {
     display: block;
     padding: 12px;
-    min-height: 40px;
+    min-height: 32px;
     line-height: 16px;
     text-decoration: none;
     text-transform: none;

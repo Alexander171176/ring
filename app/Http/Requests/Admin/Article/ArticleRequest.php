@@ -29,6 +29,12 @@ class ArticleRequest extends FormRequest
                 'size:2',
                 Rule::in(['ru', 'en', 'kz']),
             ],
+            'title' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('articles', 'title')->ignore($this->route('article')),
+            ],
             'url' => [
                 'required',
                 'string',
@@ -46,14 +52,25 @@ class ArticleRequest extends FormRequest
             'meta_desc' => 'nullable|string|max:255',
 
             // Связи
-            'rubrics' => 'nullable|array',
-            'rubrics.*' => 'integer|exists:rubrics,id',
+            'rubrics' => ['sometimes', 'array'],
+            'tags' => ['sometimes', 'array'],
 
-            'tags' => 'nullable|array',
-            'tags.*' => 'integer|exists:tags,id',
+            // Обновленная валидация изображений
+            'images.*' => [
+                'nullable',
+                function ($attribute, $value, $fail) {
+                    if (is_array($value) && array_key_exists('id', $value) && !is_numeric($value['id'])) {
+                        $fail('ID изображения должен быть числом.');
+                    }
+                    if (is_array($value) && array_key_exists('file', $value) && !$value['file'] instanceof \Illuminate\Http\UploadedFile) {
+                        $fail('Загружаемый файл должен быть изображением.');
+                    }
+                    if (!isset($value['id']) && !isset($value['file'])) {
+                        $fail('Каждое изображение должно содержать либо ID, либо загруженный файл.');
+                    }
+                },
+            ],
 
-            'images' => 'nullable|array',
-            'images.*' => 'integer|exists:article_images,id',
         ];
     }
 
@@ -67,6 +84,11 @@ class ArticleRequest extends FormRequest
             'locale.string' => 'Язык должен быть строкой.',
             'locale.size' => 'Код языка должен состоять из 2 символов (например, "ru", "en", "kz").',
             'locale.in' => 'Допустимые языки: ru, en, kz.',
+
+            'title.required' => 'Название статьи обязательно для заполнения.',
+            'title.string' => 'Название статьи должно быть строкой.',
+            'title.max' => 'Название статьи не должно превышать 255 символов.',
+            'title.unique' => 'Статья с таким Названием уже существует.',
 
             'url.required' => 'URL статьи обязателен.',
             'url.string' => 'URL статьи должен быть строкой.',
@@ -96,16 +118,8 @@ class ArticleRequest extends FormRequest
             'activity.boolean' => 'Поле активности должно быть логическим значением.',
 
             'rubrics.array' => 'Рубрики должны быть массивом.',
-            'rubrics.*.integer' => 'Каждый идентификатор рубрики должен быть числом.',
-            'rubrics.*.exists' => 'Одна или более указанных рубрик не существуют.',
-
             'tags.array' => 'Теги должны быть массивом.',
-            'tags.*.integer' => 'Каждый идентификатор тега должен быть числом.',
-            'tags.*.exists' => 'Один или более указанных тегов не существуют.',
 
-            'images.array' => 'Изображения должны быть массивом.',
-            'images.*.integer' => 'Каждый идентификатор изображения должен быть числом.',
-            'images.*.exists' => 'Одно или более указанных изображений не существуют.',
         ];
     }
 }

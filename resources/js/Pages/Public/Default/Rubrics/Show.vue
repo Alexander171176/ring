@@ -51,17 +51,18 @@ defineProps({
             <div class="max-w-8xl mx-auto">
 
                 <!-- Название рубрики -->
-                <h1 class="flex items-center justify-center mb-4
-                           text-center font-bolder text-2xl text-gray-900 dark:text-slate-100">
+                <h1 class="flex items-center justify-center my-4
+                           text-center font-bolder text-3xl text-gray-900 dark:text-slate-100">
                     <span class="flex justify-center" v-html="rubric.icon" />
                     {{ rubric.title }}
                     <!-- Количество статей -->
-                    <span class="ml-2 text-sm font-semibold text-white px-3 py-1 bg-emerald-500 rounded-sm">
+                    <span class="ml-2 text-xs font-semibold text-white px-1 py-0 bg-emerald-500 rounded-sm">
                         {{ articlesCount }}
                     </span>
                 </h1>
 
-                <p class="flex items-center justify-center text-center text-lg text-gray-600 text-md mb-4">
+                <p class="flex items-center justify-center
+                          text-center text-xl text-gray-500 dark:text-gray-400 text-md mb-4">
                     {{ rubric.short }}
                 </p>
 
@@ -87,11 +88,11 @@ defineProps({
                             </p>
 
                             <!-- Кнопка "Читать далее" -->
-                            <div class="mt-4">
-                                <Link
-                                    :href="`/articles/${article.id}`"
-                                    class="inline-block bg-blue-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition duration-300"
-                                >
+                            <div class="flex justify-end mt-4">
+                                <Link :href="`/articles/${article.id}`"
+                                      class="inline-block px-3 py-1 rounded-sm
+                                             bg-blue-600 hover:bg-blue-800 dark:bg-indigo-600 dark:hover:bg-indigo-800
+                                             font-semibold text-slate-100 text-sm transition duration-300">
                                     {{ $t('readMore') }}
                                 </Link>
                             </div>

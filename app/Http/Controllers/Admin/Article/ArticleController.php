@@ -72,8 +72,8 @@ class ArticleController extends Controller
 
         return Inertia::render('Admin/Articles/Create', [
             'rubrics' => RubricResource::collection($rubrics),
-            'tags' => $tags,
-            'images' => $images,
+            'tags' => TagResource::collection($tags),
+            'images' => ArticleImageResource::collection($images),
         ]);
     }
 
@@ -87,51 +87,60 @@ class ArticleController extends Controller
     {
         $data = $request->validated();
 
-        // Обработка рубрик
+        // ✅ Найти рубрики по title
         $rubricIds = [];
         if ($request->has('rubrics')) {
             $rubricTitles = array_column($request->input('rubrics'), 'title');
             $rubricIds = Rubric::whereIn('title', $rubricTitles)->pluck('id')->toArray();
         }
 
-        // Обработка тегов
+        // ✅ Найти теги по name
         $tagIds = [];
         if ($request->has('tags')) {
-            $tagTitles = array_column($request->input('tags'), 'name');
-            $tagIds = Tag::whereIn('name', $tagTitles)->pluck('id')->toArray();
+            $tagNames = array_column($request->input('tags'), 'name');
+            $tagIds = Tag::whereIn('name', $tagNames)->pluck('id')->toArray();
         }
 
-        // Обработка изображений
-        $imageIds = [];
-        if ($request->has('images')) {
-            $imageUrls = array_column($request->input('images'), 'path');
-            $imageIds = ArticleImage::whereIn('path', $imageUrls)->pluck('id')->toArray();
-        }
-
-        // Создание статьи
+        // ✅ Создаем статью
         $article = Article::create($data);
 
-        // Привязка рубрик
+        // ✅ Привязываем рубрики
         if ($rubricIds) {
             $article->rubrics()->sync($rubricIds);
         }
 
-        // Привязка тегов
+        // ✅ Привязываем теги
         if ($tagIds) {
             $article->tags()->sync($tagIds);
         }
 
-        // Привязка изображений
-        if ($imageIds) {
-            $article->images()->sync($imageIds);
+        // ✅ Обрабатываем изображения (новые файлы + обновление alt/caption)
+        if ($request->has('images')) {
+            foreach ($data['images'] as $imageData) {
+                if (isset($imageData['file']) && $imageData['file'] instanceof \Illuminate\Http\UploadedFile) {
+                    // Загружаем новое изображение
+                    $path = $imageData['file']->store('article_images', 'public');
+                    $image = ArticleImage::create([
+                        'path' => $path,
+                        'alt' => $imageData['alt'] ?? '',
+                        'caption' => $imageData['caption'] ?? '',
+                    ]);
+                    $article->images()->attach($image->id);
+                } elseif (isset($imageData['id'])) {
+                    // ✅ Обновляем alt и caption для существующего изображения
+                    $existingImage = ArticleImage::find($imageData['id']);
+                    if ($existingImage) {
+                        $existingImage->update([
+                            'alt' => $imageData['alt'] ?? '',
+                            'caption' => $imageData['caption'] ?? '',
+                        ]);
+                        $article->images()->syncWithoutDetaching([$existingImage->id]);
+                    }
+                }
+            }
         }
 
-        Log::info('Статья создана: ', $article->toArray());
-
-        // Очистка кэша
-        $this->clearCache(['articles.all', 'articles.count', 'rubrics.all']);
-
-        return redirect()->route('articles.index')->with('success', 'Статья успешно создана');
+        return redirect()->route('articles.index')->with('success', 'Статья успешно создана.');
     }
 
     /**
@@ -180,46 +189,56 @@ class ArticleController extends Controller
      * @param string $id
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function update(ArticleRequest $request, string $id): \Illuminate\Http\RedirectResponse
+    public function update(ArticleRequest $request, Article $article): \Illuminate\Http\RedirectResponse
     {
-        $article = Article::findOrFail($id);
-
         $data = $request->validated();
+        $article->update($data);
 
-        // Обработка рубрик
+        // ✅ Привязываем рубрики
+        $rubricIds = [];
         if ($request->has('rubrics')) {
             $rubricTitles = array_column($request->input('rubrics'), 'title');
             $rubricIds = Rubric::whereIn('title', $rubricTitles)->pluck('id')->toArray();
             $article->rubrics()->sync($rubricIds);
         }
 
-        // Обработка тегов
+        // ✅ Привязываем теги
+        $tagIds = [];
         if ($request->has('tags')) {
-            $tagTitles = array_column($request->input('tags'), 'name');
-            $tagIds = Tag::whereIn('name', $tagTitles)->pluck('id')->toArray();
+            $tagNames = array_column($request->input('tags'), 'name');
+            $tagIds = Tag::whereIn('name', $tagNames)->pluck('id')->toArray();
             $article->tags()->sync($tagIds);
         }
 
-        // Обработка изображений
+        // ✅ Обновляем или загружаем изображения
         if ($request->has('images')) {
-            $imageUrls = array_column($request->input('images'), 'path');
-            $imageIds = ArticleImage::whereIn('path', $imageUrls)->pluck('id')->toArray();
-            $article->images()->sync($imageIds);
+            foreach ($data['images'] as $imageData) {
+                if (isset($imageData['file']) && $imageData['file'] instanceof \Illuminate\Http\UploadedFile) {
+                    $path = $imageData['file']->store('article_images', 'public');
+                    $image = ArticleImage::create([
+                        'path' => $path,
+                        'alt' => $imageData['alt'] ?? '',
+                        'caption' => $imageData['caption'] ?? '',
+                    ]);
+                    $article->images()->attach($image->id);
+                } elseif (isset($imageData['id'])) {
+                    $existingImage = ArticleImage::find($imageData['id']);
+                    if ($existingImage) {
+                        $existingImage->update([
+                            'alt' => $imageData['alt'] ?? '',
+                            'caption' => $imageData['caption'] ?? '',
+                        ]);
+                        $article->images()->syncWithoutDetaching([$existingImage->id]);
+                    }
+                }
+            }
         }
 
-        // Обновление статьи
-        $article->update($data);
-
-        Log::info('Статья обновлена: ', $article->toArray());
-
-        // Очистка кэша
-        $this->clearCache(['articles.all', 'articles.count', 'rubrics.all', 'tags.all', 'images.all']);
-
-        return redirect()->route('articles.index')->with('success', 'Статья успешно обновлена');
+        return redirect()->route('articles.index')->with('success', 'Статья обновлена.');
     }
 
     /**
-     * Удаление Статьи
+     * Удаление статьи вместе с изображениями
      *
      * @param string $id
      * @return \Illuminate\Http\RedirectResponse
@@ -227,14 +246,33 @@ class ArticleController extends Controller
     public function destroy(string $id): \Illuminate\Http\RedirectResponse
     {
         $article = Article::findOrFail($id);
+
+        // ✅ Удаляем связанные изображения
+        foreach ($article->images as $image) {
+            // Убираем дублирование 'article_images/'
+            $imagePath = $image->path; // Должно быть уже 'article_images/filename.jpg'
+
+            // Проверяем существование файла перед удалением
+            if (Storage::disk('public')->exists($imagePath)) {
+                Storage::disk('public')->delete($imagePath);
+                Log::info("Файл успешно удалён: {$imagePath}");
+            } else {
+                Log::warning("Файл не найден: {$imagePath}");
+            }
+
+            // Удаляем запись из базы данных
+            $image->delete();
+        }
+
+        // ✅ Удаляем статью
         $article->delete();
 
         Log::info('Статья удалена: ', $article->toArray());
 
-        // Очистка кэша
+        // ✅ Очистка кэша
         $this->clearCache(['articles.all', 'articles.count', 'rubrics.all']);
 
-        return back();
+        return back()->with('success', 'Статья и связанные изображения удалены.');
     }
 
     /**
