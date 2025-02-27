@@ -1,5 +1,5 @@
 <script setup>
-import { defineProps } from 'vue';
+import {defineProps, ref} from 'vue';
 import { transliterate } from '@/utils/transliteration';
 import { useI18n } from 'vue-i18n';
 import { useForm } from '@inertiajs/vue3';
@@ -49,12 +49,13 @@ const form = useForm({
     activity: Boolean(props.article.activity ?? false),
     rubrics: props.article.rubrics ?? [],
     tags: props.article.tags ?? [],
-    images: props.article.images.map(img => ({
+    images: Array.isArray(props.article.images) ? props.article.images.map(img => ({
         id: img.id,
-        url: img.path ? `/storage/article_images/${img.path}` : null, // ✅ Используем path
+        url: img.path ? `/storage/article_images/${img.path}` : null,
         alt: img.alt || '',
         caption: img.caption || ''
-    }))
+    })) : [],  // ✅ Гарантируем, что это массив
+    deletedImages: [] // ✅ Храним удалённые изображения
 });
 
 // ✅ Автозаполнение `url`
@@ -86,20 +87,19 @@ const generateMetaFields = () => {
     }
 };
 
-// ✅ Обновление статьи
+// Метод обновления статьи
 const submitForm = async () => {
     form.transform((data) => ({
         ...data,
         activity: data.activity ? 1 : 0,
-
-        images: form.images.map(image => {
+        images: Array.isArray(form.images) ? form.images.map(image => {
             if (image.file) {
                 return { file: image.file, alt: image.alt, caption: image.caption }; // ✅ Новое изображение
             }
             if (image.id) {
                 return { id: Number(image.id), alt: image.alt, caption: image.caption }; // ✅ Существующее изображение
             }
-        }).filter(Boolean) // ❌ Убираем `undefined` / `null`
+        }).filter(Boolean) : [] // ✅ Гарантируем, что `images` — это массив
     }));
 
     form.post(route('articles.update', props.article.id), {
@@ -330,8 +330,12 @@ const submitForm = async () => {
                         </MetatagsButton>
                     </div>
 
-                    <!-- Загрузка изображений -->
-                    <MultiImageEdit :existingImages="props.article.images" @update:images="form.images = $event" />
+                    <!-- Компонент редактирования изображений -->
+                    <MultiImageEdit
+                        :existingImages="props.article.images"
+                        @update:images="form.images = $event"
+                        @update:deletedImages="form.deletedImages.push($event)"
+                    />
 
                     <div class="flex items-center justify-center mt-4">
                         <DefaultButton :href="route('articles.index')" class="mb-3">

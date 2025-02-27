@@ -4,7 +4,7 @@ import LabelInput from "@/Components/Admin/Input/LabelInput.vue";
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
-const emit = defineEmits(['update:images']);
+const emit = defineEmits(['update:images', 'update:deletedImages']);
 const previewImages = ref([]);
 
 // ✅ Принимаем существующие изображения
@@ -19,7 +19,7 @@ const props = defineProps({
 watch(() => props.existingImages, (newImages) => {
     previewImages.value = newImages.map(img => ({
         id: img.id,
-        url: img.path.startsWith('article_images/') ? `/storage/${img.path}` : `/storage/article_images/${img.path}`,
+        url: img.path ? `/storage/${img.path}` : null,
         alt: img.alt || '',
         caption: img.caption || ''
     }));
@@ -27,16 +27,18 @@ watch(() => props.existingImages, (newImages) => {
 
 // ✅ Обновление изображений
 const updateImages = () => {
-    emit('update:images', previewImages.value.map(img => ({
-        id: img.id,
-        alt: img.alt,
-        caption: img.caption
-    })));
+    emit('update:images', previewImages.value);
 };
 
 // ✅ Удаление изображения
 const removeImage = (index) => {
-    previewImages.value.splice(index, 1);
+    const removedImage = previewImages.value[index];
+
+    if (removedImage.id) {
+        emit('update:deletedImages', removedImage.id); // 🔥 Передаём ID удалённого изображения
+    }
+
+    previewImages.value.splice(index, 1); // Удаляем только нужное изображение
     updateImages();
 };
 </script>
@@ -45,9 +47,9 @@ const removeImage = (index) => {
     <div class="multi-image-edit">
         <LabelInput :value="t('editImages')"/>
         <div v-if="previewImages.length" class="mt-4 grid grid-cols-4 gap-4">
-            <div v-for="(image, index) in previewImages" :key="index"
+            <div v-for="(image, index) in previewImages" :key="image.id"
                  class="relative border border-slate-500 rounded-sm py-0.5 px-2">
-                <img :src="image.url" :alt="t('view')" class="h-40 w-full object-cover"/>
+                <img v-if="image.url" :src="image.url" class="h-40 w-full object-cover" alt=""/>
                 <input v-model="image.alt" @input="updateImages()" :placeholder="t('seoAltImage')"
                        class="w-full my-2 py-0.5 px-2 text-sm font-semibold border border-slate-500 rounded" />
                 <input v-model="image.caption" @input="updateImages()" :placeholder="t('seoTitleImage')"

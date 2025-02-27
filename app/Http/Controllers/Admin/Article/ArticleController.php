@@ -13,11 +13,14 @@ use App\Models\Admin\Article\ArticleImage;
 use App\Models\Admin\Article\Tag;
 use App\Models\Admin\Rubric\Rubric;
 use App\Traits\CacheTimeTrait;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class ArticleController extends Controller
 {
@@ -26,9 +29,9 @@ class ArticleController extends Controller
     /**
      * Все статьи
      *
-     * @return \Inertia\Response
+     * @return Response
      */
-    public function index(): \Inertia\Response
+    public function index(): Response
     {
         $cacheTime = $this->getCacheTime();
 
@@ -49,9 +52,9 @@ class ArticleController extends Controller
     /**
      * Страница создать Статью
      *
-     * @return \Inertia\Response
+     * @return Response
      */
-    public function create(): \Inertia\Response
+    public function create(): Response
     {
         $cacheTime = $this->getCacheTime();
 
@@ -81,9 +84,9 @@ class ArticleController extends Controller
      * Создать статью
      *
      * @param ArticleRequest $request
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
-    public function store(ArticleRequest $request): \Illuminate\Http\RedirectResponse
+    public function store(ArticleRequest $request): RedirectResponse
     {
         $data = $request->validated();
 
@@ -147,9 +150,9 @@ class ArticleController extends Controller
      * Страница редактирования Статьи
      *
      * @param string $id
-     * @return \Inertia\Response
+     * @return Response
      */
-    public function edit(string $id): \Inertia\Response
+    public function edit(string $id): Response
     {
         $cacheTime = $this->getCacheTime();
 
@@ -175,39 +178,40 @@ class ArticleController extends Controller
     }
 
     /**
-     * Обновление Статьи
+     * Обновить статью
      *
      * @param ArticleRequest $request
      * @param string $id
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
-    public function update(ArticleRequest $request, string $id): \Illuminate\Http\RedirectResponse
+    public function update(ArticleRequest $request, string $id): RedirectResponse
     {
         $article = Article::findOrFail($id);
         $data = $request->validated();
+
+        // ✅ Удаление изображений
+        if ($request->has('deletedImages') && is_array($request->deletedImages)) {
+            $this->deleteImages($request->deletedImages);
+        }
 
         // ✅ Обновляем статью
         $article->update($data);
 
         // ✅ Привязываем рубрики
-        $rubricIds = [];
-        if ($request->has('rubrics')) {
-            $rubricTitles = array_column($request->input('rubrics'), 'title');
-            $rubricIds = Rubric::whereIn('title', $rubricTitles)->pluck('id')->toArray();
-        }
+        $rubricIds = $request->has('rubrics')
+            ? Rubric::whereIn('title', array_column($request->input('rubrics'), 'title'))->pluck('id')->toArray()
+            : [];
         $article->rubrics()->sync($rubricIds);
 
         // ✅ Привязываем теги
-        $tagIds = [];
-        if ($request->has('tags')) {
-            $tagNames = array_column($request->input('tags'), 'name');
-            $tagIds = Tag::whereIn('name', $tagNames)->pluck('id')->toArray();
-        }
+        $tagIds = $request->has('tags')
+            ? Tag::whereIn('name', array_column($request->input('tags'), 'name'))->pluck('id')->toArray()
+            : [];
         $article->tags()->sync($tagIds);
 
         // ✅ Обрабатываем изображения
-        if ($request->has('images')) {
-            foreach ($data['images'] as $imageData) {
+        if ($request->has('images') && is_array($request->images)) {
+            foreach ($request->images as $imageData) {
                 if (isset($imageData['file']) && $imageData['file'] instanceof \Illuminate\Http\UploadedFile) {
                     // Загружаем новое изображение
                     $path = $imageData['file']->store('article_images', 'public');
@@ -218,7 +222,7 @@ class ArticleController extends Controller
                     ]);
                     $article->images()->attach($image->id);
                 } elseif (isset($imageData['id'])) {
-                    // ✅ Обновляем alt и caption существующего изображения
+                    // ✅ Обновляем `alt` и `caption` у существующего изображения
                     $existingImage = ArticleImage::find($imageData['id']);
                     if ($existingImage) {
                         $existingImage->update([
@@ -241,9 +245,9 @@ class ArticleController extends Controller
      * Удаление статьи вместе с изображениями
      *
      * @param string $id
-     * @return \Illuminate\Http\RedirectResponse
+     * @return RedirectResponse
      */
-    public function destroy(string $id): \Illuminate\Http\RedirectResponse
+    public function destroy(string $id): RedirectResponse
     {
         $article = Article::findOrFail($id);
 
@@ -279,9 +283,9 @@ class ArticleController extends Controller
      * Массовые действия над Статьями
      *
      * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
-    public function bulkDestroy(Request $request): \Illuminate\Http\JsonResponse
+    public function bulkDestroy(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'ids' => 'required|array',
@@ -307,9 +311,9 @@ class ArticleController extends Controller
      *
      * @param Request $request
      * @param $id
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
-    public function updateActivity(Request $request, $id): \Illuminate\Http\JsonResponse
+    public function updateActivity(Request $request, $id): JsonResponse
     {
         $validated = $request->validate([
             'activity' => 'required|boolean',
@@ -332,9 +336,9 @@ class ArticleController extends Controller
      *
      * @param Request $request
      * @param $id
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
-    public function updateSort(Request $request, $id): \Illuminate\Http\JsonResponse
+    public function updateSort(Request $request, $id): JsonResponse
     {
         $validated = $request->validate([
             'sort' => 'required|integer',
@@ -357,9 +361,9 @@ class ArticleController extends Controller
      *
      * @param Request $request
      * @param $id
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
-    public function clone(Request $request, $id): \Illuminate\Http\JsonResponse
+    public function clone(Request $request, $id): JsonResponse
     {
         $article = Article::findOrFail($id);
 
@@ -393,6 +397,32 @@ class ArticleController extends Controller
         $this->clearCache(['articles.all', 'rubrics.all', 'tags.all', 'images.all']);
 
         return response()->json(['success' => true, 'reload' => true]);
+    }
+
+    /**
+     * Удаление изображений
+     *
+     * @param array $imageIds
+     * @return void
+     */
+    private function deleteImages(array $imageIds): void
+    {
+        $imagesToDelete = ArticleImage::whereIn('id', $imageIds)->get();
+
+        foreach ($imagesToDelete as $image) {
+            // Удаляем файл из storage, если он существует
+            if ($image->path && Storage::disk('public')->exists($image->path)) {
+                Storage::disk('public')->delete($image->path);
+                Log::info("Файл успешно удалён: {$image->path}");
+            } else {
+                Log::warning("Файл не найден: {$image->path}");
+            }
+
+            // Удаляем запись из базы данных
+            $image->delete();
+        }
+
+        Log::info('Удалены изображения: ', ['image_ids' => $imageIds]);
     }
 
 }
