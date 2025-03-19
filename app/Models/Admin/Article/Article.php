@@ -4,8 +4,6 @@ namespace App\Models\Admin\Article;
 
 use App\Models\Admin\Comment\Comment;
 use App\Models\Admin\Rubric\Rubric;
-use App\Models\Admin\Article\Tag;
-use App\Models\Admin\Article\ArticleImage;
 use App\Models\User\Like\ArticleLike;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

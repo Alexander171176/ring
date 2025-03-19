@@ -3,8 +3,6 @@
 namespace App\Http\Resources\Admin\Article;
 
 use App\Http\Resources\Admin\Rubric\RubricResource;
-use App\Http\Resources\Admin\Article\ArticleImageResource;
-use App\Http\Resources\Admin\Article\TagResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 

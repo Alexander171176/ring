@@ -1,5 +1,5 @@
 <script setup>
-import {defineProps, ref} from 'vue';
+import { defineProps, ref, watch } from 'vue';
 import { transliterate } from '@/utils/transliteration';
 import { useI18n } from 'vue-i18n';
 import { useForm } from '@inertiajs/vue3';
@@ -17,7 +17,7 @@ import LabelInput from '@/Components/Admin/Input/LabelInput.vue';
 import InputText from '@/Components/Admin/Input/InputText.vue';
 import InputError from '@/Components/Admin/Input/InputError.vue';
 import SelectLocale from "@/Components/Admin/Select/SelectLocale.vue";
-import MultiImageEdit from "@/Components/Image/MultiImageEdit.vue";
+import MultiImageManager from "@/Components/Image/MultiImageManager.vue"; //  Импортируем новый компонент
 import VueMultiselect from 'vue-multiselect';
 
 const { t } = useI18n();
@@ -31,9 +31,20 @@ const props = defineProps({
     tags: Array
 });
 
-// ✅ Инициализация формы
-const form = useForm({
-    _method: 'PUT',
+// Используем ref для existingImages, newImages и deletedImages
+const existingImages = ref((props.article.images || []).map(img => ({
+    id: img.id ? Number(img.id) : undefined,
+    url: `/storage/${img.path}`,
+    alt: img.alt || '',
+    caption: img.caption || '',
+    isExisting: true,
+})));
+const newImages = ref([]);
+const deletedImages = ref([]);
+
+
+const form = useForm({  //  useForm  оставляем *только* для тех полей,
+    _method: 'PUT',        //  которые НЕ меняются динамически
     sort: props.article.sort ?? 0,
     locale: props.article.locale ?? '',
     title: props.article.title ?? '',
@@ -49,23 +60,16 @@ const form = useForm({
     activity: Boolean(props.article.activity ?? false),
     rubrics: props.article.rubrics ?? [],
     tags: props.article.tags ?? [],
-    images: Array.isArray(props.article.images) ? props.article.images.map(img => ({
-        id: img.id,
-        url: img.path ? `/storage/article_images/${img.path}` : null,
-        alt: img.alt || '',
-        caption: img.caption || ''
-    })) : [],  // ✅ Гарантируем, что это массив
-    deletedImages: [] // ✅ Храним удалённые изображения
+    deletedImages: [], // Добавляем пустой массив для удалённых изображений
 });
 
-// ✅ Автозаполнение `url`
+
 const handleUrlInputFocus = () => {
     if (form.title) {
         form.url = transliterate(form.title.toLowerCase());
     }
 };
 
-// ✅ Генерация мета-тегов
 const truncateText = (text, maxLength, addEllipsis = false) => {
     if (text.length <= maxLength) return text;
     const truncated = text.substr(0, text.lastIndexOf(' ', maxLength));
@@ -87,24 +91,84 @@ const generateMetaFields = () => {
     }
 };
 
-// Метод обновления статьи
-const submitForm = async () => {
-    form.transform((data) => ({
-        ...data,
-        activity: data.activity ? 1 : 0,
-        images: Array.isArray(form.images) ? form.images.map(image => {
-            if (image.file) {
-                return { file: image.file, alt: image.alt, caption: image.caption }; // ✅ Новое изображение
-            }
-            if (image.id) {
-                return { id: Number(image.id), alt: image.alt, caption: image.caption }; // ✅ Существующее изображение
-            }
-        }).filter(Boolean) : [] // ✅ Гарантируем, что `images` — это массив
-    }));
+//  Обработчик удаления *существующего* изображения
+const handleExistingImageDeleted = (deletedId) => {
+    if (!deletedImages.value.includes(deletedId)) {
+        deletedImages.value.push(deletedId);
+    }
+    existingImages.value = existingImages.value.filter(image => image.id !== deletedId);
+    console.log("Edit.vue handleExistingImageDeleted - deletedImages:", deletedImages.value);
+    console.log("Edit.vue handleExistingImageDeleted - existingImages:", existingImages.value);
+};
+
+//  Обработчик события  update:images  от  MultiImageManager
+const handleImagesUpdated = (updatedImages) => {
+    console.log("Edit.vue handleImagesUpdated:", updatedImages);
+
+    // Фильтруем изображения, исключая те, что помечены как удалённые
+    const filteredImages = updatedImages.filter(img => !(img.id && deletedImages.value.includes(img.id)));
+
+    newImages.value = filteredImages.filter(img => !img.id);
+    existingImages.value = filteredImages.filter(img => img.id);
+    console.log("Edit existingImages:", existingImages.value);
+    console.log("Edit newImages:", newImages.value);
+};
+
+const submitForm = () => {
+    const images = [
+        ...newImages.value.map(img => ({ file: img.file, alt: img.alt, caption: img.caption })),
+        ...existingImages.value.map(img => ({ id: img.id, alt: img.alt, caption: img.caption })),
+    ];
+
+    // Обновляем поле deletedImages в форме
+    form.deletedImages = deletedImages.value;
+
+    const data = {
+        ...form.data(), // теперь здесь будет и deletedImages
+        activity: form.activity ? 1 : 0,
+        images,
+    };
+
+    console.log("Edit.vue submitForm - data:", data);
+
+    // Ручное создание FormData для корректной передачи вложенных файлов
+    const formData = new FormData();
+
+    for (const key in data) {
+        if (key === 'images') {
+            data.images.forEach((image, index) => {
+                if (image.file) {
+                    formData.append(`images[${index}][file]`, image.file);
+                }
+                // Добавляем alt и caption, даже если они пустые
+                formData.append(`images[${index}][alt]`, image.alt || '');
+                formData.append(`images[${index}][caption]`, image.caption || '');
+                if (image.id) {
+                    formData.append(`images[${index}][id]`, image.id);
+                }
+            });
+        } else if (Array.isArray(data[key])) {
+            data[key].forEach((value, index) => {
+                // Если значение является объектом, можно сериализовать его,
+                // либо, если ожидается массив примитивов, передаем напрямую.
+                if (typeof value === 'object') {
+                    formData.append(`${key}[${index}]`, JSON.stringify(value));
+                } else {
+                    formData.append(`${key}[${index}]`, value);
+                }
+            });
+        } else {
+            formData.append(key, data[key]);
+        }
+    }
 
     form.post(route('articles.update', props.article.id), {
         preserveScroll: true,
-        onSuccess: () => {
+        data: formData,
+        // forceFormData можно оставить, хотя теперь FormData формируется вручную
+        forceFormData: true,
+        onSuccess: (page) => {
+            console.log("Edit.vue onSuccess:", page);
             window.location.href = route('articles.index');
         },
         onError: (errors) => {
@@ -112,6 +176,16 @@ const submitForm = async () => {
         }
     });
 };
+
+watch(() => props.existingImages, (newVal) => {
+    previewImages.value = newVal.map(img => ({
+        id: img.id,
+        url: img.url,
+        alt: img.alt || '',
+        caption: img.caption || '',
+        isExisting: img.isExisting ?? true,
+    }));
+});
 
 </script>
 
@@ -131,9 +205,9 @@ const submitForm = async () => {
                 <div class="sm:flex sm:justify-between sm:items-center mb-2">
                     <DefaultButton :href="route('articles.index')">
                         <template #icon>
-                            <!-- SVG -->
                             <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">
-                                <path d="M4.3 4.5c1.9-1.9 5.1-1.9 7 0 .7.7 1.2 1.7 1.4 2.7l2-.3c-.2-1.5-.9-2.8-1.9-3.8C10.1.4 5.7.4 2.9 3.1L.7.9 0 7.3l6.4-.7-2.1-2.1zM15.6 8.7l-6.4.7 2.1 2.1c-1.9 1.9-5.1 1.9-7 0-.7-.7-1.2-1.7-1.4-2.7l-2 .3c.2 1.5.9 2.8 1.9 3.8 1.4 1.4 3.1 2 4.9 2 1.8 0 3.6-.7 4.9-2l2.2 2.2.8-6.4z"></path>
+                                <path
+                                    d="M4.3 4.5c1.9-1.9 5.1-1.9 7 0 .7.7 1.2 1.7 1.4 2.7l2-.3c-.2-1.5-.9-2.8-1.9-3.8C10.1.4 5.7.4 2.9 3.1L.7.9 0 7.3l6.4-.7-2.1-2.1zM15.6 8.7l-6.4.7 2.1 2.1c-1.9 1.9-5.1 1.9-7 0-.7-.7-1.2-1.7-1.4-2.7l-2 .3c.2 1.5.9 2.8 1.9 3.8 1.4 1.4 3.1 2 4.9 2 1.8 0 3.6-.7 4.9-2l2.2 2.2 .8-6.4z"></path>
                             </svg>
                         </template>
                         {{ t('back') }}
@@ -143,19 +217,17 @@ const submitForm = async () => {
 
                     <div class="mb-3 flex justify-between flex-col lg:flex-row items-center gap-4">
 
-                        <!-- Активность -->
                         <div class="flex flex-row items-center gap-2">
+                            {/*  Используем  v-model  с  ref  переменными  */}
                             <ActivityCheckbox v-model="form.activity"/>
                             <LabelCheckbox for="activity" :text="t('activity')" class="text-sm h-8 flex items-center"/>
                         </div>
 
-                        <!-- Локализация -->
                         <div class="flex flex-row items-center gap-2 w-auto">
                             <SelectLocale v-model="form.locale" :errorMessage="form.errors.locale"/>
                             <InputError class="mt-2 lg:mt-0" :message="form.errors.locale"/>
                         </div>
 
-                        <!-- Сортировка -->
                         <div class="flex flex-row items-center gap-2">
                             <div class="h-8 flex items-center">
                                 <LabelInput for="sort" :value="t('sort')" class="text-sm"/>
@@ -330,19 +402,18 @@ const submitForm = async () => {
                         </MetatagsButton>
                     </div>
 
-                    <!-- Компонент редактирования изображений -->
-                    <MultiImageEdit
-                        :existingImages="props.article.images"
-                        @update:images="form.images = $event"
-                        @update:deletedImages="form.deletedImages.push($event)"
+                    <MultiImageManager
+                        :existingImages="existingImages"
+                        @update:images="handleImagesUpdated"
+                        @remove-existing-image="handleExistingImageDeleted"
                     />
 
                     <div class="flex items-center justify-center mt-4">
                         <DefaultButton :href="route('articles.index')" class="mb-3">
                             <template #icon>
-                                <!-- SVG -->
                                 <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">
-                                    <path d="M4.3 4.5c1.9-1.9 5.1-1.9 7 0 .7.7 1.2 1.7 1.4 2.7l2-.3c-.2-1.5-.9-2.8-1.9-3.8C10.1.4 5.7.4 2.9 3.1L.7.9 0 7.3l6.4-.7-2.1-2.1zM15.6 8.7l-6.4.7 2.1 2.1c-1.9 1.9-5.1 1.9-7 0-.7-.7-1.2-1.7-1.4-2.7l-2 .3c.2 1.5.9 2.8 1.9 3.8 1.4 1.4 3.1 2 4.9 2 1.8 0 3.6-.7 4.9-2l2.2 2.2.8-6.4z"></path>
+                                    <path
+                                        d="M4.3 4.5c1.9-1.9 5.1-1.9 7 0 .7.7 1.2 1.7 1.4 2.7l2-.3c-.2-1.5-.9-2.8-1.9-3.8C10.1.4 5.7.4 2.9 3.1L.7.9 0 7.3l6.4-.7-2.1-2.1zM15.6 8.7l-6.4.7 2.1 2.1c-1.9 1.9-5.1 1.9-7 0-.7-.7-1.2-1.7-1.4-2.7l-2 .3c.2 1.5.9 2.8 1.9 3.8 1.4 1.4 3.1 2 4.9 2 1.8 0 3.6-.7 4.9-2l2.2 2.2 .8-6.4z"></path>
                                 </svg>
                             </template>
                             {{ t('back') }}
