@@ -17,7 +17,7 @@ import LabelInput from '@/Components/Admin/Input/LabelInput.vue';
 import InputText from '@/Components/Admin/Input/InputText.vue';
 import InputError from '@/Components/Admin/Input/InputError.vue';
 import SelectLocale from "@/Components/Admin/Select/SelectLocale.vue";
-import MultiImageUpload from "@/Components/Image/MultiImageUpload.vue";
+import MultiImageUpload from "@/Components/Admin/Image/MultiImageUpload.vue";
 import VueMultiselect from 'vue-multiselect';
 
 const { t } = useI18n();
@@ -56,13 +56,14 @@ const handleUrlInputFocus = () => {
     }
 };
 
-// автоматическая генерация мета-тегов
+// количество символов в поле
 const truncateText = (text, maxLength, addEllipsis = false) => {
     if (text.length <= maxLength) return text;
     const truncated = text.substr(0, text.lastIndexOf(' ', maxLength));
     return addEllipsis ? `${truncated}...` : truncated;
 };
 
+// автоматическая генерация мета-тегов
 const generateMetaFields = () => {
     if (form.title && !form.meta_title) {
         form.meta_title = truncateText(form.title, 160);

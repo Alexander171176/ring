@@ -186,52 +186,52 @@ class ArticleController extends Controller
      */
     public function update(ArticleRequest $request, string $id): RedirectResponse
     {
-        Log::info('ArticleController::update - Start', ['article_id' => $id, 'request' => $request->all()]);
+        //Log::info('ArticleController::update - Start', ['article_id' => $id, 'request' => $request->all()]);
 
         $article = Article::findOrFail($id);
-        Log::info('ArticleController::update - Article found', ['article' => $article]);
+        //Log::info('ArticleController::update - Article found', ['article' => $article]);
 
         // Получаем валидированные данные и отделяем изображения
         $data = $request->validated();
         $imagesData = $data['images'] ?? [];
         unset($data['images']); // Удаляем ключ images, чтобы не пытаться обновить несуществующий столбец
 
-        Log::info('ArticleController::update - Data validated', ['data' => $data]);
+        //Log::info('ArticleController::update - Data validated', ['data' => $data]);
 
         // Обработка удаления изображений (удалённые с клиента)
         if ($request->has('deletedImages') && is_array($request->deletedImages)) {
-            Log::info('ArticleController::update - Deleting images', ['deletedImages' => $request->deletedImages]);
+            //Log::info('ArticleController::update - Deleting images', ['deletedImages' => $request->deletedImages]);
             $this->deleteImages($request->deletedImages);
         }
 
         // Обновляем данные статьи
         $article->update($data);
-        Log::info('ArticleController::update - Article updated', ['article' => $article]);
+        //Log::info('ArticleController::update - Article updated', ['article' => $article]);
 
         // Обновляем связи рубрик
         $rubricIds = $request->has('rubrics')
             ? Rubric::whereIn('title', array_column($request->input('rubrics'), 'title'))->pluck('id')->toArray()
             : [];
         $article->rubrics()->sync($rubricIds);
-        Log::info('ArticleController::update - Rubrics synced', ['rubricIds' => $rubricIds]);
+        //Log::info('ArticleController::update - Rubrics synced', ['rubricIds' => $rubricIds]);
 
         // Обновляем связи тегов
         $tagIds = $request->has('tags')
             ? Tag::whereIn('name', array_column($request->input('tags'), 'name'))->pluck('id')->toArray()
             : [];
         $article->tags()->sync($tagIds);
-        Log::info('ArticleController::update - Tags synced', ['tagIds' => $tagIds]);
+        //Log::info('ArticleController::update - Tags synced', ['tagIds' => $tagIds]);
 
         // Обрабатываем изображения: новые и обновление существующих
         if (!empty($imagesData)) {
-            Log::info('ArticleController::update - Images processing started');
+            //Log::info('ArticleController::update - Images processing started');
             $imageIds = [];
 
             foreach ($imagesData as $imageData) {
-                Log::info('ArticleController::update - Processing image data', ['imageData' => $imageData]);
+                //Log::info('ArticleController::update - Processing image data', ['imageData' => $imageData]);
                 if (isset($imageData['file']) && $imageData['file'] instanceof \Illuminate\Http\UploadedFile) {
                     // Загружаем новое изображение
-                    Log::info('ArticleController::update - New image detected');
+                    //Log::info('ArticleController::update - New image detected');
                     $path = $imageData['file']->store('article_images', 'public');
                     $image = ArticleImage::create([
                         'path' => $path,
@@ -239,10 +239,10 @@ class ArticleController extends Controller
                         'caption' => $imageData['caption'] ?? '',
                     ]);
                     $imageIds[] = $image->id;
-                    Log::info('ArticleController::update - New image created', ['image_id' => $image->id, 'path' => $path]);
+                    //Log::info('ArticleController::update - New image created', ['image_id' => $image->id, 'path' => $path]);
                 } elseif (isset($imageData['id'])) {
                     // Обновляем alt и caption для существующего изображения
-                    Log::info('ArticleController::update - Existing image detected', ['image_id' => $imageData['id']]);
+                    //Log::info('ArticleController::update - Existing image detected', ['image_id' => $imageData['id']]);
                     $existingImage = ArticleImage::find($imageData['id']);
                     if ($existingImage) {
                         $existingImage->update([
@@ -250,7 +250,7 @@ class ArticleController extends Controller
                             'caption' => $imageData['caption'] ?? '',
                         ]);
                         $imageIds[] = $existingImage->id;
-                        Log::info('ArticleController::update - Existing image updated', ['image_id' => $existingImage->id]);
+                        //Log::info('ArticleController::update - Existing image updated', ['image_id' => $existingImage->id]);
                     } else {
                         Log::warning('ArticleController::update - Existing image not found', ['image_id' => $imageData['id']]);
                     }
@@ -258,16 +258,16 @@ class ArticleController extends Controller
             }
 
             // Синхронизируем связи изображений статьи с актуальным списком
-            Log::info('ArticleController::update - Syncing images', ['imageIds' => $imageIds]);
+            //Log::info('ArticleController::update - Syncing images', ['imageIds' => $imageIds]);
             $article->images()->sync($imageIds);
-            Log::info('ArticleController::update - Images synced');
+            //Log::info('ArticleController::update - Images synced');
         } else {
             Log::info('ArticleController::update - No images in request');
         }
 
         // Очистка кэша
         $this->clearCache(['articles.all', 'articles.count', 'rubrics.all', 'tags.all']);
-        Log::info('ArticleController::update - Cache cleared');
+        //Log::info('ArticleController::update - Cache cleared');
 
         return redirect()->route('articles.index')->with('success', 'Статья успешно обновлена.');
     }

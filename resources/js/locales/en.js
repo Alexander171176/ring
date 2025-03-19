@@ -41,6 +41,7 @@ export default {
     charts: 'Charts',
     class: 'tailwind css classes',
     clearCache: 'Clear the cache',
+    clearMetaFields: 'Clear meta fields',
     clone: 'Clone',
     close: 'Close',
     code: 'Code',

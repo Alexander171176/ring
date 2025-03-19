@@ -50,14 +50,14 @@ const removeImage = (index) => {
                 <input
                     v-model="image.alt"
                     @input="updateImages"
-                    placeholder="Alt"
-                    class="w-full my-2 py-0.5 px-2 text-sm border border-slate-500 rounded"
+                    :placeholder="t('seoAltImage')"
+                    class="w-full my-2 py-0.5 px-2 text-sm font-semibold border border-slate-500 rounded"
                 />
                 <input
                     v-model="image.caption"
                     @input="updateImages"
-                    placeholder="Caption"
-                    class="w-full mb-2 py-0.5 px-2 text-sm border border-slate-500 rounded"
+                    :placeholder="t('seoTitleImage')"
+                    class="w-full mb-2 py-0.5 px-2 text-sm font-semibold border border-slate-500 rounded"
                 />
                 <button type="button" @click="removeImage(index)" class="absolute top-0 right-0 bg-rose-500 hover:bg-rose-700 text-white rounded-sm p-1">
                     <svg class="w-4 h-4 fill-current opacity-80" viewBox="0 0 16 16">

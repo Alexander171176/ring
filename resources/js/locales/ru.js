@@ -41,6 +41,7 @@ export default {
     charts: 'Графики',
     class: 'классы Tailwind CSS',
     clearCache: 'Очистить кэш',
+    clearMetaFields: 'Очистить мета-поля',
     clone: 'Клонировать',
     close: 'Закрыть',
     code: 'Код',

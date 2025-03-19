@@ -69,7 +69,7 @@ const removeImage = (index) => {
         <input type="file" multiple @change="handleFileUpload" accept="image/*"
                class="block w-full text-md text-gray-700 dark:text-gray-100
                       file:mr-4 file:py-0.5 file:px-2 file:border-0 file:text-sm file:font-semibold
-                      file:bg-blue-600 file:text-white hover:file:bg-blue-700"/>
+                      file:bg-violet-600 file:text-white hover:file:bg-violet-700"/>
 
         <div v-if="previewImages.length" class="mt-4 grid grid-cols-4 gap-4">
             <div v-for="(image, index) in previewImages" :key="index"

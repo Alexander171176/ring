@@ -41,6 +41,7 @@ export default {
     charts: 'Графиктер',
     class: 'Tailwind CSS кластары',
     clearCache: 'Кэшті тазалау',
+    clearMetaFields: 'Мета өрістерін тазалаңыз',
     clone: 'Клондау',
     close: 'Жабу',
     code: 'Код',

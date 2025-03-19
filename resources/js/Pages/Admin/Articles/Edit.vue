@@ -7,6 +7,7 @@ import AdminLayout from '@/Layouts/AdminLayout.vue';
 import TitlePage from '@/Components/Admin/Headlines/TitlePage.vue';
 import DefaultButton from '@/Components/Admin/Buttons/DefaultButton.vue';
 import PrimaryButton from '@/Components/Admin/Buttons/PrimaryButton.vue';
+import ClearMetaButton from '@/Components/Admin/Buttons/ClearMetaButton.vue';
 import MetatagsButton from '@/Components/Admin/Buttons/MetatagsButton.vue';
 import LabelCheckbox from '@/Components/Admin/Checkbox/LabelCheckbox.vue';
 import ActivityCheckbox from '@/Components/Admin/Checkbox/ActivityCheckbox.vue';
@@ -20,8 +21,8 @@ import SelectLocale from "@/Components/Admin/Select/SelectLocale.vue";
 import VueMultiselect from 'vue-multiselect';
 
 // Импорт двух отдельных компонентов для работы с изображениями:
-import MultiImageUpload from '@/Components/Image/MultiImageUpload.vue'; // для загрузки новых изображений
-import MultiImageEdit from '@/Components/Image/MultiImageEdit.vue';         // для редактирования существующих
+import MultiImageUpload from '@/Components/Admin/Image/MultiImageUpload.vue'; // для загрузки новых изображений
+import MultiImageEdit from '@/Components/Admin/Image/MultiImageEdit.vue';         // для редактирования существующих
 
 const { t } = useI18n();
 
@@ -88,18 +89,28 @@ const handleNewImagesUpdate = (images) => {
     newImages.value = images;
 };
 
+// автоматическое заполнение поля url
 const handleUrlInputFocus = () => {
     if (form.title) {
         form.url = transliterate(form.title.toLowerCase());
     }
 };
 
+// количество символов в поле
 const truncateText = (text, maxLength, addEllipsis = false) => {
     if (text.length <= maxLength) return text;
     const truncated = text.substr(0, text.lastIndexOf(' ', maxLength));
     return addEllipsis ? `${truncated}...` : truncated;
 };
 
+// очистка мета-тегов
+const clearMetaFields = () => {
+    form.meta_title = '';
+    form.meta_keywords = '';
+    form.meta_desc = '';
+};
+
+// автоматическая генерация мета-тегов
 const generateMetaFields = () => {
     if (form.title && !form.meta_title) {
         form.meta_title = truncateText(form.title, 160);
@@ -113,6 +124,7 @@ const generateMetaFields = () => {
     }
 };
 
+// метод сохранения
 const submitForm = () => {
     // Используем transform для объединения данных формы с массивами новых и существующих изображений
     form.transform((data) => ({
@@ -279,6 +291,16 @@ const submitForm = () => {
                     </div>
 
                     <div class="flex justify-end mt-4">
+                        <!-- Кнопка очистки мета-полей -->
+                        <ClearMetaButton @clear="clearMetaFields" class="mr-4">
+                            <template #default>
+                                <svg class="w-4 h-4 fill-current text-gray-500 shrink-0 mr-2" viewBox="0 0 16 16">
+                                    <path d="M8 0C3.58 0 0 3.58 0 8s3.58 8 8 8 8-3.58 8-8-3.58-8-8-8zm3 9H5V7h6v2z"/>
+                                </svg>
+                                {{ t('clearMetaFields') }}
+                            </template>
+                        </ClearMetaButton>
+                        <!-- Кнопка генерации мета-полей -->
                         <MetatagsButton @click.prevent="generateMetaFields">
                             <template #icon>
                                 <svg class="w-4 h-4 fill-current text-slate-600 shrink-0 mr-2" viewBox="0 0 16 16">
@@ -287,6 +309,7 @@ const submitForm = () => {
                             </template>
                             {{ t('generateMetaTags') }}
                         </MetatagsButton>
+
                     </div>
 
                     <!-- Блок редактирования существующих изображений -->

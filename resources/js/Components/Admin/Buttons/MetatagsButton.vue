@@ -15,14 +15,14 @@ const isPressed = ref(false)
     <button
         class="flex items-center
                btn px-2 py-0.5
-               bg-yellow-300 rounded-sm shadow-md
+               bg-green-300 rounded-sm shadow-md
                text-slate-600 text-sm font-semibold
                transition-colors duration-300 ease-in-out
-               hover:text-white focus:text-white
-               hover:bg-yellow-400 focus:bg-yellow-400 focus:outline-none"
+               hover:text-slate-700 focus:text-slate-700
+               hover:bg-green-400 focus:bg-green-400 focus:outline-none"
         @mousedown="isPressed = true"
         @mouseup="isPressed = false"
-        :class="{ 'ring-2 ring-yellow-400 ring-offset-2 ring-offset-white': isPressed }">
+        :class="{ 'ring-2 ring-green-400 ring-offset-2 ring-offset-white': isPressed }">
     <span>
       <slot name="icon">
         <!-- По умолчанию ваш SVG будет тут -->
