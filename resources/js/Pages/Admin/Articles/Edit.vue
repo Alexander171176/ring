@@ -291,7 +291,6 @@ const submitForm = () => {
 
                     <!-- Блок редактирования существующих изображений -->
                     <div class="mt-4">
-                        <h3 class="mb-2 text-lg font-semibold">{{ t('editImages') }}</h3>
                         <MultiImageEdit
                             :images="existingImages"
                             @update:images="handleExistingImagesUpdate"
@@ -300,7 +299,6 @@ const submitForm = () => {
 
                     <!-- Блок загрузки новых изображений -->
                     <div class="mt-4">
-                        <h3 class="mb-2 text-lg font-semibold">{{ t('uploadNewImages') }}</h3>
                         <MultiImageUpload @update:images="handleNewImagesUpdate" />
                     </div>
 
