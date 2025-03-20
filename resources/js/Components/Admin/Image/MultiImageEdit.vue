@@ -20,6 +20,7 @@ watch(
     (newImages) => {
         localImages.value = newImages.map(img => ({
             id: img.id,
+            order: img.order || 0,
             url: img.url, // ожидаем, что URL уже вычислен в родителе
             alt: img.alt || '',
             caption: img.caption || ''
@@ -47,6 +48,12 @@ const removeImage = (index) => {
         <div v-if="localImages.length" class="grid grid-cols-4 gap-4">
             <div v-for="(image, index) in localImages" :key="image.id" class="relative border border-slate-500 rounded-sm py-0.5 px-2">
                 <img :src="image.url" alt="Existing Image" class="h-40 w-full object-cover" />
+                <input
+                    v-model="image.order"
+                    @input="updateImages"
+                    :placeholder="t('sort')"
+                    class="w-full my-2 py-0.5 px-2 text-sm font-semibold border border-slate-500 rounded"
+                />
                 <input
                     v-model="image.alt"
                     @input="updateImages"

@@ -24,7 +24,7 @@ const { t } = useI18n();
 
 // пустой массив рубрик
 defineProps({
-    rubrics: Array,
+    sections: Array,
     tags: Array,
     images: Array // Добавляем этот пропс для передачи списка изображений
 })
@@ -44,7 +44,9 @@ const form = useForm({
     meta_keywords: '',
     meta_desc: '',
     activity: false,
-    rubrics: [],
+    main: false,
+    sidebar: false,
+    sections: [],
     tags: [],
     images: [] // Добавляем массив для загруженных изображений
 });
@@ -86,13 +88,15 @@ const submitForm = () => {
     form.transform((data) => ({
         ...data,
         activity: data.activity ? 1 : 0,
+        main: data.main ? 1 : 0,
+        sidebar: data.sidebar ? 1 : 0,
 
         images: form.images.map(image => {
             if (image.file) {
-                return { file: image.file, alt: image.alt, caption: image.caption }; // ✅ Новое изображение
+                return { file: image.file, order: image.order, alt: image.alt, caption: image.caption }; // ✅ Новое изображение
             }
             if (image.id) {
-                return { id: Number(image.id), alt: image.alt, caption: image.caption }; // ✅ Существующее изображение
+                return { id: Number(image.id), order: image.order, alt: image.alt, caption: image.caption }; // ✅ Существующее изображение
             }
         }).filter(Boolean) // ❌ Убираем undefined/null
     }));
@@ -169,10 +173,26 @@ const submitForm = () => {
 
                     </div>
 
+                    <div class="mb-3 flex justify-between flex-col lg:flex-row items-center gap-4">
+
+                        <!-- Показывать в главных новостях -->
+                        <div class="flex flex-row items-center gap-2">
+                            <ActivityCheckbox v-model="form.main"/>
+                            <LabelCheckbox for="main" :text="t('main')" class="text-sm h-8 flex items-center"/>
+                        </div>
+
+                        <!-- Показывать в сайдбаре -->
+                        <div class="flex flex-row items-center gap-2">
+                            <ActivityCheckbox v-model="form.sidebar"/>
+                            <LabelCheckbox for="sidebar" :text="t('sidebar')" class="text-sm h-8 flex items-center"/>
+                        </div>
+
+                    </div>
+
                     <div class="mb-3 flex flex-col items-start">
-                        <LabelInput for="rubrics" :value="t('rubrics')" class="mb-1"/>
-                        <VueMultiselect v-model="form.rubrics"
-                                        :options="rubrics"
+                        <LabelInput for="sections" :value="t('sections')" class="mb-1"/>
+                        <VueMultiselect v-model="form.sections"
+                                        :options="sections"
                                         :multiple="true"
                                         :close-on-select="true"
                                         :placeholder="t('select')"

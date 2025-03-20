@@ -18,6 +18,7 @@ const props = defineProps({
 watch(() => props.existingImages, (newImages) => {
     previewImages.value = newImages.map(img => ({
         id: img.id,
+        order: img.order || 0,
         url: `/storage/article_images/${img.path}`,
         alt: img.alt || '',
         caption: img.caption || ''
@@ -33,6 +34,7 @@ const handleFileUpload = (event) => {
                 previewImages.value.push({
                     file,
                     url: reader.result,
+                    order: 0,
                     alt: '',
                     caption: ''
                 });
@@ -46,10 +48,10 @@ const handleFileUpload = (event) => {
 const updateImages = () => {
     const images = previewImages.value.map(img => {
         if (img.file) {
-            return { file: img.file, alt: img.alt, caption: img.caption }; // ✅ Новое изображение
+            return { file: img.file, order: img.order, alt: img.alt, caption: img.caption }; // ✅ Новое изображение
         }
         if (img.id) {
-            return { id: img.id, alt: img.alt, caption: img.caption }; // ✅ Существующее изображение
+            return { id: img.id, order: img.order, alt: img.alt, caption: img.caption }; // ✅ Существующее изображение
         }
     });
 
@@ -75,6 +77,8 @@ const removeImage = (index) => {
             <div v-for="(image, index) in previewImages" :key="index"
                  class="relative border border-slate-500 rounded-sm py-0.5 px-2">
                 <img :src="image.url" :alt="t('view')" class="h-40 w-full object-cover"/>
+                <input v-model="image.order" @input="updateImages()" :placeholder="t('sort')"
+                       class="w-full my-2 py-0.5 px-2 text-sm font-semibold border border-slate-500 rounded" />
                 <input v-model="image.alt" @input="updateImages()" :placeholder="t('seoAltImage')"
                        class="w-full my-2 py-0.5 px-2 text-sm font-semibold border border-slate-500 rounded" />
                 <input v-model="image.caption" @input="updateImages()" :placeholder="t('seoTitleImage')"

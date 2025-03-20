@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Public\Default;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Admin\Article\ArticleResource;
 use App\Http\Resources\Admin\Rubric\RubricResource;
+use App\Http\Resources\Admin\Section\SectionResource;
 use App\Models\Admin\Rubric\Rubric;
 use App\Models\Admin\Setting\Setting;
 use Illuminate\Http\JsonResponse;
@@ -45,15 +45,15 @@ class RubricController extends Controller
  */
     public function show(string $url): \Inertia\Response
     {
-        // Извлекаем рубрику вместе с активными статьями
-        $rubric = Rubric::with(['articles' => function ($query) {
-            $query->where('activity', 1)->orderBy('sort', 'asc'); // используем id или другой существующий столбец
+        // Извлекаем рубрику вместе с активными секциями
+        $rubric = Rubric::with(['sections' => function ($query) {
+            $query->where('activity', 1)->orderBy('sort', 'asc');
         }])->where('url', $url)->firstOrFail();
 
         return Inertia::render('Public/Default/Rubrics/Show', [
             'rubric' => new RubricResource($rubric),
-            'articles' => ArticleResource::collection($rubric->articles),
-            'articlesCount' => $rubric->articles->count(),
+            'sections' => SectionResource::collection($rubric->sections),
+            'sectionsCount' => $rubric->sections->count(),
         ]);
     }
 

@@ -20,15 +20,15 @@ class ArticleImageSeeder extends Seeder
 
         // Список изображений
         $images = [
-            ['path' => 'default-image.png', 'alt' => 'Изображение статьи 1', 'caption' => 'описание изображения'],
-            ['path' => 'default-image.png', 'alt' => 'Изображение статьи 2', 'caption' => 'описание изображения'],
-            ['path' => 'default-image.png', 'alt' => 'Изображение статьи 3', 'caption' => 'описание изображения'],
-            ['path' => 'default-image.png', 'alt' => 'Изображение статьи 4', 'caption' => 'описание изображения'],
-            ['path' => 'default-image.png', 'alt' => 'Изображение статьи 5', 'caption' => 'описание изображения'],
-            ['path' => 'default-image.png', 'alt' => 'Изображение статьи 6', 'caption' => 'описание изображения'],
-            ['path' => 'default-image.png', 'alt' => 'Изображение статьи 7', 'caption' => 'описание изображения'],
-            ['path' => 'default-image.png', 'alt' => 'Изображение статьи 8', 'caption' => 'описание изображения'],
-            ['path' => 'default-image.png', 'alt' => 'Изображение статьи 9', 'caption' => 'описание изображения'],
+            ['order' => 1, 'path' => 'default-image.png', 'alt' => 'Изображение статьи 1', 'caption' => 'описание изображения'],
+            ['order' => 1, 'path' => 'default-image.png', 'alt' => 'Изображение статьи 2', 'caption' => 'описание изображения'],
+            ['order' => 1, 'path' => 'default-image.png', 'alt' => 'Изображение статьи 3', 'caption' => 'описание изображения'],
+            ['order' => 1, 'path' => 'default-image.png', 'alt' => 'Изображение статьи 4', 'caption' => 'описание изображения'],
+            ['order' => 1, 'path' => 'default-image.png', 'alt' => 'Изображение статьи 5', 'caption' => 'описание изображения'],
+            ['order' => 1, 'path' => 'default-image.png', 'alt' => 'Изображение статьи 6', 'caption' => 'описание изображения'],
+            ['order' => 1, 'path' => 'default-image.png', 'alt' => 'Изображение статьи 7', 'caption' => 'описание изображения'],
+            ['order' => 1, 'path' => 'default-image.png', 'alt' => 'Изображение статьи 8', 'caption' => 'описание изображения'],
+            ['order' => 1, 'path' => 'default-image.png', 'alt' => 'Изображение статьи 9', 'caption' => 'описание изображения'],
         ];
 
         // Создание изображений и привязка к статьям

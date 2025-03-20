@@ -11,12 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('article_has_rubrics', function (Blueprint $table) {
+        Schema::create('article_has_section', function (Blueprint $table) {
             $table->unsignedBigInteger('article_id');
-            $table->unsignedBigInteger('rubric_id');
+            $table->unsignedBigInteger('section_id');
 
             $table->foreign('article_id')->references('id')->on('articles')->onDelete('cascade');
-            $table->foreign('rubric_id')->references('id')->on('rubrics')->onDelete('cascade');
+            $table->foreign('section_id')->references('id')->on('sections')->onDelete('cascade');
         });
     }
 
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('article_has_rubrics');
+        Schema::dropIfExists('article_has_section');
     }
 };

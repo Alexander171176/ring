@@ -26,6 +26,9 @@ class SectionResource extends JsonResource
 
             // Связанные рубрики
             'rubrics' => RubricResource::collection($this->whenLoaded('rubrics')),
+
+            // Количество статей, если есть
+            'articles_count' => $this->whenLoaded('articles', fn() => $this->articles->count()),
         ];
     }
 }

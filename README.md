@@ -28,16 +28,40 @@
    `vite build` <br>
    `vite` <br>
 
-9) Create link Storage
+9) composer require unisharp/laravel-filemanager
+    `php artisan vendor:publish --tag=lfm_config` <br>
+    `php artisan vendor:publish --tag=lfm_public` <br>
+    web.php: `Route::group(['prefix' => 'laravel-filemanager', 'middleware' => ['web', 'auth']], function () {
+    \UniSharp\LaravelFilemanager\Lfm::routes();
+    });` <br>
+    .env: `FILESYSTEM_DRIVER=public` <br>
+
+10) Create link Storage <br>
    `docker exec ring-php-app php artisan storage:link`<br>
 
-10) Install Jetstream <br>
+11)  npm install <br>
+    `npm install @mayasabha/ckeditor4-vue3` <br>
+    `npm install chart.js chartjs-adapter-moment` <br>
+    `npm install xlsx html2pdf.js jszip file-saver docx` <br>
+    `npm install codemirror @codemirror/lang-javascript @codemirror/state @codemirror/view @codemirror/theme-one-dark` <br>
+    `npm install @fortawesome/vue-fontawesome @fortawesome/fontawesome-svg-core @fortawesome/free-solid-svg-icons` <br>
+    `npm install vue-i18n@next` <br>
+    `npm install vue-draggable-next` <br>
+    `npm install roughjs` <br>
+    `npm install @vueuse/head` <br>
+    `npm install @vue-flow/core @vue-flow/background @vue-flow/controls @vue-flow/minimap` <br>
+    `npm i flowchart` <br>
+    `npm i vue-echarts-v3` <br>
+    `npm install date-fns` <br>
+    `npm install highlight.js` <br>
+
+12) Install Jetstream <br>
     `composer require laravel/jetstream` <br>
     `docker exec ring-php-app php artisan jetstream:install inertia --ssr --teams` <br>
     `npm install` <br>
     `npm run dev` <br>
 
-11) Install Spatie <br>
+13) Install Spatie <br>
     `composer require spatie/laravel-permission` <br>
     `docker exec ring-php-app php artisan vendor:publish --provider="Spatie\Permission\PermissionServiceProvider"` <br>
     `docker exec ring-php-app php artisan optimize:clear` <br>
@@ -48,115 +72,45 @@
     `// The User model requires this trait
     use HasRoles;`<br>
 
-12) create seeders Role, User <br>
+14) creating business logic app Role <br>
+    `docker exec ring-php-app php artisan make:controller Admin/Role/RoleController --resource` <br>
+    `docker exec ring-php-app php artisan make:resource Admin/Role/RoleResource` <br>
+    `docker exec ring-php-app php artisan make:request Admin/Role/RoleRequest` <br>
     `docker exec ring-php-app php artisan make:seeder RoleSeeder` <br>
     `docker exec ring-php-app php artisan db:seed --class=RoleSeeder` <br>
 
-13) Create resource UserResource, RoleResource, PermissionResource <br>
-    `docker exec ring-php-app php artisan make:resource Admin/User/UserResource` <br>
-    `docker exec ring-php-app php artisan make:resource Admin/Role/RoleResource` <br>
-    `docker exec ring-php-app php artisan make:resource Admin/Permission/PermissionResource` <br>
-
-14) Create resource controllers UserController,RoleController,PermissionController <br>
-    `docker exec ring-php-app php artisan make:controller Admin/User/UserController --resource` <br>
-    `docker exec ring-php-app php artisan make:controller Admin/Role/RoleController --resource` <br>
+15) creating business logic app Permission <br>
     `docker exec ring-php-app php artisan make:controller Admin/Permission/PermissionController --resource` <br>
-
-15) Create requests RoleRequest, PermissionRequest <br>
-    `docker exec ring-php-app php artisan make:request Admin/Role/RoleRequest` <br>
+    `docker exec ring-php-app php artisan make:resource Admin/Permission/PermissionResource` <br>
     `docker exec ring-php-app php artisan make:request Admin/Permission/PermissionRequest` <br>
 
-16) Create resource UserSharedResource <br>
+16) creating business logic app User <br>
+    `docker exec ring-php-app php artisan make:controller Admin/User/UserController --resource` <br>
+    `docker exec ring-php-app php artisan make:resource Admin/User/UserResource` <br>
     `docker exec ring-php-app php artisan make:resource Admin/User/UserSharedResource` <br>
 
 17) Create revoke controllers <br>
-        `docker exec ring-php-app php artisan make:controller Admin/Invokable/RemovePermissionFromRoleController --invokable` <br>
-        `docker exec ring-php-app php artisan make:controller Admin/Invokable/RemoveRoleFromUserController --invokable` <br>
-        `docker exec ring-php-app php artisan make:controller Admin/Invokable/RemovePermissionFromUserController --invokable` <br>
+    `docker exec ring-php-app php artisan make:controller Admin/Invokable/RemovePermissionFromRoleController --invokable` <br>
+    `docker exec ring-php-app php artisan make:controller Admin/Invokable/RemoveRoleFromUserController --invokable` <br>
+    `docker exec ring-php-app php artisan make:controller Admin/Invokable/RemovePermissionFromUserController --invokable` <br>
 
-18) Create model and migrations Rubric, Article <br>
-    `docker exec ring-php-app php artisan make:model Admin/Rubric/Rubric -mf` <br>
-    `docker exec ring-php-app php artisan make:model Admin/Article/Article -mf` <br>
-
-19) Create migrations Many-to-Many relationship Rubric, Article <br>
-    `docker exec ring-php-app php artisan make:migration create_article_has_rubrics_table` <br>
-    `docker exec ring-php-app php artisan migrate`<br>
-    `docker exec ring-php-app php artisan migrate:rollback`<br>
-    `docker exec ring-php-app php artisan migrate` <br>
-
-20) Create RubricSeeder, ArticleSeeder <br>
-    `docker exec ring-php-app php artisan make:seeder RubricSeeder` <br>
-    `docker exec ring-php-app php artisan make:seeder ArticleSeeder` <br>
-    `docker exec ring-php-app php artisan db:seed --class=RubricSeeder` <br>
-    `docker exec ring-php-app php artisan db:seed --class=ArticleSeeder` <br>
-
-21) Create resource RubricResource, ArticleResource <br>
-    `docker exec ring-php-app php artisan make:resource Admin/Rubric/RubricResource` <br>
-    `docker exec ring-php-app php artisan make:resource Admin/Article/ArticleResource` <br>
-
-22) Create resource controllers RubricController, ArticleController <br>
-    `docker exec ring-php-app php artisan make:controller Admin/Rubric/RubricController --resource` <br>
-    `docker exec ring-php-app php artisan make:controller Admin/Article/ArticleController --resource` <br>
-
-23) Create requests RubricRequest, ArticleRequest <br>
-    `docker exec ring-php-app php artisan make:request Admin/Rubric/RubricRequest` <br>
-    `docker exec ring-php-app php artisan make:request Admin/Article/ArticleRequest` <br>
-
-24) Create revoke controllers Rubric and Article<br>
-    `docker exec ring-php-app php artisan make:controller Admin/Invokable/RemoveArticleFromRubricController --invokable` <br>
-
-25) npm install @mayasabha/ckeditor4-vue3
-
-26) composer require unisharp/laravel-filemanager
-    `php artisan vendor:publish --tag=lfm_config` <br>
-    `php artisan vendor:publish --tag=lfm_public` <br>
-    web.php: `Route::group(['prefix' => 'laravel-filemanager', 'middleware' => ['web', 'auth']], function () {
-    \UniSharp\LaravelFilemanager\Lfm::routes();
-    });` <br>
-    .env: `FILESYSTEM_DRIVER=public` <br>
-
-27) Create ReportController, ChartController <br>
-    `docker exec ring-php-app php artisan make:controller Admin/Report/ReportController --resource` <br>
-    `docker exec ring-php-app php artisan make:controller Admin/Chart/ChartController --resource` <br>
-
-28) `npm install chart.js chartjs-adapter-moment` <br>
-
-29) `npm install xlsx html2pdf.js jszip file-saver docx` <br>
-
-30) Create resource controllers ComponentController, BuilderController, EditorController <br>
-    `docker exec ring-php-app php artisan make:controller Admin/Component/ComponentController --resource` <br>
-    `docker exec ring-php-app php artisan make:controller Admin/Builder/BuilderController --resource` <br>
-    `docker exec ring-php-app php artisan make:controller Admin/Editor/EditorController --resource` <br>
-
-31) npm install codemirror @codemirror/lang-javascript @codemirror/state @codemirror/view @codemirror/theme-one-dark
- 
-32) npm install @fortawesome/vue-fontawesome @fortawesome/fontawesome-svg-core @fortawesome/free-solid-svg-icons
-
-33) Create controller, resource, request, seeder model and migrations Setting, components Parameter <br>
+18) creating business logic app Setting <br>
     `docker exec ring-php-app php artisan make:model Admin/Setting/Setting -m` <br>
     `docker exec ring-php-app php artisan migrate` <br>
-    `docker exec ring-php-app php artisan make:controller Admin/Setting/SettingController --resource` <br>
-    `docker exec ring-php-app php artisan make:resource Admin/Setting/SettingResource` <br>
-    `docker exec ring-php-app php artisan make:request Admin/Setting/SettingRequest` <br>
     `docker exec ring-php-app php artisan make:seeder SettingSeeder` <br>
     `docker exec ring-php-app php artisan db:seed --class=SettingSeeder` <br>
+    `docker exec ring-php-app php artisan make:resource Admin/Setting/SettingResource` <br>
+    `docker exec ring-php-app php artisan make:request Admin/Setting/SettingRequest` <br>
+    `docker exec ring-php-app php artisan make:controller Admin/Setting/SettingController --resource` <br>
     `docker exec ring-php-app php artisan make:controller Admin/Parameter/ParameterController --resource` <br>
-    
-34)  Create middleware ShareSettings <br>
-    `docker exec ring-php-app php artisan make:resource Admin/Setting/SettingSharedResource` <br>
+ 
+19)  Create middleware ShareSettings <br>
+     `docker exec ring-php-app php artisan make:middleware SetLocaleFromSettings` <br>
+     `docker exec ring-php-app php artisan make:resource Admin/Setting/SettingSharedResource` <br>
+     `docker exec ring-php-app php artisan make:controller Admin/System/SystemController` <br>
 
-35) npm install vue-i18n@next <br>
-36) npm install vue-draggable-next <br>
-37) npm install roughjs  <br>
-38) npm install @vueuse/head <br>
-39) npm install @vue-flow/core @vue-flow/background @vue-flow/controls @vue-flow/minimap
-
-40) `docker exec ring-php-app php artisan make:controller Admin/Diagram/DiagramController --resource` <br>
-
-41) npm i flowchart <br> 
-42) npm i vue-echarts-v3 <br>
-
-43) `docker exec ring-php-app php artisan make:model Admin/Plugin/Plugin -mf` <br>
+20) creating business logic app Plugin <br>
+    `docker exec ring-php-app php artisan make:model Admin/Plugin/Plugin -mf` <br>
     `docker exec ring-php-app php artisan migrate` <br>
     `docker exec ring-php-app php artisan make:seeder PluginsSeeder` <br>
     `docker exec ring-php-app php artisan db:seed --class=PluginsSeeder` <br>
@@ -164,15 +118,96 @@
     `docker exec ring-php-app php artisan make:resource Admin/Plugin/PluginResource` <br>
     `docker exec ring-php-app php artisan make:resource Admin/Plugin/PluginSharedResource` <br>
     `docker exec ring-php-app php artisan make:request Admin/Plugin/PluginRequest` <br>
-    `docker exec ring-php-app php artisan make:controller Api/Plugin/ApiController --api` <br>
 
-44) composer require "darkaonline/l5-swagger" <br>
+21) creating business logic app Rubric <br>
+    `docker exec ring-php-app php artisan make:model Admin/Rubric/Rubric -mf` <br>
+    `docker exec ring-php-app php artisan migrate`<br>
+    `docker exec ring-php-app php artisan make:seeder RubricSeeder` <br>
+    `docker exec ring-php-app php artisan db:seed --class=RubricSeeder` <br>
+    `docker exec ring-php-app php artisan make:resource Admin/Rubric/RubricResource` <br>
+    `docker exec ring-php-app php artisan make:request Admin/Rubric/RubricRequest` <br>
+    `docker exec ring-php-app php artisan make:controller Admin/Rubric/RubricController --resource` <br>
+    `docker exec ring-php-app php artisan make:controller Public/Default/RubricController` <br>
+
+22) creating business logic app Section <br>
+    `docker exec ring-php-app php artisan make:model Admin/Section/Section -mf` <br>
+    `docker exec ring-php-app php artisan make:migration create_rubric_has_sections_table --create=rubric_has_sections` <br>
+    `docker exec ring-php-app php artisan migrate`<br>
+    `docker exec ring-php-app php artisan make:seeder SectionSeeder` <br>
+    `docker exec ring-php-app php artisan db:seed --class=SectionSeeder` <br>
+    `docker exec ring-php-app php artisan make:resource Admin/Section/SectionResource` <br>
+    `docker exec ring-php-app php artisan make:request Admin/Section/SectionRequest` <br>
+    `docker exec ring-php-app php artisan make:controller Admin/Section/SectionController --resource` <br>
+    `docker exec ring-php-app php artisan make:controller Admin/Invokable/RemoveRubricFromSectionController --invokable` <br>
+
+23) creating business logic app Article <br>
+    `docker exec ring-php-app php artisan make:model Admin/Article/Article -mf` <br>
+    `docker exec ring-php-app php artisan make:migration create_article_has_section_table --create=article_has_section` <br>
+    `docker exec ring-php-app php artisan migrate`<br>
+    `docker exec ring-php-app php artisan make:seeder ArticleSeeder` <br>
+    `docker exec ring-php-app php artisan db:seed --class=ArticleSeeder` <br>
+    `docker exec ring-php-app php artisan make:resource Admin/Article/ArticleResource` <br>
+    `docker exec ring-php-app php artisan make:request Admin/Article/ArticleRequest` <br>
+    `docker exec ring-php-app php artisan make:controller Admin/Article/ArticleController --resource` <br>
+
+24) Create revoke controllers Section and Article <br>
+    `docker exec ring-php-app php artisan make:controller Admin/Invokable/RemoveArticleFromSectionController --invokable` <br>
+
+25) creating business logic app Comment <br>
+    `docker exec ring-php-app php artisan make:model Admin/Comment/Comment -m`
+    `docker exec ring-php-app php artisan migrate` <br>
+    `docker exec ring-php-app php artisan make:factory Admin/Comment/CommentFactory --model=Comment` <br>
+    `docker exec ring-php-app php artisan make:seeder CommentsSeeder` <br>
+    `docker exec ring-php-app php artisan db:seed --class=CommentsSeeder` <br>
+    `docker exec ring-php-app php artisan make:resource Admin/Comment/CommentResource` <br>
+    `docker exec ring-php-app php artisan make:controller Admin/Comment/CommentController --resource` <br>
+    `docker exec ring-php-app php artisan make:controller Public/CommentController --resource` <br>
+
+26) creating business logic app Like <br>
+    `docker exec ring-php-app php artisan make:migration create_article_likes_table --create=article_likes` <br>
+    `docker exec ring-php-app php artisan migrate` <br>
+    `docker exec ring-php-app php artisan make:model User/Like/ArticleLike` <br>
+
+27) creating business logic app Image Article <br>
+    `docker exec ring-php-app php artisan make:model Admin/Article/ArticleImage -mf` <br>
+    `docker exec ring-php-app php artisan make:migration create_article_has_images_table --create=article_has_images` <br>
+    `docker exec ring-php-app php artisan make:seeder ArticleImageSeeder` <br>
+    `docker exec ring-php-app php artisan db:seed --class=ArticleImageSeeder` <br>
+    `docker exec ring-php-app php artisan make:resource Admin/Article/ArticleImageResource` <br>
+
+28) creating business logic app Tag <br>
+    `docker exec ring-php-app php artisan make:model Admin/Article/Tag -mf` <br>
+    `docker exec ring-php-app php artisan make:migration create_article_has_tag_table --create=article_has_tag` <br>
+    `docker exec ring-php-app php artisan migrate` <br>
+    `docker exec ring-php-app php artisan make:seeder TagSeeder` <br>
+    `docker exec ring-php-app php artisan db:seed --class=TagSeeder` <br>
+    `docker exec ring-php-app php artisan make:resource Admin/Article/TagResource` <br>
+    `docker exec ring-php-app php artisan make:request Admin/Article/TagRequest` <br>
+
+29) creating business logic app Report <br>
+    `docker exec ring-php-app php artisan make:controller Admin/Report/ReportController --resource` <br>
+
+30) creating business logic app Chart <br>
+    `docker exec ring-php-app php artisan make:controller Admin/Chart/ChartController --resource` <br>
+
+31) creating business logic app Component <br>
+    `docker exec ring-php-app php artisan make:controller Admin/Component/ComponentController --resource` <br>
+
+32) creating business logic app Editor <br>
+    `docker exec ring-php-app php artisan make:controller Admin/Editor/EditorController --resource` <br>
+
+33) creating business logic app Diagram <br>
+  `docker exec ring-php-app php artisan make:controller Admin/Diagram/DiagramController --resource` <br>
+
+34) creating business logic app API <br>
+    `composer require "darkaonline/l5-swagger` <br>
     `docker exec ring-php-app php artisan vendor:publish --provider "L5Swagger\L5SwaggerServiceProvider"` <br>
-    `docker exec ring-php-app php artisan make:controller Api/Article/ApiArticleController --api` <br>
-    `docker exec ring-php-app php artisan make:controller Api/Rubric/ApiRubricController --api` <br>
     `docker exec ring-php-app php artisan make:controller Api/User/ApiUserController --api` <br>
     `docker exec ring-php-app php artisan make:controller Api/Permission/ApiPermissionController --api` <br>
     `docker exec ring-php-app php artisan make:controller Api/Role/ApiRoleController --api` <br>
+    `docker exec ring-php-app php artisan make:controller Api/Rubric/ApiRubricController --api` <br>
+    `docker exec ring-php-app php artisan make:controller Api/Section/ApiSectionController --api` <br>
+    `docker exec ring-php-app php artisan make:controller Api/Article/ApiArticleController --api` <br>
     `docker exec ring-php-app php artisan make:controller Api/Parameter/ApiParameterController --api` <br>
     `docker exec ring-php-app php artisan l5-swagger:generate` <br>
     `docker exec -it ring-php-app rm /var/www/public/storage` Удалите текущую символьную ссылку <br>
@@ -186,7 +221,8 @@
     `docker-compose restart` <br>
     `docker exec ring-php-app php artisan l5-swagger:generate` <br>
 
-45) Удалите существующие символические ссылки <br>
+35) Помощь в командах
+    Удалите существующие символические ссылки <br>
     `docker exec -it ring-php-app rm /var/www/public/storage` <br>
     `docker exec -it ring-php-app rm /var/www/storage/api-docs` <br>
     Создайте новые символические ссылки внутри контейнера <br>
@@ -207,62 +243,4 @@
     `docker exec -it ring-php-app php artisan view:clear`  <br>
     `docker restart ring-php-app`  <br>
     `docker exec -it ring-php-app php artisan route:list`  <br>
-
-46) `npm install date-fns` <br>
-
-47) `docker exec ring-php-app php artisan make:controller Admin/System/SystemController` <br>
-
-48) `docker exec ring-php-app php artisan make:model Admin/Comment/Comment -m`
-    `docker exec ring-php-app php artisan migrate` <br>
-    `docker exec ring-php-app php artisan make:controller Admin/Comment/CommentController --resource` <br>
-    `docker exec ring-php-app php artisan make:controller Public/CommentController --resource` <br>
-    `docker exec ring-php-app php artisan route:list` <br>
-    `docker exec ring-php-app php artisan make:factory Admin/Comment/CommentFactory --model=Comment` <br>
-    `docker exec ring-php-app php artisan make:seeder CommentsSeeder` <br>
-    `docker exec ring-php-app php artisan db:seed --class=CommentsSeeder` <br>
-    `docker exec ring-php-app php artisan make:resource Admin/Comment/CommentResource` <br>
-
-49) `docker exec ring-php-app php artisan make:model User/Like/ArticleLike` <br>
-    `docker exec ring-php-app php artisan make:migration create_article_likes_table --create=article_likes` <br>
-    `docker exec ring-php-app php artisan migrate` <br>
-
-50) npm install highlight.js
-
 ____________________________
-
-51) Create middleware SetLocaleFromSettings <br>
-    `docker exec ring-php-app php artisan make:middleware SetLocaleFromSettings` <br>
-
-52) Create RubricController <br>
-    `docker exec ring-php-app php artisan make:controller Public/Default/RubricController` <br>
-
-53) Create migration Tags, Images <br>
-    `docker exec ring-php-app php artisan make:model Admin/Article/Tag -mf` <br>
-    `docker exec ring-php-app php artisan make:migration create_article_has_tag_table --create=article_has_tag` <br>
-    `docker exec ring-php-app php artisan make:model Admin/Article/ArticleImage -mf` <br>
-    `docker exec ring-php-app php artisan make:migration create_article_has_images_table --create=article_has_images` <br>
-    
-54) Create resource Tag, ArticleImage
-    `docker exec ring-php-app php artisan make:resource Admin/Article/TagResource` <br>
-    `docker exec ring-php-app php artisan make:resource Admin/Article/ArticleImageResource` <br>
- 
-55)  Create request Tag, ArticleImage
-    `docker exec ring-php-app php artisan make:request Admin/Article/TagRequest` <br>
-     `docker exec ring-php-app php artisan make:request Admin/Article/ArticleImageRequest` <br>
- 
-56) Create seed Tag, ArticleImage
-    `docker exec ring-php-app php artisan make:seeder TagSeeder` <br>
-    `docker exec ring-php-app php artisan db:seed --class=TagSeeder` <br>
-    `docker exec ring-php-app php artisan make:seeder ArticleImageSeeder` <br>
-    `docker exec ring-php-app php artisan db:seed --class=ArticleImageSeeder` <br>
- 
-58) Create model and migrations Section <br>
-    `docker exec ring-php-app php artisan make:model Admin/Section/Section -mf` <br>
-    `docker exec ring-php-app php artisan make:migration create_rubric_has_sections_table --create=rubric_has_sections` <br>
-    `docker exec ring-php-app php artisan migrate`<br>
-    `docker exec ring-php-app php artisan make:seeder SectionSeeder` <br>
-    `docker exec ring-php-app php artisan db:seed --class=SectionSeeder` <br>
-    `docker exec ring-php-app php artisan make:controller Admin/Section/SectionController --resource` <br>
-    `docker exec ring-php-app php artisan make:resource Admin/Section/SectionResource` <br>
-    `docker exec ring-php-app php artisan make:request Admin/Section/SectionRequest` <br>
-    `docker exec ring-php-app php artisan make:controller Admin/Invokable/RemoveRubricFromSectionController --invokable` <br>

@@ -14,6 +14,7 @@ class ArticleImageResource extends JsonResource
     {
         return [
             'id'      => $this->id,
+            'order'   => $this->order,
             'path'    => $this->path,
             'alt'     => $this->alt,
             'caption' => $this->caption,

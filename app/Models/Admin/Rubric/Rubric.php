@@ -33,10 +33,4 @@ class Rubric extends Model
         return $this->belongsToMany(Section::class, 'rubric_has_sections', 'rubric_id', 'section_id');
     }
 
-    // Определите отношение многие ко многим с моделью Article
-    public function articles(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
-    {
-        return $this->belongsToMany(Article::class, 'article_has_rubrics', 'rubric_id', 'article_id');
-    }
-
 }

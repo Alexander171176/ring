@@ -7,11 +7,11 @@ use App\Http\Requests\Admin\Article\ArticleRequest;
 use App\Http\Resources\Admin\Article\ArticleImageResource;
 use App\Http\Resources\Admin\Article\ArticleResource;
 use App\Http\Resources\Admin\Article\TagResource;
-use App\Http\Resources\Admin\Rubric\RubricResource;
+use App\Http\Resources\Admin\Section\SectionResource;
 use App\Models\Admin\Article\Article;
 use App\Models\Admin\Article\ArticleImage;
 use App\Models\Admin\Article\Tag;
-use App\Models\Admin\Rubric\Rubric;
+use App\Models\Admin\Section\Section;
 use App\Traits\CacheTimeTrait;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -36,7 +36,7 @@ class ArticleController extends Controller
         $cacheTime = $this->getCacheTime();
 
         $articles = Cache::store('redis')->remember('articles.all', $cacheTime, function () {
-            return Article::with(['rubrics', 'tags', 'images'])->get();
+            return Article::with(['sections', 'tags', 'images'])->get();
         });
 
         $articlesCount = Cache::store('redis')->remember('articles.count', $cacheTime, function () {
@@ -59,8 +59,8 @@ class ArticleController extends Controller
         $cacheTime = $this->getCacheTime();
 
         // Загрузка рубрик
-        $rubrics = Cache::store('redis')->remember('rubrics.all', $cacheTime, function () {
-            return Rubric::all();
+        $sections = Cache::store('redis')->remember('sections.all', $cacheTime, function () {
+            return Section::all();
         });
 
         // Загрузка тегов
@@ -74,7 +74,7 @@ class ArticleController extends Controller
         });
 
         return Inertia::render('Admin/Articles/Create', [
-            'rubrics' => RubricResource::collection($rubrics),
+            'sections' => SectionResource::collection($sections),
             'tags' => TagResource::collection($tags),
             'images' => ArticleImageResource::collection($images),
         ]);
@@ -91,10 +91,10 @@ class ArticleController extends Controller
         $data = $request->validated();
 
         // ✅ Найти рубрики по title
-        $rubricIds = [];
-        if ($request->has('rubrics')) {
-            $rubricTitles = array_column($request->input('rubrics'), 'title');
-            $rubricIds = Rubric::whereIn('title', $rubricTitles)->pluck('id')->toArray();
+        $sectionIds = [];
+        if ($request->has('sections')) {
+            $sectionTitles = array_column($request->input('sections'), 'title');
+            $sectionIds = Section::whereIn('title', $sectionTitles)->pluck('id')->toArray();
         }
 
         // ✅ Найти теги по name
@@ -108,8 +108,8 @@ class ArticleController extends Controller
         $article = Article::create($data);
 
         // ✅ Привязываем рубрики
-        if ($rubricIds) {
-            $article->rubrics()->sync($rubricIds);
+        if ($sectionIds) {
+            $article->sections()->sync($sectionIds);
         }
 
         // ✅ Привязываем теги
@@ -157,11 +157,11 @@ class ArticleController extends Controller
         $cacheTime = $this->getCacheTime();
 
         // Находим статью с рубриками, тегами и изображениями
-        $article = Article::with(['rubrics', 'tags', 'images'])->findOrFail($id);
+        $article = Article::with(['sections', 'tags', 'images'])->findOrFail($id);
 
         // Получаем все рубрики
-        $rubrics = Cache::store('redis')->remember('rubrics.all', $cacheTime, function () {
-            return Rubric::all();
+        $sections = Cache::store('redis')->remember('sections.all', $cacheTime, function () {
+            return Section::all();
         });
 
         // Получаем все теги
@@ -172,7 +172,7 @@ class ArticleController extends Controller
         // Передаём статью, рубрики и теги на страницу через ресурсы
         return Inertia::render('Admin/Articles/Edit', [
             'article' => new ArticleResource($article),
-            'rubrics' => RubricResource::collection($rubrics),
+            'sections' => SectionResource::collection($sections),
             'tags' => TagResource::collection($tags),
         ]);
     }
@@ -209,11 +209,11 @@ class ArticleController extends Controller
         //Log::info('ArticleController::update - Article updated', ['article' => $article]);
 
         // Обновляем связи рубрик
-        $rubricIds = $request->has('rubrics')
-            ? Rubric::whereIn('title', array_column($request->input('rubrics'), 'title'))->pluck('id')->toArray()
+        $sectionIds = $request->has('sections')
+            ? Section::whereIn('title', array_column($request->input('sections'), 'title'))->pluck('id')->toArray()
             : [];
-        $article->rubrics()->sync($rubricIds);
-        //Log::info('ArticleController::update - Rubrics synced', ['rubricIds' => $rubricIds]);
+        $article->sections()->sync($sectionIds);
+        //Log::info('ArticleController::update - Sections synced', ['sectionIds' => $sectionIds]);
 
         // Обновляем связи тегов
         $tagIds = $request->has('tags')
@@ -266,7 +266,7 @@ class ArticleController extends Controller
         }
 
         // Очистка кэша
-        $this->clearCache(['articles.all', 'articles.count', 'rubrics.all', 'tags.all']);
+        $this->clearCache(['articles.all', 'articles.count', 'sections.all', 'tags.all']);
         //Log::info('ArticleController::update - Cache cleared');
 
         return redirect()->route('articles.index')->with('success', 'Статья успешно обновлена.');
@@ -305,7 +305,7 @@ class ArticleController extends Controller
         Log::info('Статья удалена: ', $article->toArray());
 
         // ✅ Очистка кэша
-        $this->clearCache(['articles.all', 'articles.count', 'rubrics.all']);
+        $this->clearCache(['articles.all', 'articles.count', 'sections.all']);
 
         return back()->with('success', 'Статья и связанные изображения удалены.');
     }
@@ -388,6 +388,56 @@ class ArticleController extends Controller
     }
 
     /**
+     * Включение Главными
+     *
+     * @param Request $request
+     * @param $id
+     * @return JsonResponse
+     */
+    public function updateMain(Request $request, $id): JsonResponse
+    {
+        $validated = $request->validate([
+            'main' => 'required|boolean',
+        ]);
+
+        $article = Article::findOrFail($id);
+        $article->activity = $validated['main'];
+        $article->save();
+
+        Log::info("Обновлено включение основным статьи с ID: $id с данными: ", $validated);
+
+        // Очистка кэша
+        $this->clearCache(['articles.all', 'articles.count']);
+
+        return response()->json(['success' => true, 'reload' => true]);
+    }
+
+    /**
+     * Включение Статьи в сайдбаре
+     *
+     * @param Request $request
+     * @param $id
+     * @return JsonResponse
+     */
+    public function updateSidebar(Request $request, $id): JsonResponse
+    {
+        $validated = $request->validate([
+            'sidebar' => 'required|boolean',
+        ]);
+
+        $article = Article::findOrFail($id);
+        $article->activity = $validated['sidebar'];
+        $article->save();
+
+        Log::info("Обновлено включение основным статьи с ID: $id с данными: ", $validated);
+
+        // Очистка кэша
+        $this->clearCache(['articles.all', 'articles.count']);
+
+        return response()->json(['success' => true, 'reload' => true]);
+    }
+
+    /**
      * Клонирование Статьи
      *
      * @param Request $request
@@ -405,9 +455,9 @@ class ArticleController extends Controller
         $clonedArticle->save();
 
         // Копируем рубрики
-        $rubricIds = $article->rubrics->pluck('id')->toArray();
-        if ($rubricIds) {
-            $clonedArticle->rubrics()->sync($rubricIds);
+        $sectionIds = $article->sections->pluck('id')->toArray();
+        if ($sectionIds) {
+            $clonedArticle->sections()->sync($sectionIds);
         }
 
         // Копируем теги
@@ -425,7 +475,7 @@ class ArticleController extends Controller
         Log::info('Статья клонирована: ', $clonedArticle->toArray());
 
         // Очистка кэша
-        $this->clearCache(['articles.all', 'rubrics.all', 'tags.all', 'images.all']);
+        $this->clearCache(['articles.all', 'sections.all', 'tags.all', 'images.all']);
 
         return response()->json(['success' => true, 'reload' => true]);
     }

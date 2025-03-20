@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('article_images', function (Blueprint $table) {
             $table->id();
+            $table->integer('order')->default(0); // Поле для хранения порядка сортировки постов
             $table->string('path'); // Путь к изображению
             $table->string('alt')->nullable(); // Альтернативный текст
             $table->string('caption')->nullable(); // Подпись к изображению

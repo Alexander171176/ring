@@ -26,7 +26,7 @@ class CommentController extends Controller
 
         $comments = Cache::store('redis')->remember('comments.all', $cacheTime, function () {
             // Подгружаем связанные данные о статье и пользователе
-            return Comment::with(['user', 'article', 'rubric'])->get();
+            return Comment::with(['user', 'article', 'section'])->get();
         });
 
         $commentsCount = Cache::store('redis')->remember('comments.count', $cacheTime, function () {

@@ -93,9 +93,9 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
             \App\Http\Controllers\Admin\Invokable\RemoveRubricFromSectionController::class)
             ->name('rubrics.sections.destroy');
 
-        Route::delete('/rubrics/{rubric}/articles/{article}',
-            \App\Http\Controllers\Admin\Invokable\RemoveArticleFromRubricController::class)
-            ->name('rubrics.articles.destroy');
+        Route::delete('/sections/{section}/articles/{article}',
+            \App\Http\Controllers\Admin\Invokable\RemoveArticleFromSectionController::class)
+            ->name('sections.articles.destroy');
 
         // Группа маршрутов для клонирования сущности
         Route::post('/rubrics/clone/{id}',
@@ -134,6 +134,15 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::put('/comments/{id}/updateActivity',
             [\App\Http\Controllers\Admin\Comment\CommentController::class, 'updateActivity'])
             ->name('comments.updateActivity');
+
+        // Группа маршрутов для переключения Статей как главными и в сайдбаре
+        Route::put('/articles/{id}/updateMain',
+            [\App\Http\Controllers\Admin\Article\ArticleController::class, 'updateMain'])
+            ->name('articles.updateMain');
+
+        Route::put('/articles/{id}/updateSidebar',
+            [\App\Http\Controllers\Admin\Article\ArticleController::class, 'updateSidebar'])
+            ->name('articles.updateSidebar');
 
         // Группа маршрутов для обновления сортировки
         Route::put('/rubrics/{rubric}/updateSort',

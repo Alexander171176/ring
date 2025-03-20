@@ -4,6 +4,7 @@ namespace App\Models\Admin\Comment;
 
 use App\Models\Admin\Article\Article;
 use App\Models\Admin\Rubric\Rubric;
+use App\Models\Admin\Section\Section;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -18,7 +19,7 @@ class Comment extends Model
     protected $fillable = [
         'user_id',
         'article_id',
-        'rubric_id',
+        'section_id',
         'parent_id',
         'content',
         'status',
@@ -35,9 +36,9 @@ class Comment extends Model
         return $this->belongsTo(Article::class);
     }
 
-    public function rubric(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function section(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->belongsTo(Rubric::class);
+        return $this->belongsTo(Section::class);
     }
 
     public function parent(): \Illuminate\Database\Eloquent\Relations\BelongsTo

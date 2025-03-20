@@ -2,7 +2,7 @@
 
 namespace App\Http\Resources\Admin\Article;
 
-use App\Http\Resources\Admin\Rubric\RubricResource;
+use App\Http\Resources\Admin\Section\SectionResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -17,6 +17,8 @@ class ArticleResource extends JsonResource
             'id'            => $this->id,
             'sort'          => $this->sort,
             'activity'      => $this->activity,
+            'main'          => $this->main,
+            'sidebar'       => $this->sidebar,
             'locale'        => $this->locale,
             'title'         => $this->title,
             'url'           => $this->url,
@@ -35,7 +37,7 @@ class ArticleResource extends JsonResource
             'comments_count' => $this->whenNotNull($this->comments_count, 0),
 
             // Связанные рубрики
-            'rubrics' => RubricResource::collection($this->whenLoaded('rubrics')),
+            'sections' => SectionResource::collection($this->whenLoaded('sections')),
 
             // Связанные теги
             'tags' => TagResource::collection($this->whenLoaded('tags')),

@@ -3,7 +3,7 @@
 namespace App\Models\Admin\Article;
 
 use App\Models\Admin\Comment\Comment;
-use App\Models\Admin\Rubric\Rubric;
+use App\Models\Admin\Section\Section;
 use App\Models\User\Like\ArticleLike;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -18,6 +18,8 @@ class Article extends Model
     protected $fillable = [
         'sort',
         'activity',
+        'main',
+        'sidebar',
         'locale',
         'title',
         'url',
@@ -32,11 +34,11 @@ class Article extends Model
     ];
 
     /**
-     * Связь: Статья - Рубрики (многие ко многим)
+     * Связь: Статья - Секции (многие ко многим)
      */
-    public function rubrics(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function sections(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
-        return $this->belongsToMany(Rubric::class, 'article_has_rubrics');
+        return $this->belongsToMany(Section::class, 'article_has_section');
     }
 
     /**

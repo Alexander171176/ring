@@ -20,7 +20,7 @@ class CommentFactory extends Factory
         return [
             'user_id' => User::inRandomOrder()->first()->id,  // случайный пользователь
             'article_id' => 1,  // статья с id 1
-            'rubric_id' => null, // если нужно указать рубрику, можно изменить это поле
+            'section_id' => null, // если нужно указать рубрику, можно изменить это поле
             'parent_id' => null, // для комментариев без родителя
             'content' => $this->faker->sentence,  // случайный текст комментария
             'status' => true,  // заменено на булевое значение

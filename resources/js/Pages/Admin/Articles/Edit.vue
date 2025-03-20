@@ -28,7 +28,7 @@ const { t } = useI18n();
 
 const props = defineProps({
     article: { type: Object, required: true },
-    rubrics: Array,
+    sections: Array,
     tags: Array
 });
 
@@ -48,7 +48,9 @@ const form = useForm({
     meta_keywords: props.article.meta_keywords ?? '',
     meta_desc: props.article.meta_desc ?? '',
     activity: Boolean(props.article.activity),
-    rubrics: props.article.rubrics ?? [],
+    main: Boolean(props.article.main),
+    sidebar: Boolean(props.article.sidebar),
+    sections: props.article.sections ?? [],
     tags: props.article.tags ?? [],
     deletedImages: [] // массив для хранения ID удалённых изображений
 });
@@ -61,6 +63,7 @@ const existingImages = ref(
         .map(img => ({
             id: img.id,
             url: img.url ? img.url : `/storage/${img.path}`, // здесь вычисляется правильный URL
+            order: img.order || 0,
             alt: img.alt || '',
             caption: img.caption || ''
         }))
@@ -130,14 +133,18 @@ const submitForm = () => {
     form.transform((data) => ({
         ...data,
         activity: data.activity ? 1 : 0,
+        main: data.main ? 1 : 0,
+        sidebar: data.sidebar ? 1 : 0,
         images: [
             ...newImages.value.map(img => ({
                 file: img.file,
+                order: img.order,
                 alt: img.alt,
                 caption: img.caption
             })),
             ...existingImages.value.map(img => ({
                 id: img.id,
+                order: img.order,
                 alt: img.alt,
                 caption: img.caption
             }))
@@ -149,7 +156,7 @@ const submitForm = () => {
         preserveScroll: true,
         forceFormData: true, // Принудительно отправляем как FormData
         onSuccess: (page) => {
-            console.log("Edit.vue onSuccess:", page);
+            //console.log("Edit.vue onSuccess:", page);
             window.location.href = route('articles.index');
         },
         onError: (errors) => {
@@ -168,7 +175,7 @@ const submitForm = () => {
         <div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-12xl mx-auto">
             <div class="p-4 bg-slate-50 dark:bg-slate-700 border border-blue-400 dark:border-blue-200 shadow-lg shadow-gray-500 dark:shadow-slate-400 bg-opacity-95 dark:bg-opacity-95">
                 <form @submit.prevent="submitForm" enctype="multipart/form-data" class="p-3 w-full">
-                    <!-- Поля статьи (activity, locale, rubrics, title, url, short, description, author, tags, views, likes, meta_title, meta_keywords, meta_desc) -->
+
                     <div class="mb-3 flex justify-between flex-col lg:flex-row items-center gap-4">
                         <div class="flex flex-row items-center gap-2">
                             <ActivityCheckbox v-model="form.activity" />
@@ -187,10 +194,26 @@ const submitForm = () => {
                         </div>
                     </div>
 
+                    <div class="mb-3 flex justify-between flex-col lg:flex-row items-center gap-4">
+
+                        <!-- Показывать в главных новостях -->
+                        <div class="flex flex-row items-center gap-2">
+                            <ActivityCheckbox v-model="form.main"/>
+                            <LabelCheckbox for="main" :text="t('main')" class="text-sm h-8 flex items-center"/>
+                        </div>
+
+                        <!-- Показывать в сайдбаре -->
+                        <div class="flex flex-row items-center gap-2">
+                            <ActivityCheckbox v-model="form.sidebar"/>
+                            <LabelCheckbox for="sidebar" :text="t('sidebar')" class="text-sm h-8 flex items-center"/>
+                        </div>
+
+                    </div>
+
                     <div class="mb-3 flex flex-col items-start">
-                        <LabelInput for="rubrics" :value="t('rubrics')" class="mb-1" />
-                        <VueMultiselect v-model="form.rubrics"
-                                        :options="rubrics"
+                        <LabelInput for="sections" :value="t('sections')" class="mb-1" />
+                        <VueMultiselect v-model="form.sections"
+                                        :options="sections"
                                         :multiple="true"
                                         :close-on-select="true"
                                         :placeholder="t('select')"

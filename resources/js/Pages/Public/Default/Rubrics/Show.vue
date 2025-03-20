@@ -2,7 +2,7 @@
 import {Head, Link, usePage} from '@inertiajs/vue3';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 
-const {rubric, articles, articlesCount} = usePage().props;
+const {rubric, sections, sectionsCount} = usePage().props;
 
 defineProps({
     title: String,
@@ -57,7 +57,7 @@ defineProps({
                     {{ rubric.title }}
                     <!-- Количество статей -->
                     <span class="ml-2 text-xs font-semibold text-white px-1 py-0 bg-emerald-500 rounded-sm">
-                        {{ articlesCount }}
+                        {{ sectionsCount }}
                     </span>
                 </h1>
 
@@ -67,29 +67,29 @@ defineProps({
                 </p>
 
                 <!-- Список статей -->
-                <div v-if="articles.length" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <div v-if="sections.length" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     <div
-                        v-for="article in articles"
-                        :key="article.id"
+                        v-for="section in sections"
+                        :key="section.id"
                         class="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden hover:shadow-xl transition duration-300"
                     >
                         <div class="p-6">
                             <!-- Заголовок статьи -->
                             <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                                <Link :href="`/articles/${article.id}`"
+                                <Link :href="`/sections/${section.id}`"
                                       class="hover:text-blue-600 dark:hover:text-blue-400">
-                                    {{ article.title }}
+                                    {{ section.title }}
                                 </Link>
                             </h2>
 
                             <!-- Описание статьи -->
                             <p class="text-gray-600 dark:text-gray-400 text-sm">
-                                {{ article.description }}
+                                {{ section.description }}
                             </p>
 
                             <!-- Кнопка "Читать далее" -->
                             <div class="flex justify-end mt-4">
-                                <Link :href="`/articles/${article.id}`"
+                                <Link :href="`/sections/${section.id}`"
                                       class="inline-block px-3 py-1 rounded-sm
                                              bg-blue-600 hover:bg-blue-800 dark:bg-indigo-600 dark:hover:bg-indigo-800
                                              font-semibold text-slate-100 text-sm transition duration-300">

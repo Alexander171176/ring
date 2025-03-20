@@ -17,20 +17,7 @@ class ArticleFactory extends Factory
     public function definition(): array
     {
         return [
-            'sort' => $this->faker->numberBetween(1, 100),
-            'activity' => $this->faker->randomElement([0, 1]),
-            'locale' => $this->faker->randomElement(['ru', 'en', 'kz']),
-            'title' => substr($this->faker->unique()->sentence(3), 0, 255),
-            'url' => substr($this->faker->unique()->slug, 0, 255),
-            'description' => substr($this->faker->text(160), 0, 255),
-            'author' => substr($this->faker->name, 0, 255),
-            'views' => $this->faker->numberBetween(1, 100),
-            'likes' => $this->faker->numberBetween(1, 100),
-            'meta_title' => substr($this->faker->sentence(30), 0, 255),
-            'meta_keywords' => substr($this->faker->words(3, true), 0, 255),
-            'meta_desc' => substr($this->faker->text(160), 0, 255),
-            'created_at' => now(),
-            'updated_at' => now(),
+            //
         ];
     }
 }

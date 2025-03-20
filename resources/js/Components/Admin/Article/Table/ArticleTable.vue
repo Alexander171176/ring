@@ -71,7 +71,7 @@ const toggleAll = (event) => {
                         <div class="font-medium text-left">{{ t('title') }}</div>
                     </th>
                     <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
-                        <div class="font-medium text-left">{{ t('rubrics') }}</div>
+                        <div class="font-medium text-left">{{ t('sections') }}</div>
                     </th>
                     <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
                         <div class="flex justify-center" :title="t('views')">
@@ -127,11 +127,11 @@ const toggleAll = (event) => {
                             </td>
                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
                                 <div class="text-left">
-                                    <span v-for="rubric in article.rubrics" :key="rubric.id">
-                                        <span :title="rubric.title"
+                                    <span v-for="section in article.sections" :key="section.id">
+                                        <span :title="section.title"
                                               class="py-0.5 px-1.5 mr-0.5 badge bg-blue-500 dark:bg-blue-200
                                                      rounded-sm text-xs text-slate-100 dark:text-slate-900">
-                                            {{ rubric.id }}
+                                            {{ section.id }}
                                         </span>
                                     </span>
                                 </div>

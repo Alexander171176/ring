@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Admin\Article\Article;
-use App\Models\Admin\Rubric\Rubric;
+use App\Models\Admin\Section\Section;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -20,9 +20,9 @@ class ArticleSeeder extends Seeder
         DB::table('articles')->truncate();
 
         // Получаем рубрику "Новости"
-        $rubric = Rubric::where('title', 'Новости')->first();
+        $section = Section::where('title', 'Новости')->first();
 
-        if (!$rubric) {
+        if (!$section) {
             Log::warning('Рубрика "Новости" не найдена. Сидер ArticleSeeder прерван.');
             return;
         }
@@ -32,6 +32,8 @@ class ArticleSeeder extends Seeder
             [
                 'sort' => 1,
                 'activity' => 1,
+                'main' => 0,
+                'sidebar' => 0,
                 'locale' => 'ru',
                 'title' => 'Основы HTML: Как начать?',
                 'url' => 'osnovy-html-kak-nachat',
@@ -47,6 +49,8 @@ class ArticleSeeder extends Seeder
             [
                 'sort' => 2,
                 'activity' => 1,
+                'main' => 0,
+                'sidebar' => 0,
                 'locale' => 'ru',
                 'title' => 'Семантические теги в HTML',
                 'url' => 'semanticheskie-tegi-v-html',
@@ -64,6 +68,8 @@ class ArticleSeeder extends Seeder
             [
                 'sort' => 3,
                 'activity' => 1,
+                'main' => 0,
+                'sidebar' => 0,
                 'locale' => 'ru',
                 'title' => 'Основы CSS: Как стилизовать страницы',
                 'url' => 'osnovy-css-kak-stilizovat-stranicy',
@@ -79,6 +85,8 @@ class ArticleSeeder extends Seeder
             [
                 'sort' => 4,
                 'activity' => 1,
+                'main' => 0,
+                'sidebar' => 0,
                 'locale' => 'ru',
                 'title' => 'Flexbox: Секреты гибкой верстки на CSS',
                 'url' => 'flexbox-sekrety-gibkoi-verstki',
@@ -96,6 +104,8 @@ class ArticleSeeder extends Seeder
             [
                 'sort' => 5,
                 'activity' => 1,
+                'main' => 0,
+                'sidebar' => 0,
                 'locale' => 'ru',
                 'title' => 'Основы JavaScript: Переменные и функции',
                 'url' => 'osnovy-javascript-peremennye-i-funktsii',
@@ -111,6 +121,8 @@ class ArticleSeeder extends Seeder
             [
                 'sort' => 6,
                 'activity' => 1,
+                'main' => 0,
+                'sidebar' => 0,
                 'locale' => 'ru',
                 'title' => 'События и манипуляции DOM в JavaScript',
                 'url' => 'sobytia-i-manipulyatsii-dom-v-javascript',
@@ -128,6 +140,8 @@ class ArticleSeeder extends Seeder
             [
                 'sort' => 7,
                 'activity' => 1,
+                'main' => 0,
+                'sidebar' => 0,
                 'locale' => 'ru',
                 'title' => 'Основы Laravel: Маршрутизация и контроллеры',
                 'url' => 'osnovy-laravel-marshrutizatsiya-i-kontrollery',
@@ -143,6 +157,8 @@ class ArticleSeeder extends Seeder
             [
                 'sort' => 8,
                 'activity' => 1,
+                'main' => 0,
+                'sidebar' => 0,
                 'locale' => 'ru',
                 'title' => 'Работа с базой данных в Laravel: миграции и модели',
                 'url' => 'rabota-s-bazoi-dannykh-v-laravel-migratsii-i-modeli',
@@ -160,6 +176,8 @@ class ArticleSeeder extends Seeder
             [
                 'sort' => 9,
                 'activity' => 1,
+                'main' => 0,
+                'sidebar' => 0,
                 'locale' => 'ru',
                 'title' => 'Основы Vue.js: создание компонентов',
                 'url' => 'osnovy-vuejs-sozdanie-komponentov',
@@ -175,6 +193,8 @@ class ArticleSeeder extends Seeder
             [
                 'sort' => 10,
                 'activity' => 1,
+                'main' => 0,
+                'sidebar' => 0,
                 'locale' => 'ru',
                 'title' => 'Двустороннее связывание данных во Vue.js',
                 'url' => 'dvustoronnee-svyazyvanie-dannykh-vuejs',
@@ -192,6 +212,8 @@ class ArticleSeeder extends Seeder
             [
                 'sort' => 11,
                 'activity' => 1,
+                'main' => 0,
+                'sidebar' => 0,
                 'locale' => 'ru',
                 'title' => 'Основы Tailwind CSS: утилитарные классы для быстрого дизайна',
                 'url' => 'osnovy-tailwind-css-utilitarnye-klassy',
@@ -207,6 +229,8 @@ class ArticleSeeder extends Seeder
             [
                 'sort' => 12,
                 'activity' => 1,
+                'main' => 0,
+                'sidebar' => 0,
                 'locale' => 'ru',
                 'title' => 'Создание адаптивного дизайна с Tailwind CSS',
                 'url' => 'sozdanie-adaptivnogo-dizaina-tailwind-css',
@@ -224,8 +248,8 @@ class ArticleSeeder extends Seeder
         // Создаем статьи и связываем их с рубрикой
         foreach ($articles as $articleData) {
             $article = Article::create($articleData);
-            $article->rubrics()->attach($rubric->id);
-            Log::info("Создана статья: {$article->title} и связана с рубрикой: {$rubric->title}");
+            $article->sections()->attach($section->id);
+            Log::info("Создана статья: {$article->title} и связана с рубрикой: {$section->title}");
         }
     }
 }

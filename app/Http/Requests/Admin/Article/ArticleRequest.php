@@ -23,6 +23,8 @@ class ArticleRequest extends FormRequest
         return [
             'sort' => 'nullable|integer',
             'activity' => 'required|boolean',
+            'main' => 'required|boolean',
+            'sidebar' => 'required|boolean',
             'locale' => [
                 'required',
                 'string',
@@ -52,7 +54,7 @@ class ArticleRequest extends FormRequest
             'meta_desc' => 'nullable|string|max:255',
 
             // Связи
-            'rubrics' => ['sometimes', 'array'],
+            'sections' => ['sometimes', 'array'],
             'tags' => ['sometimes', 'array'],
 
             // Обновленная валидация изображений
@@ -61,6 +63,9 @@ class ArticleRequest extends FormRequest
                 function ($attribute, $value, $fail) {
                     if (is_array($value) && array_key_exists('id', $value) && !is_numeric($value['id'])) {
                         $fail('ID изображения должен быть числом.');
+                    }
+                    if (is_array($value) && array_key_exists('order', $value) && !is_numeric($value['order'])) {
+                        $fail('Сортирвка изображения должна быть числом.');
                     }
                     if (is_array($value) && array_key_exists('file', $value) && !$value['file'] instanceof \Illuminate\Http\UploadedFile) {
                         $fail('Загружаемый файл должен быть изображением.');
@@ -117,7 +122,13 @@ class ArticleRequest extends FormRequest
             'activity.required' => 'Поле активности обязательно для заполнения.',
             'activity.boolean' => 'Поле активности должно быть логическим значением.',
 
-            'rubrics.array' => 'Рубрики должны быть массивом.',
+            'main.required' => 'Поле главная новость обязательно для заполнения.',
+            'main.boolean' => 'Поле главная новость должно быть логическим значением.',
+
+            'sidebar.required' => 'Поле новость в сайдбаре обязательно для заполнения.',
+            'sidebar.boolean' => 'Поле новость в сайдбаре должно быть логическим значением.',
+
+            'sections.array' => 'Секции должны быть массивом.',
             'tags.array' => 'Теги должны быть массивом.',
 
         ];
