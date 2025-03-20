@@ -20,6 +20,7 @@ const linkInfo = {
     roles: {label: t('roles'), route: 'roles.index'},
     permissions: {label: t('permissions'), route: 'permissions.index'},
     rubrics: {label: t('rubrics'), route: 'rubrics.index'},
+    sections: {label: t('sections'), route: 'sections.index'},
     articles: {label: t('posts'), route: 'articles.index'},
     comments: {label: t('comments'), route: 'comments.index'},
     reports: {label: t('reports'), route: 'reports.index'},

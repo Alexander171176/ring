@@ -140,6 +140,19 @@ const {t} = useI18n();
             {{ t('rubrics') }}
         </template>
     </SidebarLink>
+    <SidebarLink :href="route('sections.index')"
+                 :active="route().current('sections.index')"
+                 :expanded="props.expanded">
+        <template #default>
+            <svg class="shrink-0 h-6 w-6" viewBox="0 0 24 24">
+                <circle class="fill-current text-blue-600" cx="16" cy="8" r="8"></circle>
+                <circle class="fill-current text-blue-400" cx="8" cy="16" r="8"></circle>
+            </svg>
+        </template>
+        <template #text>
+            {{ t('sections') }}
+        </template>
+    </SidebarLink>
     <SidebarLink :href="route('articles.index')"
                  :active="route().current('articles.index')"
                  :expanded="props.expanded">

@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
 //            RoleSeeder::class,
             SettingSeeder::class,
             RubricSeeder::class,
+            SectionSeeder::class,
             ArticleSeeder::class,
             TagSeeder::class,
             ArticleImageSeeder::class,

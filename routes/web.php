@@ -57,6 +57,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::resource('/roles', \App\Http\Controllers\Admin\Role\RoleController::class);
         Route::resource('/permissions', \App\Http\Controllers\Admin\Permission\PermissionController::class);
         Route::resource('/rubrics', \App\Http\Controllers\Admin\Rubric\RubricController::class);
+        Route::resource('/sections', \App\Http\Controllers\Admin\Section\SectionController::class);
         Route::resource('/articles', \App\Http\Controllers\Admin\Article\ArticleController::class);
         Route::resource('/charts', \App\Http\Controllers\Admin\Chart\ChartController::class);
         Route::resource('/reports', \App\Http\Controllers\Admin\Report\ReportController::class)
@@ -88,6 +89,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
             \App\Http\Controllers\Admin\Invokable\RemovePermissionFromUserController::class)
             ->name('users.permissions.destroy');
 
+        Route::delete('/rubrics/{rubric}/sections/{section}',
+            \App\Http\Controllers\Admin\Invokable\RemoveRubricFromSectionController::class)
+            ->name('rubrics.sections.destroy');
+
         Route::delete('/rubrics/{rubric}/articles/{article}',
             \App\Http\Controllers\Admin\Invokable\RemoveArticleFromRubricController::class)
             ->name('rubrics.articles.destroy');
@@ -97,6 +102,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
             [\App\Http\Controllers\Admin\Rubric\RubricController::class, 'clone'])
             ->name('rubrics.clone');
 
+        Route::post('/sections/clone/{id}',
+            [\App\Http\Controllers\Admin\Section\SectionController::class, 'clone'])
+            ->name('sections.clone');
+
         Route::post('/articles/clone/{id}',
             [\App\Http\Controllers\Admin\Article\ArticleController::class, 'clone'])
             ->name('articles.clone');
@@ -105,6 +114,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::put('/rubrics/{id}/updateActivity',
             [\App\Http\Controllers\Admin\Rubric\RubricController::class, 'updateActivity'])
             ->name('rubrics.updateActivity');
+
+        Route::put('/sections/{id}/updateActivity',
+            [\App\Http\Controllers\Admin\Section\SectionController::class, 'updateActivity'])
+            ->name('sections.updateActivity');
 
         Route::put('/articles/{id}/updateActivity',
             [\App\Http\Controllers\Admin\Article\ArticleController::class, 'updateActivity'])
@@ -127,18 +140,26 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
             [\App\Http\Controllers\Admin\Rubric\RubricController::class, 'updateSort'])
             ->name('rubrics.updateSort');
 
+        Route::put('/sections/{section}/updateSort',
+            [\App\Http\Controllers\Admin\Section\SectionController::class, 'updateSort'])
+            ->name('sections.updateSort');
+
         Route::put('/articles/{article}/updateSort',
             [\App\Http\Controllers\Admin\Article\ArticleController::class, 'updateSort'])
             ->name('articles.updateSort');
 
         // Группа маршрутов для массового удаления сущностей
-        Route::delete('/admin/articles/bulk-delete',
-            [\App\Http\Controllers\Admin\Article\ArticleController::class, 'bulkDestroy'])
-            ->name('articles.bulkDestroy');
-
         Route::delete('/admin/rubrics/bulk-delete',
             [\App\Http\Controllers\Admin\Rubric\RubricController::class, 'bulkDestroy'])
             ->name('rubrics.bulkDestroy');
+
+        Route::delete('/admin/sections/bulk-delete',
+            [\App\Http\Controllers\Admin\Section\SectionController::class, 'bulkDestroy'])
+            ->name('sections.bulkDestroy');
+
+        Route::delete('/admin/articles/bulk-delete',
+            [\App\Http\Controllers\Admin\Article\ArticleController::class, 'bulkDestroy'])
+            ->name('articles.bulkDestroy');
 
         Route::delete('/comments/bulk-delete',
             [\App\Http\Controllers\Admin\Comment\CommentController::class, 'bulkDestroy'])

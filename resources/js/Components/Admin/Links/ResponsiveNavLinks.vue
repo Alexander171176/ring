@@ -12,6 +12,7 @@ const { t } = useI18n();
         <ResponsiveNavLink :href="route('roles.index')" :active="route().current('roles.index')">{{ t('roles') }}</ResponsiveNavLink>
         <ResponsiveNavLink :href="route('permissions.index')" :active="route().current('permissions.index')">{{ t('permissions') }}</ResponsiveNavLink>
         <ResponsiveNavLink :href="route('rubrics.index')" :active="route().current('rubrics.index')">{{ t('rubrics') }}</ResponsiveNavLink>
+        <ResponsiveNavLink :href="route('sections.index')" :active="route().current('sections.index')">{{ t('sections') }}</ResponsiveNavLink>
         <ResponsiveNavLink :href="route('articles.index')" :active="route().current('articles.index')">{{ t('posts') }}</ResponsiveNavLink>
         <ResponsiveNavLink :href="route('comments.index')" :active="route().current('comments.index')">{{ t('comments') }}</ResponsiveNavLink>
         <ResponsiveNavLink :href="route('reports.index')" :active="route().current('reports.index')">{{ t('reports') }}</ResponsiveNavLink>

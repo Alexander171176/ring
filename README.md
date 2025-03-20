@@ -255,3 +255,14 @@ ____________________________
     `docker exec ring-php-app php artisan db:seed --class=TagSeeder` <br>
     `docker exec ring-php-app php artisan make:seeder ArticleImageSeeder` <br>
     `docker exec ring-php-app php artisan db:seed --class=ArticleImageSeeder` <br>
+ 
+58) Create model and migrations Section <br>
+    `docker exec ring-php-app php artisan make:model Admin/Section/Section -mf` <br>
+    `docker exec ring-php-app php artisan make:migration create_rubric_has_sections_table --create=rubric_has_sections` <br>
+    `docker exec ring-php-app php artisan migrate`<br>
+    `docker exec ring-php-app php artisan make:seeder SectionSeeder` <br>
+    `docker exec ring-php-app php artisan db:seed --class=SectionSeeder` <br>
+    `docker exec ring-php-app php artisan make:controller Admin/Section/SectionController --resource` <br>
+    `docker exec ring-php-app php artisan make:resource Admin/Section/SectionResource` <br>
+    `docker exec ring-php-app php artisan make:request Admin/Section/SectionRequest` <br>
+    `docker exec ring-php-app php artisan make:controller Admin/Invokable/RemoveRubricFromSectionController --invokable` <br>

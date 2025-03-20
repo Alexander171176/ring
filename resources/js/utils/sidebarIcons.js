@@ -33,6 +33,10 @@ export const sidebarIcons = {
         <circle class="fill-current text-blue-600" cx="16" cy="8" r="8"></circle>
         <circle class="fill-current text-blue-400" cx="8" cy="16" r="8"></circle>
     `,
+    sections: `
+        <path class="fill-current text-blue-600" d="M1 3h22v20H1z"></path>
+        <path class="fill-current text-blue-400" d="M21 3h2v4H1V3h2V1h4v2h10V1h4v2Z"></path>
+    `,
     articles: `
         <path class="fill-current text-blue-600" d="M8 1v2H3v19h18V3h-5V1h7v23H1V1z"></path>
         <path class="fill-current text-blue-600" d="M1 1h22v23H1z"></path>

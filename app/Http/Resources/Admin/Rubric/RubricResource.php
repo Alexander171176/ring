@@ -26,6 +26,8 @@ class RubricResource extends JsonResource
             'meta_desc'     => $this->meta_desc,
             'created_at'    => $this->created_at?->format('Y-m-d H:i:s'),
             'updated_at'    => $this->updated_at?->format('Y-m-d H:i:s'),
+            // Количество секций, если есть
+            'sections_count' => $this->whenLoaded('sections', fn() => $this->sections->count()),
             // Количество статей, если есть
             'articles_count' => $this->whenLoaded('articles', fn() => $this->articles->count()),
         ];
