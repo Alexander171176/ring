@@ -1,4 +1,5 @@
 <script setup>
+import {defineProps} from "vue";
 import {useI18n} from 'vue-i18n';
 import {useForm} from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
@@ -7,15 +8,20 @@ import DefaultButton from '@/Components/Admin/Buttons/DefaultButton.vue';
 import PrimaryButton from '@/Components/Admin/Buttons/PrimaryButton.vue';
 import LabelCheckbox from '@/Components/Admin/Checkbox/LabelCheckbox.vue';
 import ActivityCheckbox from '@/Components/Admin/Checkbox/ActivityCheckbox.vue';
-import LocaleSelect from '@/Components/Admin/Select/LocaleSelect.vue';
 import MetaDescTextarea from '@/Components/Admin/Textarea/MetaDescTextarea.vue';
 import InputNumber from '@/Components/Admin/Input/InputNumber.vue';
 import LabelInput from '@/Components/Admin/Input/LabelInput.vue';
 import InputText from '@/Components/Admin/Input/InputText.vue';
 import InputError from '@/Components/Admin/Input/InputError.vue';
 import CKEditor from "@/Components/Admin/CKEditor/CKEditor.vue";
+import SelectLocale from "@/Components/Admin/Select/SelectLocale.vue";
+import VueMultiselect from 'vue-multiselect';
 
 const {t} = useI18n();
+
+defineProps({
+    rubrics: Array,
+})
 
 // пустая форма
 const form = useForm({
@@ -25,6 +31,7 @@ const form = useForm({
     title: '',
     short: '',
     activity: false,
+    rubrics: [],
 });
 
 // метод сохранения
@@ -75,25 +82,47 @@ const submitForm = () => {
                 </div>
                 <form @submit.prevent="submitForm" class="p-3 w-full">
 
-                    <LocaleSelect v-model="form.locale" :error="form.errors.locale" />
+                    <div class="mb-3 flex justify-between flex-col lg:flex-row items-center gap-4">
 
-                    <div class="mb-3 flex items-center">
-                        <div class="flex justify-between w-full">
-                            <div class="flex flex-row items-center">
-                                <ActivityCheckbox v-model="form.activity"/>
-                                <LabelCheckbox for="activity" :text="t('activity')"/>
-                            </div>
+                        <!-- Активность -->
+                        <div class="flex flex-row items-center gap-2">
+                            <ActivityCheckbox v-model="form.activity"/>
+                            <LabelCheckbox for="activity" :text="t('activity')" class="text-sm h-8 flex items-center"/>
                         </div>
-                        <div class="flex flex-row items-center">
-                            <LabelInput for="sort" :value="t('sort')" class="mr-3"/>
+
+                        <!-- Локализация -->
+                        <div class="flex flex-row items-center gap-2 w-auto">
+                            <SelectLocale v-model="form.locale" :errorMessage="form.errors.locale"/>
+                            <InputError class="mt-2 lg:mt-0" :message="form.errors.locale"/>
+                        </div>
+
+                        <!-- Сортировка -->
+                        <div class="flex flex-row items-center gap-2">
+                            <div class="h-8 flex items-center">
+                                <LabelInput for="sort" :value="t('sort')" class="text-sm"/>
+                            </div>
                             <InputNumber
                                 id="sort"
                                 type="number"
                                 v-model="form.sort"
                                 autocomplete="sort"
+                                class="w-full lg:w-28"
                             />
-                            <InputError class="mt-2" :message="form.errors.sort"/>
+                            <InputError class="mt-2 lg:mt-0" :message="form.errors.sort"/>
                         </div>
+
+                    </div>
+
+                    <div class="mb-3 flex flex-col items-start">
+                        <LabelInput for="rubrics" :value="t('rubrics')" class="mb-1"/>
+                        <VueMultiselect v-model="form.rubrics"
+                                        :options="rubrics"
+                                        :multiple="true"
+                                        :close-on-select="true"
+                                        :placeholder="t('select')"
+                                        label="title"
+                                        track-by="title"
+                        />
                     </div>
 
                     <div class="mb-3 flex flex-col items-start">
@@ -150,3 +179,5 @@ const submitForm = () => {
         </div>
     </AdminLayout>
 </template>
+
+<style src="../../../../css/vue-multiselect.min.css"></style>
