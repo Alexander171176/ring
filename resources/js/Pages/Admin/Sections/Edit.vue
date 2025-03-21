@@ -128,9 +128,14 @@ const submitForm = async () => {
                     </div>
 
                     <div class="mb-3 flex flex-col items-start">
-                        <LabelInput for="short" :value="t('description')"/>
-                        <CKEditor v-model="form.short" class="w-full"/>
-                        <InputError class="mt-2" :message="form.errors.short"/>
+                        <div class="flex justify-between w-full">
+                            <LabelInput for="meta_desc" :value="t('shortDescription')" />
+                            <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
+                                {{ form.short.length }} / 255 {{ t('characters') }}
+                            </div>
+                        </div>
+                        <MetaDescTextarea v-model="form.short" class="w-full" />
+                        <InputError class="mt-2" :message="form.errors.short" />
                     </div>
 
                     <div class="flex items-center justify-center mt-4">

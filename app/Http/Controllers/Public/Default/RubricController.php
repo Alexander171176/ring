@@ -45,15 +45,28 @@ class RubricController extends Controller
  */
     public function show(string $url): \Inertia\Response
     {
-        // Извлекаем рубрику вместе с активными секциями
-        $rubric = Rubric::with(['sections' => function ($query) {
-            $query->where('activity', 1)->orderBy('sort', 'asc');
-        }])->where('url', $url)->firstOrFail();
+        $rubric = Rubric::with([
+            'sections' => function ($query) {
+                $query->where('activity', 1)
+                    ->orderBy('sort', 'asc')
+                    ->with(['articles' => function ($query) {
+                        $query->where('activity', 1)
+                            ->orderBy('sort', 'asc')
+                            ->with(['images', 'tags']); // теперь загружаем и изображения, и теги для каждой статьи
+                    }]);
+            }
+        ])->where('url', $url)->firstOrFail();
+
+        // Подсчет общего количества активных статей во всех секциях
+        $activeArticlesCount = $rubric->sections->reduce(function ($carry, $section) {
+            return $carry + ($section->articles ? $section->articles->count() : 0);
+        }, 0);
 
         return Inertia::render('Public/Default/Rubrics/Show', [
             'rubric' => new RubricResource($rubric),
             'sections' => SectionResource::collection($rubric->sections),
             'sectionsCount' => $rubric->sections->count(),
+            'activeArticlesCount' => $activeArticlesCount,
         ]);
     }
 

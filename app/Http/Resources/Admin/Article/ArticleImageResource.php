@@ -16,6 +16,7 @@ class ArticleImageResource extends JsonResource
             'id'      => $this->id,
             'order'   => $this->order,
             'path'    => $this->path,
+            'url'        => asset('storage/' . $this->path), // полный URL изображения
             'alt'     => $this->alt,
             'caption' => $this->caption,
             'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
