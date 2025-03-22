@@ -6,28 +6,20 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Role\RoleRequest;
 use App\Http\Resources\Admin\Permission\PermissionResource;
 use App\Http\Resources\Admin\Role\RoleResource;
-use App\Traits\CacheTimeTrait;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
+use Inertia\Response;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 class RoleController extends Controller
 {
-    use CacheTimeTrait;
-
-    public function index(): \Inertia\Response
+    public function index(): Response
     {
-        $cacheTime = $this->getCacheTime();
-
-        $roles = Cache::store('redis')->remember('roles.all', $cacheTime, function () {
-            return Role::with('permissions')->get();
-        });
-
-        $rolesCount = Cache::store('redis')->remember('roles.count', $cacheTime, function () {
-            return Role::count();
-        });
+        // Прямое получение ролей и их подсчёт без кэширования
+        $roles = Role::with('permissions')->get();
+        $rolesCount = Role::count();
 
         return Inertia::render('Admin/Roles/Index', [
             'roles' => RoleResource::collection($roles),
@@ -35,20 +27,17 @@ class RoleController extends Controller
         ]);
     }
 
-    public function create(): \Inertia\Response
+    public function create(): Response
     {
-        $cacheTime = $this->getCacheTime();
-
-        $permissions = Cache::store('redis')->remember('permissions.all', $cacheTime, function () {
-            return Permission::all();
-        });
+        // Прямое получение разрешений без кэширования
+        $permissions = Permission::all();
 
         return Inertia::render('Admin/Roles/Create', [
             'permissions' => PermissionResource::collection($permissions),
         ]);
     }
 
-    public function store(RoleRequest $request): \Illuminate\Http\RedirectResponse
+    public function store(RoleRequest $request): RedirectResponse
     {
         $data = $request->validated();
         $role = Role::create(['name' => $data['name']]);
@@ -56,16 +45,15 @@ class RoleController extends Controller
             $role->syncPermissions($request->input('permissions'));
         }
 
-        $this->clearCache(['roles.all', 'roles.count', 'permissions.all']);
-
         return redirect()->route('roles.index')
             ->with('success', 'Роль успешно создана.');
     }
 
-    public function edit(string $id): \Inertia\Response
+    public function edit(string $id): Response
     {
-        $role = Role::with('permissions')->find($id); // Получаем роль напрямую, без кэша
-        $permissions = Permission::all(); // Получаем разрешения напрямую, без кэша
+        // Получаем роль и разрешения напрямую, без кэша
+        $role = Role::with('permissions')->findOrFail($id);
+        $permissions = Permission::all();
 
         return Inertia::render('Admin/Roles/Edit', [
             'role' => new RoleResource($role),
@@ -73,30 +61,26 @@ class RoleController extends Controller
         ]);
     }
 
-    public function update(RoleRequest $request, string $id): \Illuminate\Http\RedirectResponse
+    public function update(RoleRequest $request, string $id): RedirectResponse
     {
         $role = Role::findById($id);
-        $role->update(['name' => $request->validated('name')]);
+        $validatedData = $request->validated();
+        $role->update(['name' => $validatedData['name']]);
         if ($request->filled('permissions')) {
             $role->syncPermissions($request->input('permissions'));
         }
-
-        $this->clearCache(['roles.all', 'roles.count', 'permissions.all', "role.$id"]);
 
         return redirect()->route('roles.index')
             ->with('success', 'Роль успешно обновлена.');
     }
 
-    public function destroy(string $id): \Illuminate\Http\RedirectResponse
+    public function destroy(string $id): RedirectResponse
     {
         $role = Role::findById($id);
         $role->delete();
 
         Log::info('Role deleted:', $role->toArray());
 
-        $this->clearCache(['roles.all', 'roles.count', 'permissions.all', "role.$id"]);
-
         return back();
     }
-
 }

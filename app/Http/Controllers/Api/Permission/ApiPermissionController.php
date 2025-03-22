@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Permission\PermissionRequest;
 use App\Http\Resources\Admin\Permission\PermissionResource;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Spatie\Permission\Models\Permission;
 
 /**
@@ -13,7 +14,7 @@ use Spatie\Permission\Models\Permission;
  *     title="API Documentation",
  *     version="1.0.0",
  *     @OA\Contact(
- *         email="support@example.com"
+ *         email="kosolapov1976@gmail.com"
  *     )
  * )
  * @OA\Server(
@@ -62,7 +63,7 @@ class ApiPermissionController extends Controller
         $permissionsCount = DB::table('permissions')->count();
 
         return response()->json([
-            'permissions' => PermissionResource::collection($permissions),
+            'permissions'      => PermissionResource::collection($permissions),
             'permissionsCount' => $permissionsCount,
         ]);
     }
@@ -90,7 +91,7 @@ class ApiPermissionController extends Controller
         $data = $request->validated();
         $permission = Permission::create(['name' => $data['name']]);
 
-        // Log::info(' API - Разрешение создано: ', $permission->toArray());
+        Log::info('API - Разрешение создано: ', $permission->toArray());
 
         return response()->json(new PermissionResource($permission), 201);
     }
@@ -125,7 +126,7 @@ class ApiPermissionController extends Controller
         $data = $request->validated();
         $permission->update(['name' => $data['name']]);
 
-        // Log::info(' API - Разрешение обновлено: ', $permission->toArray());
+        Log::info('API - Разрешение обновлено: ', $permission->toArray());
 
         return response()->json(new PermissionResource($permission));
     }
@@ -154,7 +155,7 @@ class ApiPermissionController extends Controller
         $permission = Permission::findOrFail($id);
         $permission->delete();
 
-        // Log::info(' API - Разрешение удалено: ', $permission->toArray());
+        Log::info('API - Разрешение удалено: ', $permission->toArray());
 
         return response()->json(null, 204);
     }

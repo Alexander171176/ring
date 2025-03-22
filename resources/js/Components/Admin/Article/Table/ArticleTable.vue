@@ -2,6 +2,8 @@
 import { defineProps, defineEmits } from 'vue';
 import { useI18n } from 'vue-i18n';
 import draggable from 'vuedraggable';
+import MainToggle from "@/Components/Admin/Buttons/MainToggle.vue";
+import SidebarToggle from "@/Components/Admin/Buttons/SidebarToggle.vue";
 import ActivityToggle from '@/Components/Admin/Buttons/ActivityToggle.vue';
 import CloneIconButton from '@/Components/Admin/Buttons/CloneIconButton.vue';
 import DeleteIconButton from '@/Components/Admin/Buttons/DeleteIconButton.vue';
@@ -15,7 +17,16 @@ const props = defineProps({
     selectedArticles: Array
 });
 
-const emits = defineEmits(['toggle-activity', 'edit', 'delete', 'recalculate-sort', 'clone', 'toggle-select']);
+const emits = defineEmits([
+    'toggle-main',
+    'toggle-sidebar',
+    'toggle-activity',
+    'edit',
+    'delete',
+    'recalculate-sort',
+    'clone',
+    'toggle-select'
+]);
 
 const imagePath = (path) => {
     if (!path || path === 'default-image.png') {
@@ -144,6 +155,12 @@ const toggleAll = (event) => {
                             </td>
                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
                                 <div class="flex justify-center space-x-2">
+                                    <MainToggle :isActive="article.main"
+                                                    @toggle-main="$emit('toggle-main', article)"
+                                                    :title="article.main ? t('enabled') : t('disabled')"/>
+                                    <SidebarToggle :isActive="article.sidebar"
+                                                @toggle-sidebar="$emit('toggle-sidebar', article)"
+                                                :title="article.sidebar ? t('enabled') : t('disabled')"/>
                                     <ActivityToggle :isActive="article.activity"
                                                     @toggle-activity="$emit('toggle-activity', article)"
                                                     :title="article.activity ? t('enabled') : t('disabled')"/>

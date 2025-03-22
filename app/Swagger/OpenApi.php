@@ -7,7 +7,7 @@ namespace App\Swagger;
  *     title="API Documentation",
  *     version="1.0.0",
  *     @OA\Contact(
- *         email="support@example.com"
+ *         email="kosolapov1976@gmail.com"
  *     )
  * )
  * @OA\Server(

@@ -5,33 +5,24 @@ namespace App\Http\Controllers\Admin\Setting;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Admin\Setting\SettingResource;
 use App\Models\Admin\Setting\Setting;
-use App\Traits\CacheTimeTrait;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Cache;
+use Inertia\Response;
 
 class SettingController extends Controller
 {
-    use CacheTimeTrait;
-
     /**
      * Display a listing of the resource.
      */
-    public function index(): \Inertia\Response
+    public function index(): Response
     {
-        $cacheTime = $this->getCacheTime();
-
-        // Кэширование всех настроек
-        $settings = Cache::tags(['settings'])->remember('settings.all', $cacheTime, function () {
-            return Setting::all();
-        });
-
-        // Кэширование количества настроек
-        $settingCount = Cache::tags(['settings'])->remember('settings.count', $cacheTime, function () {
-            return DB::table('settings')->count();
-        });
+        $settings = Setting::all();
+        $settingCount = DB::table('settings')->count();
 
         return Inertia::render('Admin/Settings/Index', [
             'settings' => SettingResource::collection($settings),
@@ -42,7 +33,7 @@ class SettingController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id): \Illuminate\Http\RedirectResponse
+    public function update(Request $request, string $id): RedirectResponse
     {
         $validated = $request->validate([
             'value' => 'required|string|max:255',
@@ -52,24 +43,15 @@ class SettingController extends Controller
         $setting->value = $validated['value'];
         $setting->save();
 
-        // Очистка кэша после обновления настройки
-        $this->clearCache(['settings']);
-
-        // Перезагрузка страницы
         return back()->with('success', 'Настройка успешно обновлена');
     }
 
     /**
      * Получение настройки для времени простоя сайта.
      */
-    public function getDowntimeSiteSetting(): \Illuminate\Http\JsonResponse
+    public function getDowntimeSiteSetting(): JsonResponse
     {
-        $cacheTime = $this->getCacheTime();
-
-        $setting = Cache::tags(['settings'])->remember('setting.downtimeSite', $cacheTime, function () {
-            return Setting::where('option', 'downtimeSite')->first();
-        });
-
+        $setting = Setting::where('option', 'downtimeSite')->first();
         $value = $setting ? $setting->value : 'false';
         return response()->json(['value' => $value]);
     }
@@ -77,17 +59,10 @@ class SettingController extends Controller
     /**
      * Получить настройки панели виджетов (цвет и прозрачность).
      */
-    public function getWidgetPanelSettings(): \Illuminate\Http\JsonResponse
+    public function getWidgetPanelSettings(): JsonResponse
     {
-        $cacheTime = $this->getCacheTime();
-
-        $colorSetting = Cache::tags(['settings'])->remember('setting.widgetHexColor', $cacheTime, function () {
-            return Setting::where('option', 'widgetHexColor')->first();
-        });
-
-        $opacitySetting = Cache::tags(['settings'])->remember('setting.widgetOpacity', $cacheTime, function () {
-            return Setting::where('option', 'widgetOpacity')->first();
-        });
+        $colorSetting = Setting::where('option', 'widgetHexColor')->first();
+        $opacitySetting = Setting::where('option', 'widgetOpacity')->first();
 
         $color = $colorSetting ? $colorSetting->value : '155e75';
         $opacity = $opacitySetting ? floatval($opacitySetting->value) : 0.99;
@@ -101,14 +76,17 @@ class SettingController extends Controller
     /**
      * Обновить настройки панели виджетов (цвет и прозрачность).
      */
-    public function updateWidgetPanelSettings(Request $request): \Illuminate\Http\RedirectResponse
+    public function updateWidgetPanelSettings(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'color' => 'required|string',
             'opacity' => 'required|numeric',
         ]);
 
-        Log::info('Полученные данные для обновления:', ['color' => $validated['color'], 'opacity' => $validated['opacity']]);
+        Log::info('Полученные данные для обновления:', [
+            'color' => $validated['color'],
+            'opacity' => $validated['opacity']
+        ]);
 
         Setting::updateOrCreate(
             ['option' => 'widgetHexColor'],
@@ -132,27 +110,18 @@ class SettingController extends Controller
             ]
         );
 
-        // Очистка кэша после обновления настроек панели виджетов
-        $this->clearCache(['settings']);
-
         Log::info('Настройки цвета и прозрачности панелей успешно обновлены.');
 
-        // Перезагрузка страницы
         return back()->with('success', 'Настройки цвета и прозрачности панелей успешно обновлены.');
     }
 
     /**
      * Получить текущий язык интерфейса.
      */
-    public function getLocaleSetting(): \Illuminate\Http\JsonResponse
+    public function getLocaleSetting(): JsonResponse
     {
-        $cacheTime = $this->getCacheTime();
-
-        $localeSetting = Cache::tags(['settings'])->remember('setting.locale', $cacheTime, function () {
-            return Setting::where('option', 'locale')->first();
-        });
-
-        $locale = $localeSetting ? $localeSetting->value : 'ru'; // Язык по умолчанию — русский
+        $localeSetting = Setting::where('option', 'locale')->first();
+        $locale = $localeSetting ? $localeSetting->value : 'ru';
 
         return response()->json(['locale' => $locale]);
     }
@@ -160,10 +129,10 @@ class SettingController extends Controller
     /**
      * Обновить язык интерфейса.
      */
-    public function updateLocaleSetting(Request $request): \Illuminate\Http\RedirectResponse
+    public function updateLocaleSetting(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'locale' => 'required|string|in:en,ru,kz', // добавляем 'kz'
+            'locale' => 'required|string|in:en,ru,kz',
         ]);
 
         Log::info('Полученный язык для обновления:', ['locale' => $validated['locale']]);
@@ -179,13 +148,11 @@ class SettingController extends Controller
             ]
         );
 
-        // Очистка кэша настроек и локали
-        $this->clearCache(['settings']);
-        Cache::forget('app_locale');  // Очищаем кеш для локали
+        // Очищаем кэш локали, если он использовался отдельно
+        Cache::forget('app_locale');
 
         Log::info('Язык интерфейса успешно обновлен.');
 
         return back()->with('success', 'Язык интерфейса успешно обновлен.');
     }
-
 }

@@ -5,60 +5,121 @@ namespace App\Http\Controllers\Admin\Report;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Admin\Article\ArticleResource;
 use App\Http\Resources\Admin\Rubric\RubricResource;
+use App\Http\Resources\Admin\Section\SectionResource;
 use App\Models\Admin\Article\Article;
 use App\Models\Admin\Rubric\Rubric;
-use App\Traits\CacheTimeTrait;
+use App\Models\Admin\Section\Section;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Response;
 use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Illuminate\Support\Facades\Response;
 
 class ReportController extends Controller
 {
-    use CacheTimeTrait;
-
-    public function index(Request $request): \Illuminate\Http\JsonResponse|\Inertia\Response
+    /**
+     * Страница отчётов в админке
+     *
+     * @param Request $request
+     * @return JsonResponse|\Inertia\Response
+     */
+    public function index(Request $request): JsonResponse|\Inertia\Response
     {
-        $cacheTime = $this->getCacheTime();
-
         if ($request->has('type')) {
             $type = $request->query('type');
-            $cacheKey = $this->generateCacheKey($type, 'data');
+            if ($type === 'rubrics') {
+                $data = Rubric::with([
+                    'sections' => function ($query) {
+                        $query->where('activity', 1)
+                            ->orderBy('sort', 'asc')
+                            ->with(['articles' => function ($query) {
+                                $query->where('activity', 1)
+                                    ->orderBy('sort', 'asc');
+                            }]);
+                    }
+                ])->get();
+            } elseif ($type === 'sections') {
+                $data = Section::withCount('articles')
+                    ->with([
+                        'articles' => function ($query) {
+                            $query->where('activity', 1)
+                                ->orderBy('sort', 'asc');
+                        }
+                    ])->get();
+            } else {
+                $data = Article::with('sections')->get();
+            }
 
-            $data = Cache::store('redis')->remember($cacheKey, $cacheTime, function () use ($type) {
-                return $type === 'rubrics' ? Rubric::withCount('articles')->get() : Article::with('rubrics')->get();
-            });
-
-            $resource = $type === 'rubrics' ? RubricResource::collection($data) : ArticleResource::collection($data);
+            if ($type === 'rubrics') {
+                $resource = RubricResource::collection($data);
+            } elseif ($type === 'sections') {
+                $resource = SectionResource::collection($data);
+            } else {
+                $resource = ArticleResource::collection($data);
+            }
             return response()->json(['data' => $resource]);
         }
 
-        $rubrics = Cache::store('redis')->remember('report.rubrics', $cacheTime, function () {
-            return Rubric::withCount('articles')->get();
-        });
+        // Для представления Inertia
+        $rubrics = Rubric::with([
+            'sections' => function ($query) {
+                $query->where('activity', 1)
+                    ->orderBy('sort', 'asc')
+                    ->with(['articles' => function ($query) {
+                        $query->where('activity', 1)
+                            ->orderBy('sort', 'asc');
+                    }]);
+            }
+        ])->get();
 
-        $articles = Cache::store('redis')->remember('report.articles', $cacheTime, function () {
-            return Article::with('rubrics')->get();
-        });
+        $articles = Article::with('sections')->get();
+
+        // Собираем секции из рубрик
+        $sections = $rubrics->pluck('sections')->flatten();
+        // Если используется withCount('articles'), общее количество статей
+        $articlesCount = $sections->sum('articles_count');
 
         return Inertia::render('Admin/Reports/Index', [
-            'rubrics' => RubricResource::collection($rubrics),
-            'articles' => ArticleResource::collection($articles),
+            'rubrics'       => RubricResource::collection($rubrics),
+            'sections'      => SectionResource::collection($sections),
+            'sectionsCount' => $sections->count(),
+            'articles'      => ArticleResource::collection($articles),
+            'articlesCount' => $articlesCount,
         ]);
     }
 
+    /**
+     * Функция загрузки отчётов
+     *
+     * @param Request $request
+     * @return StreamedResponse
+     */
     public function download(Request $request): StreamedResponse
     {
-        $cacheTime = $this->getCacheTime();
-
         $type = $request->query('type');
         $format = $request->query('format');
-        $cacheKey = $this->generateCacheKey($type, 'download');
 
-        $data = Cache::store('redis')->remember($cacheKey, $cacheTime, function () use ($type) {
-            return $type === 'rubrics' ? Rubric::all() : Article::with('rubrics')->get();
-        });
+        if ($type === 'rubrics') {
+            $data = Rubric::with([
+                'sections' => function ($query) {
+                    $query->where('activity', 1)
+                        ->orderBy('sort', 'asc')
+                        ->with(['articles' => function ($query) {
+                            $query->where('activity', 1)
+                                ->orderBy('sort', 'asc');
+                        }]);
+                }
+            ])->get();
+        } elseif ($type === 'sections') {
+            $data = Section::with([
+                'articles' => function ($query) {
+                    $query->where('activity', 1)
+                        ->orderBy('sort', 'asc');
+                }
+            ])->get();
+        } else {
+            $data = Article::with('sections')->get();
+        }
 
         $filename = "report.{$format}";
         $content = $this->generateReport($data, $format);
@@ -70,11 +131,13 @@ class ReportController extends Controller
         ]);
     }
 
-    private function generateCacheKey(string $type, string $context): string
-    {
-        return "report.{$context}.{$type}_" . now()->format('Y-m-d');
-    }
-
+    /**
+     * Функция генерации отчётов
+     *
+     * @param $data
+     * @param $format
+     * @return bool|string
+     */
     private function generateReport($data, $format): bool|string
     {
         switch ($format) {
@@ -94,17 +157,16 @@ class ReportController extends Controller
                 fclose($csv);
                 return ob_get_clean();
             case 'xls':
-                // Logic for Excel
-                return ''; // Replace with actual logic for generating Excel file
+                // Здесь можно добавить логику для генерации Excel
+                return '';
             case 'pdf':
-                // Logic for PDF
-                return ''; // Replace with actual logic for generating PDF file
+                // Здесь можно добавить логику для генерации PDF
+                return '';
             case 'zip':
-                // Logic for ZIP
-                return ''; // Replace with actual logic for generating ZIP file
+                // Здесь можно добавить логику для генерации ZIP
+                return '';
             default:
                 throw new \InvalidArgumentException('Неподдерживаемый формат');
         }
     }
-
 }

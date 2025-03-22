@@ -215,7 +215,6 @@
     `docker exec -it ring-php-app ls -l /var/www/public/storage` Проверьте, правильно ли создана символьная ссылка <br>
     `docker exec -it ring-php-app ls -l /var/www/storage/api-docs/` Убедитесь, что права доступа к директории и файлу корректны <br>
     `docker exec -it --user root ring-php-app chmod -R 777 /var/www/storage/api-docs` Установите права доступа к папке <br>
-    `docker exec -it --user root ring-php-app chmod -R 777 /var/www/storage/api-docs` Установите права доступа к папке <br>
     `docker exec -it ring-php-app ls -l /var/www/public/storage/api-docs/api-docs.json` Убедитесь, что файл api-docs.json доступен через веб-сервер <br>
     `docker exec -it ring-php-app ls /var/www/storage/api-docs/api-docs.json` После генерации проверьте наличие файла <br>
     `docker-compose restart` <br>

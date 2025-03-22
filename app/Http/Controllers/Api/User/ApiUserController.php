@@ -21,7 +21,7 @@ use Spatie\Permission\Models\Role;
  *     title="API Documentation",
  *     version="1.0.0",
  *     @OA\Contact(
- *         email="support@example.com"
+ *         email="kosolapov1976@gmail.com"
  *     )
  * )
  * @OA\Server(
@@ -36,13 +36,12 @@ use Spatie\Permission\Models\Role;
  *     type="object",
  *     title="User",
  *     description="User model",
- *     properties={
- *         @OA\Property(property="id", type="integer", description="User ID"),
- *         @OA\Property(property="name", type="string", description="User name"),
- *         @OA\Property(property="email", type="string", description="User email"),
- *         @OA\Property(property="created_at", type="string", format="date-time", description="Creation date"),
- *         @OA\Property(property="updated_at", type="string", format="date-time", description="Last update date")
- *     }
+ *     required={"id", "name", "email", "created_at", "updated_at"},
+ *     @OA\Property(property="id", type="integer", example=1),
+ *     @OA\Property(property="name", type="string", example="John Doe"),
+ *     @OA\Property(property="email", type="string", example="john@example.com"),
+ *     @OA\Property(property="created_at", type="string", format="date-time", example="2021-01-01T00:00:00Z"),
+ *     @OA\Property(property="updated_at", type="string", format="date-time", example="2021-01-01T00:00:00Z")
  * )
  */
 class ApiUserController extends Controller
@@ -74,9 +73,9 @@ class ApiUserController extends Controller
         $permissions = Permission::all();
 
         return response()->json([
-            'users' => UserResource::collection($users),
-            'usersCount' => $usersCount,
-            'roles' => RoleResource::collection($roles),
+            'users'       => UserResource::collection($users),
+            'usersCount'  => $usersCount,
+            'roles'       => RoleResource::collection($roles),
             'permissions' => PermissionResource::collection($permissions),
         ]);
     }
@@ -102,30 +101,28 @@ class ApiUserController extends Controller
     public function store(Request $request): \Illuminate\Http\JsonResponse
     {
         $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'roles' => ['sometimes', 'array'],
+            'name'        => 'required|string|max:255',
+            'email'       => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)],
+            'password'    => ['required', 'confirmed', Rules\Password::defaults()],
+            'roles'       => ['sometimes', 'array'],
             'permissions' => ['sometimes', 'array']
         ]);
 
         $user = User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
+            'name'     => $data['name'],
+            'email'    => $data['email'],
             'password' => Hash::make($data['password']),
         ]);
 
-        if ($request->has('roles')) {
-            $user->syncRoles($request->input('roles.*.name'));
+        if (isset($data['roles'])) {
+            $user->syncRoles($data['roles']);
         }
 
-        if ($request->has('permissions')) {
-            $user->syncPermissions($request->input('permissions.*.name'));
+        if (isset($data['permissions'])) {
+            $user->syncPermissions($data['permissions']);
         }
 
         $user->load(['roles', 'permissions']);
-
-        // Log::info('API - User created: ', $user->toArray());
 
         return response()->json(new UserResource($user), 201);
     }
@@ -157,28 +154,26 @@ class ApiUserController extends Controller
     public function update(Request $request, User $user): \Illuminate\Http\JsonResponse
     {
         $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|'.Rule::unique('users', 'email')->ignore($user->id),
-            'roles' => ['sometimes', 'array'],
+            'name'        => 'required|string|max:255',
+            'email'       => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
+            'roles'       => ['sometimes', 'array'],
             'permissions' => ['sometimes', 'array']
         ]);
 
         $user->update([
-            'name' => $data['name'],
+            'name'  => $data['name'],
             'email' => $data['email'],
         ]);
 
-        if ($request->has('roles')) {
-            $user->syncRoles($request->input('roles.*.name'));
+        if (isset($data['roles'])) {
+            $user->syncRoles($data['roles']);
         }
 
-        if ($request->has('permissions')) {
-            $user->syncPermissions($request->input('permissions.*.name'));
+        if (isset($data['permissions'])) {
+            $user->syncPermissions($data['permissions']);
         }
 
         $user->load(['roles', 'permissions']);
-
-        // Log::info('API - User updated: ', $user->toArray());
 
         return response()->json(new UserResource($user));
     }
@@ -205,8 +200,6 @@ class ApiUserController extends Controller
     public function destroy(User $user): \Illuminate\Http\JsonResponse
     {
         $user->delete();
-
-        // Log::info('API - User deleted: ', $user->toArray());
 
         return response()->json(null, 204);
     }

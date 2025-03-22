@@ -12,11 +12,10 @@ use App\Models\Admin\Article\Article;
 use App\Models\Admin\Article\ArticleImage;
 use App\Models\Admin\Article\Tag;
 use App\Models\Admin\Section\Section;
-use App\Traits\CacheTimeTrait;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -24,8 +23,6 @@ use Inertia\Response;
 
 class ArticleController extends Controller
 {
-    use CacheTimeTrait;
-
     /**
      * Все статьи
      *
@@ -33,15 +30,8 @@ class ArticleController extends Controller
      */
     public function index(): Response
     {
-        $cacheTime = $this->getCacheTime();
-
-        $articles = Cache::store('redis')->remember('articles.all', $cacheTime, function () {
-            return Article::with(['sections', 'tags', 'images'])->get();
-        });
-
-        $articlesCount = Cache::store('redis')->remember('articles.count', $cacheTime, function () {
-            return Article::count();
-        });
+        $articles = Article::with(['sections', 'tags', 'images'])->get();
+        $articlesCount = Article::count();
 
         return Inertia::render('Admin/Articles/Index', [
             'articles' => ArticleResource::collection($articles),
@@ -56,22 +46,14 @@ class ArticleController extends Controller
      */
     public function create(): Response
     {
-        $cacheTime = $this->getCacheTime();
-
         // Загрузка рубрик
-        $sections = Cache::store('redis')->remember('sections.all', $cacheTime, function () {
-            return Section::all();
-        });
+        $sections = Section::all();
 
         // Загрузка тегов
-        $tags = Cache::store('redis')->remember('tags.all', $cacheTime, function () {
-            return Tag::all();
-        });
+        $tags = Tag::all();
 
         // Загрузка изображений
-        $images = Cache::store('redis')->remember('images.all', $cacheTime, function () {
-            return ArticleImage::all();
-        });
+        $images = ArticleImage::all();
 
         return Inertia::render('Admin/Articles/Create', [
             'sections' => SectionResource::collection($sections),
@@ -90,50 +72,54 @@ class ArticleController extends Controller
     {
         $data = $request->validated();
 
-        // ✅ Найти рубрики по title
+        // Найти рубрики по title
         $sectionIds = [];
         if ($request->has('sections')) {
             $sectionTitles = array_column($request->input('sections'), 'title');
             $sectionIds = Section::whereIn('title', $sectionTitles)->pluck('id')->toArray();
         }
 
-        // ✅ Найти теги по name
+        // Найти теги по name
         $tagIds = [];
         if ($request->has('tags')) {
             $tagNames = array_column($request->input('tags'), 'name');
             $tagIds = Tag::whereIn('name', $tagNames)->pluck('id')->toArray();
         }
 
-        // ✅ Создаем статью
+        // Создаем статью
         $article = Article::create($data);
 
-        // ✅ Привязываем рубрики
+        // Привязываем рубрики
         if ($sectionIds) {
             $article->sections()->sync($sectionIds);
         }
 
-        // ✅ Привязываем теги
+        // Привязываем теги
         if ($tagIds) {
             $article->tags()->sync($tagIds);
         }
 
-        // ✅ Обрабатываем изображения (новые файлы + обновление alt/caption)
+        // Обрабатываем изображения (новые файлы + обновление alt/caption)
         if ($request->has('images')) {
             foreach ($data['images'] as $imageData) {
-                if (isset($imageData['file']) && $imageData['file'] instanceof \Illuminate\Http\UploadedFile) {
+                if (isset($imageData['file']) && $imageData['file'] instanceof UploadedFile) {
+
                     // Загружаем новое изображение
                     $path = $imageData['file']->store('article_images', 'public');
                     $image = ArticleImage::create([
                         'path' => $path,
+                        'order' => $imageData['order'] ?? 0,
                         'alt' => $imageData['alt'] ?? '',
                         'caption' => $imageData['caption'] ?? '',
                     ]);
                     $article->images()->attach($image->id);
                 } elseif (isset($imageData['id'])) {
-                    // ✅ Обновляем alt и caption для существующего изображения
+
+                    // Обновляем alt и caption для существующего изображения
                     $existingImage = ArticleImage::find($imageData['id']);
                     if ($existingImage) {
                         $existingImage->update([
+                            'order' => $imageData['order'] ?? 0,
                             'alt' => $imageData['alt'] ?? '',
                             'caption' => $imageData['caption'] ?? '',
                         ]);
@@ -154,22 +140,15 @@ class ArticleController extends Controller
      */
     public function edit(string $id): Response
     {
-        $cacheTime = $this->getCacheTime();
-
         // Находим статью с рубриками, тегами и изображениями
         $article = Article::with(['sections', 'tags', 'images'])->findOrFail($id);
 
         // Получаем все рубрики
-        $sections = Cache::store('redis')->remember('sections.all', $cacheTime, function () {
-            return Section::all();
-        });
+        $sections = Section::all();
 
         // Получаем все теги
-        $tags = Cache::store('redis')->remember('tags.all', $cacheTime, function () {
-            return Tag::all();
-        });
+        $tags = Tag::all();
 
-        // Передаём статью, рубрики и теги на страницу через ресурсы
         return Inertia::render('Admin/Articles/Edit', [
             'article' => new ArticleResource($article),
             'sections' => SectionResource::collection($sections),
@@ -186,88 +165,69 @@ class ArticleController extends Controller
      */
     public function update(ArticleRequest $request, string $id): RedirectResponse
     {
-        //Log::info('ArticleController::update - Start', ['article_id' => $id, 'request' => $request->all()]);
-
         $article = Article::findOrFail($id);
-        //Log::info('ArticleController::update - Article found', ['article' => $article]);
-
-        // Получаем валидированные данные и отделяем изображения
         $data = $request->validated();
         $imagesData = $data['images'] ?? [];
-        unset($data['images']); // Удаляем ключ images, чтобы не пытаться обновить несуществующий столбец
+        unset($data['images']);
 
-        //Log::info('ArticleController::update - Data validated', ['data' => $data]);
-
-        // Обработка удаления изображений (удалённые с клиента)
+        // Обработка удаления изображений (удалённых с клиента)
         if ($request->has('deletedImages') && is_array($request->deletedImages)) {
-            //Log::info('ArticleController::update - Deleting images', ['deletedImages' => $request->deletedImages]);
             $this->deleteImages($request->deletedImages);
         }
 
         // Обновляем данные статьи
         $article->update($data);
-        //Log::info('ArticleController::update - Article updated', ['article' => $article]);
 
         // Обновляем связи рубрик
         $sectionIds = $request->has('sections')
             ? Section::whereIn('title', array_column($request->input('sections'), 'title'))->pluck('id')->toArray()
             : [];
         $article->sections()->sync($sectionIds);
-        //Log::info('ArticleController::update - Sections synced', ['sectionIds' => $sectionIds]);
 
         // Обновляем связи тегов
         $tagIds = $request->has('tags')
             ? Tag::whereIn('name', array_column($request->input('tags'), 'name'))->pluck('id')->toArray()
             : [];
         $article->tags()->sync($tagIds);
-        //Log::info('ArticleController::update - Tags synced', ['tagIds' => $tagIds]);
 
         // Обрабатываем изображения: новые и обновление существующих
         if (!empty($imagesData)) {
-            //Log::info('ArticleController::update - Images processing started');
             $imageIds = [];
 
             foreach ($imagesData as $imageData) {
-                //Log::info('ArticleController::update - Processing image data', ['imageData' => $imageData]);
-                if (isset($imageData['file']) && $imageData['file'] instanceof \Illuminate\Http\UploadedFile) {
+                if (isset($imageData['file']) && $imageData['file'] instanceof UploadedFile) {
+
                     // Загружаем новое изображение
-                    //Log::info('ArticleController::update - New image detected');
                     $path = $imageData['file']->store('article_images', 'public');
                     $image = ArticleImage::create([
                         'path' => $path,
+                        'order' => $imageData['order'] ?? 0,
                         'alt' => $imageData['alt'] ?? '',
                         'caption' => $imageData['caption'] ?? '',
                     ]);
                     $imageIds[] = $image->id;
-                    //Log::info('ArticleController::update - New image created', ['image_id' => $image->id, 'path' => $path]);
                 } elseif (isset($imageData['id'])) {
+
                     // Обновляем alt и caption для существующего изображения
-                    //Log::info('ArticleController::update - Existing image detected', ['image_id' => $imageData['id']]);
                     $existingImage = ArticleImage::find($imageData['id']);
                     if ($existingImage) {
                         $existingImage->update([
+                            'order' => $imageData['order'] ?? 0,
                             'alt' => $imageData['alt'] ?? '',
                             'caption' => $imageData['caption'] ?? '',
                         ]);
                         $imageIds[] = $existingImage->id;
-                        //Log::info('ArticleController::update - Existing image updated', ['image_id' => $existingImage->id]);
                     } else {
-                        Log::warning('ArticleController::update - Existing image not found', ['image_id' => $imageData['id']]);
+                        Log::warning('Существующее изображение не найдено', ['image_id' => $imageData['id']]);
                     }
                 }
             }
 
             // Синхронизируем связи изображений статьи с актуальным списком
-            //Log::info('ArticleController::update - Syncing images', ['imageIds' => $imageIds]);
             $article->images()->sync($imageIds);
-            //Log::info('ArticleController::update - Images synced');
         } else {
-            Log::info('ArticleController::update - No images in request');
+            Log::info('В запросе нет изображений');
         }
-
-        // Очистка кэша
-        $this->clearCache(['articles.all', 'articles.count', 'sections.all', 'tags.all']);
-        //Log::info('ArticleController::update - Cache cleared');
 
         return redirect()->route('articles.index')->with('success', 'Статья успешно обновлена.');
     }
@@ -282,30 +242,22 @@ class ArticleController extends Controller
     {
         $article = Article::findOrFail($id);
 
-        // ✅ Удаляем связанные изображения
+        // Удаляем связанные изображения
         foreach ($article->images as $image) {
-            // Убираем дублирование 'article_images/'
-            $imagePath = $image->path; // Должно быть уже 'article_images/filename.jpg'
-
-            // Проверяем существование файла перед удалением
+            $imagePath = $image->path;
             if (Storage::disk('public')->exists($imagePath)) {
                 Storage::disk('public')->delete($imagePath);
                 Log::info("Файл успешно удалён: {$imagePath}");
             } else {
                 Log::warning("Файл не найден: {$imagePath}");
             }
-
-            // Удаляем запись из базы данных
             $image->delete();
         }
 
-        // ✅ Удаляем статью
+        // Удаляем статью
         $article->delete();
 
         Log::info('Статья удалена: ', $article->toArray());
-
-        // ✅ Очистка кэша
-        $this->clearCache(['articles.all', 'articles.count', 'sections.all']);
 
         return back()->with('success', 'Статья и связанные изображения удалены.');
     }
@@ -331,8 +283,49 @@ class ArticleController extends Controller
 
         Log::info('Статьи удалены: ', $articleIds);
 
-        // Очистка кэша
-        $this->clearCache(['articles.all', 'articles.count']);
+        return response()->json(['success' => true, 'reload' => true]);
+    }
+
+    /**
+     * Включение Главными
+     *
+     * @param Request $request
+     * @param $id
+     * @return JsonResponse
+     */
+    public function updateMain(Request $request, $id): JsonResponse
+    {
+        $validated = $request->validate([
+            'main' => 'required|boolean',
+        ]);
+
+        $article = Article::findOrFail($id);
+        $article->main = $validated['main'];
+        $article->save();
+
+        Log::info("Обновлено включение основным статьи с ID: $id с данными: ", $validated);
+
+        return response()->json(['success' => true, 'reload' => true]);
+    }
+
+    /**
+     * Включение Статьи в сайдбаре
+     *
+     * @param Request $request
+     * @param $id
+     * @return JsonResponse
+     */
+    public function updateSidebar(Request $request, $id): JsonResponse
+    {
+        $validated = $request->validate([
+            'sidebar' => 'required|boolean',
+        ]);
+
+        $article = Article::findOrFail($id);
+        $article->sidebar = $validated['sidebar'];
+        $article->save();
+
+        Log::info("Обновлено включение статьи в сайдбар с ID: $id с данными: ", $validated);
 
         return response()->json(['success' => true, 'reload' => true]);
     }
@@ -356,9 +349,6 @@ class ArticleController extends Controller
 
         Log::info("Обновлена активность статьи с ID: $id с данными: ", $validated);
 
-        // Очистка кэша
-        $this->clearCache(['articles.all', 'articles.count']);
-
         return response()->json(['success' => true, 'reload' => true]);
     }
 
@@ -381,60 +371,7 @@ class ArticleController extends Controller
 
         Log::info("Обновлена сортировка статьи с ID: $id с данными: ", $validated);
 
-        // Очистка кэша
-        $this->clearCache(['articles.all']);
-
         return response()->json(['success' => true]);
-    }
-
-    /**
-     * Включение Главными
-     *
-     * @param Request $request
-     * @param $id
-     * @return JsonResponse
-     */
-    public function updateMain(Request $request, $id): JsonResponse
-    {
-        $validated = $request->validate([
-            'main' => 'required|boolean',
-        ]);
-
-        $article = Article::findOrFail($id);
-        $article->activity = $validated['main'];
-        $article->save();
-
-        Log::info("Обновлено включение основным статьи с ID: $id с данными: ", $validated);
-
-        // Очистка кэша
-        $this->clearCache(['articles.all', 'articles.count']);
-
-        return response()->json(['success' => true, 'reload' => true]);
-    }
-
-    /**
-     * Включение Статьи в сайдбаре
-     *
-     * @param Request $request
-     * @param $id
-     * @return JsonResponse
-     */
-    public function updateSidebar(Request $request, $id): JsonResponse
-    {
-        $validated = $request->validate([
-            'sidebar' => 'required|boolean',
-        ]);
-
-        $article = Article::findOrFail($id);
-        $article->activity = $validated['sidebar'];
-        $article->save();
-
-        Log::info("Обновлено включение основным статьи с ID: $id с данными: ", $validated);
-
-        // Очистка кэша
-        $this->clearCache(['articles.all', 'articles.count']);
-
-        return response()->json(['success' => true, 'reload' => true]);
     }
 
     /**
@@ -474,9 +411,6 @@ class ArticleController extends Controller
 
         Log::info('Статья клонирована: ', $clonedArticle->toArray());
 
-        // Очистка кэша
-        $this->clearCache(['articles.all', 'sections.all', 'tags.all', 'images.all']);
-
         return response()->json(['success' => true, 'reload' => true]);
     }
 
@@ -491,19 +425,15 @@ class ArticleController extends Controller
         $imagesToDelete = ArticleImage::whereIn('id', $imageIds)->get();
 
         foreach ($imagesToDelete as $image) {
-            // Удаляем файл из storage, если он существует
             if ($image->path && Storage::disk('public')->exists($image->path)) {
                 Storage::disk('public')->delete($image->path);
                 Log::info("Файл успешно удалён: {$image->path}");
             } else {
                 Log::warning("Файл не найден: {$image->path}");
             }
-
-            // Удаляем запись из базы данных
             $image->delete();
         }
 
         Log::info('Удалены изображения: ', ['image_ids' => $imageIds]);
     }
-
 }

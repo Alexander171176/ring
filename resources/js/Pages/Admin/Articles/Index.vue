@@ -41,6 +41,36 @@ const deleteArticle = () => {
     }
 };
 
+// Кнопка включения статьи как главной
+const toggleMain = (article) => {
+    const newMain = !article.main;
+    axios.put(route('articles.updateMain', article.id), { main: newMain })
+        .then(response => {
+            article.main = newMain;
+            if (response.data.reload) {
+                window.location.reload();
+            }
+        })
+        .catch(error => {
+            console.error(error.response.data);
+        });
+};
+
+// Кнопка включения статьи как главной
+const toggleSidebar = (article) => {
+    const newSidebar = !article.sidebar;
+    axios.put(route('articles.updateSidebar', article.id), { sidebar: newSidebar })
+        .then(response => {
+            article.sidebar = newSidebar;
+            if (response.data.reload) {
+                window.location.reload();
+            }
+        })
+        .catch(error => {
+            console.error(error.response.data);
+        });
+};
+
 // Кнопка активности
 const toggleActivity = (article) => {
     const newActivity = !article.activity;
@@ -236,6 +266,8 @@ const handleBulkAction = (event) => {
                 <ArticleTable
                     :articles="paginatedArticles"
                     :selected-articles="selectedArticles"
+                    @toggle-main="toggleMain"
+                    @toggle-sidebar="toggleSidebar"
                     @toggle-activity="toggleActivity"
                     @delete="confirmDelete"
                     @clone="cloneArticle"

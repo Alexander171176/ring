@@ -52,6 +52,9 @@ const toggleAll = (event) => {
                     <th class="px-2 first:pl-7 last:pr-7 py-3 whitespace-nowrap">
                         <div class="text-left font-medium">{{ t('title') }}</div>
                     </th>
+                    <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
+                        <div class="font-medium text-left">{{ t('rubrics') }}</div>
+                    </th>
                     <th class="px-2 first:pl-7 last:pr-7 py-3 whitespace-nowrap">
                         <div class="text-center font-medium">{{ t('actions') }}</div>
                     </th>
@@ -77,7 +80,18 @@ const toggleAll = (event) => {
                                 </div>
                             </td>
                             <td class="px-2 first:pl-7 last:pr-7 py-1 whitespace-nowrap">
-                                <div class="text-left text-yellow-500 dark:text-yellow-200">{{ section.title }}</div>
+                                <div class="text-left text-pink-500 dark:text-pink-200">{{ section.title }}</div>
+                            </td>
+                            <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
+                                <div class="text-left">
+                                    <span v-for="rubric in section.rubrics" :key="rubric.id">
+                                        <span :title="rubric.title"
+                                              class="py-0.5 px-1.5 mr-0.5 badge bg-blue-500 dark:bg-blue-200
+                                                     rounded-sm text-xs text-slate-100 dark:text-slate-900">
+                                            {{ rubric.id }}
+                                        </span>
+                                    </span>
+                                </div>
                             </td>
                             <td class="px-2 first:pl-7 last:pr-7 py-1 whitespace-nowrap">
                                 <div class="flex justify-center space-x-2">

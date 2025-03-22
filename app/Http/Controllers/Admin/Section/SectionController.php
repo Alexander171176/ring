@@ -8,34 +8,22 @@ use App\Http\Resources\Admin\Rubric\RubricResource;
 use App\Http\Resources\Admin\Section\SectionResource;
 use App\Models\Admin\Rubric\Rubric;
 use App\Models\Admin\Section\Section;
-use App\Traits\CacheTimeTrait;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class SectionController extends Controller
 {
-
-    use CacheTimeTrait;
-
     /**
      * Display a listing of the resource.
      */
     public function index(): Response
     {
-        $cacheTime = $this->getCacheTime();
-
-        $sections = Cache::store('redis')->remember('sections.all', $cacheTime, function () {
-            return Section::with(['rubrics'])->get();
-        });
-
-        $sectionsCount = Cache::store('redis')->remember('sections.count', $cacheTime, function () {
-            return Section::count();
-        });
+        $sections = Section::with(['rubrics'])->get();
+        $sectionsCount = Section::count();
 
         return Inertia::render('Admin/Sections/Index', [
             'sections' => SectionResource::collection($sections),
@@ -48,12 +36,8 @@ class SectionController extends Controller
      */
     public function create(): Response
     {
-        $cacheTime = $this->getCacheTime();
-
-        // Загрузка рубрик
-        $rubrics = Cache::store('redis')->remember('rubrics.all', $cacheTime, function () {
-            return Rubric::all();
-        });
+        // Загрузка рубрик напрямую
+        $rubrics = Rubric::all();
 
         return Inertia::render('Admin/Sections/Create', [
             'rubrics' => RubricResource::collection($rubrics),
@@ -67,17 +51,17 @@ class SectionController extends Controller
     {
         $data = $request->validated();
 
-        // ✅ Найти рубрики по title
+        // Найти рубрики по title
         $rubricIds = [];
         if ($request->has('rubrics')) {
             $rubricTitles = array_column($request->input('rubrics'), 'title');
             $rubricIds = Rubric::whereIn('title', $rubricTitles)->pluck('id')->toArray();
         }
 
-        // ✅ Создаем статью
+        // Создаем секцию
         $section = Section::create($data);
 
-        // ✅ Привязываем рубрики
+        // Привязываем рубрики
         if ($rubricIds) {
             $section->rubrics()->sync($rubricIds);
         }
@@ -90,17 +74,9 @@ class SectionController extends Controller
      */
     public function edit(string $id): Response
     {
-        $cacheTime = $this->getCacheTime();
-
-        // Находим статью с рубриками, тегами и изображениями
         $section = Section::with(['rubrics'])->findOrFail($id);
+        $rubrics = Rubric::all();
 
-        // Получаем все рубрики
-        $rubrics = Cache::store('redis')->remember('rubrics.all', $cacheTime, function () {
-            return Rubric::all();
-        });
-
-        // Передаём статью, рубрики и теги на страницу через ресурсы
         return Inertia::render('Admin/Sections/Edit', [
             'section' => new SectionResource($section),
             'rubrics' => RubricResource::collection($rubrics),
@@ -113,11 +89,9 @@ class SectionController extends Controller
     public function update(SectionRequest $request, string $id): RedirectResponse
     {
         $section = Section::findOrFail($id);
-
-        // Получаем валидированные данные и отделяем изображения
         $data = $request->validated();
 
-        // Обновляем данные статьи
+        // Обновляем данные секции
         $section->update($data);
 
         // Обновляем связи рубрик
@@ -125,9 +99,6 @@ class SectionController extends Controller
             ? Rubric::whereIn('title', array_column($request->input('rubrics'), 'title'))->pluck('id')->toArray()
             : [];
         $section->rubrics()->sync($rubricIds);
-
-        // Очистка кэша
-        $this->clearCache(['sections.all', 'sections.count', 'rubrics.all']);
 
         return redirect()->route('sections.index')->with('success', 'Секция успешно обновлена.');
     }
@@ -138,20 +109,15 @@ class SectionController extends Controller
     public function destroy(string $id): RedirectResponse
     {
         $section = Section::findOrFail($id);
-
-        // ✅ Удаляем статью
         $section->delete();
 
         Log::info('Секция удалена: ', $section->toArray());
-
-        // ✅ Очистка кэша
-        $this->clearCache(['sections.all', 'sections.count', 'rubrics.all']);
 
         return back()->with('success', 'Секция удалена.');
     }
 
     /**
-     * Массовые действия над Секциями
+     * Массовые действия над Секциями.
      *
      * @param Request $request
      * @return JsonResponse
@@ -159,7 +125,7 @@ class SectionController extends Controller
     public function bulkDestroy(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'ids' => 'required|array',
+            'ids'   => 'required|array',
             'ids.*' => 'exists:sections,id',
         ]);
 
@@ -171,17 +137,14 @@ class SectionController extends Controller
 
         Log::info('Секции удалены: ', $sectionIds);
 
-        // Очистка кэша
-        $this->clearCache(['sections.all', 'sections.count']);
-
         return response()->json(['success' => true, 'reload' => true]);
     }
 
     /**
-     * Обновление активности Секции
+     * Обновление активности Секции.
      *
      * @param Request $request
-     * @param $id
+     * @param mixed $id
      * @return JsonResponse
      */
     public function updateActivity(Request $request, $id): JsonResponse
@@ -196,17 +159,14 @@ class SectionController extends Controller
 
         Log::info("Обновлена активность секции с ID: $id с данными: ", $validated);
 
-        // Очистка кэша
-        $this->clearCache(['sections.all', 'sections.count']);
-
         return response()->json(['success' => true, 'reload' => true]);
     }
 
     /**
-     * Сортировка Секций
+     * Сортировка Секций.
      *
      * @param Request $request
-     * @param $id
+     * @param mixed $id
      * @return JsonResponse
      */
     public function updateSort(Request $request, $id): JsonResponse
@@ -221,17 +181,14 @@ class SectionController extends Controller
 
         Log::info("Обновлена сортировка секции с ID: $id с данными: ", $validated);
 
-        // Очистка кэша
-        $this->clearCache(['sections.all']);
-
         return response()->json(['success' => true]);
     }
 
     /**
-     * Клонирование Секции
+     * Клонирование Секции.
      *
      * @param Request $request
-     * @param $id
+     * @param mixed $id
      * @return JsonResponse
      */
     public function clone(Request $request, $id): JsonResponse
@@ -250,9 +207,6 @@ class SectionController extends Controller
         }
 
         Log::info('Секция клонирована: ', $clonedSection->toArray());
-
-        // Очистка кэша
-        $this->clearCache(['sections.all', 'rubrics.all']);
 
         return response()->json(['success' => true, 'reload' => true]);
     }

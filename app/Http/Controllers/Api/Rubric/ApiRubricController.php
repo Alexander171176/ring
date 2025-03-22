@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Rubric\RubricRequest;
 use App\Http\Resources\Admin\Rubric\RubricResource;
 use App\Models\Admin\Rubric\Rubric;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 /**
  * @OA\Info(
@@ -55,10 +58,10 @@ class ApiRubricController extends Controller
      *     )
      * )
      */
-    public function index(): \Illuminate\Http\JsonResponse
+    public function index(): JsonResponse
     {
         $rubrics = Rubric::all();
-        $rubricsCount = Rubric::count();
+        $rubricsCount = DB::table('rubrics')->count();
 
         return response()->json([
             'rubrics' => RubricResource::collection($rubrics),
@@ -84,11 +87,12 @@ class ApiRubricController extends Controller
      *     )
      * )
      */
-    public function store(RubricRequest $request): \Illuminate\Http\JsonResponse
+    public function store(RubricRequest $request): JsonResponse
     {
         $data = $request->validated();
-
         $rubric = Rubric::create($data);
+
+        Log::info('API - Рубрика успешно создана: ', $rubric->toArray());
 
         return response()->json(new RubricResource($rubric), 201);
     }
@@ -113,7 +117,7 @@ class ApiRubricController extends Controller
      *     )
      * )
      */
-    public function show(Rubric $rubric): \Illuminate\Http\JsonResponse
+    public function show(Rubric $rubric): JsonResponse
     {
         return response()->json(new RubricResource($rubric));
     }
@@ -142,11 +146,12 @@ class ApiRubricController extends Controller
      *     )
      * )
      */
-    public function update(RubricRequest $request, Rubric $rubric): \Illuminate\Http\JsonResponse
+    public function update(RubricRequest $request, Rubric $rubric): JsonResponse
     {
         $data = $request->validated();
-
         $rubric->update($data);
+
+        Log::info('API - Рубрика обновлена: ', $rubric->toArray());
 
         return response()->json(new RubricResource($rubric));
     }
@@ -170,9 +175,11 @@ class ApiRubricController extends Controller
      *     )
      * )
      */
-    public function destroy(Rubric $rubric): \Illuminate\Http\JsonResponse
+    public function destroy(Rubric $rubric): JsonResponse
     {
         $rubric->delete();
+
+        Log::info('API - Рубрика удалена: ', $rubric->toArray());
 
         return response()->json(null, 204);
     }

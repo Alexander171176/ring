@@ -80,8 +80,8 @@ class ApiRoleController extends Controller
         $permissions = Permission::all();
 
         return response()->json([
-            'roles' => RoleResource::collection($roles),
-            'rolesCount' => $rolesCount,
+            'roles'       => RoleResource::collection($roles),
+            'rolesCount'  => $rolesCount,
             'permissions' => PermissionResource::collection($permissions),
         ]);
     }
@@ -108,8 +108,9 @@ class ApiRoleController extends Controller
     {
         $data = $request->validated();
         $role = Role::create(['name' => $data['name']]);
-        if ($request->has('permissions')) {
-            $role->syncPermissions($request->input('permissions.*.name'));
+        if (isset($data['permissions'])) {
+            // Используем напрямую переданный массив разрешений
+            $role->syncPermissions($data['permissions']);
         }
         $role->load('permissions');
 
@@ -143,9 +144,11 @@ class ApiRoleController extends Controller
     public function update(RoleRequest $request, string $id): \Illuminate\Http\JsonResponse
     {
         $role = Role::findById($id);
-        $role->update(['name' => $request->name]);
-        if ($request->has('permissions')) {
-            $role->syncPermissions($request->input('permissions.*.name'));
+        $data = $request->validated();
+        $role->update(['name' => $data['name']]);
+        if (isset($data['permissions'])) {
+            // Используем напрямую переданный массив разрешений
+            $role->syncPermissions($data['permissions']);
         }
         $role->load('permissions');
 

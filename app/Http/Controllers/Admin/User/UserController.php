@@ -8,36 +8,29 @@ use App\Http\Resources\Admin\Permission\PermissionResource;
 use App\Http\Resources\Admin\Role\RoleResource;
 use App\Http\Resources\Admin\User\UserResource;
 use App\Models\User;
-use App\Traits\CacheTimeTrait;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules;
 use Inertia\Inertia;
+use Inertia\Response;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
-    use CacheTimeTrait;
     use PasswordValidationRules;
 
     /**
      * Display a listing of the resource.
      */
-    public function index(): \Inertia\Response
+    public function index(): Response
     {
-        $cacheTime = $this->getCacheTime();
-
-        $users = Cache::store('redis')->remember('users.all', $cacheTime, function () {
-            return User::with(['roles', 'permissions'])->get();
-        });
-
-        $usersCount = Cache::store('redis')->remember('users.count', $cacheTime, function () {
-            return User::count();
-        });
+        // Прямой запрос без кэширования
+        $users = User::with(['roles', 'permissions'])->get();
+        $usersCount = User::count();
 
         return Inertia::render('Admin/Users/Index', [
             'users' => UserResource::collection($users),
@@ -48,17 +41,11 @@ class UserController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create(): \Inertia\Response
+    public function create(): Response
     {
-        $cacheTime = $this->getCacheTime();
-
-        $roles = Cache::store('redis')->remember('roles.all', $cacheTime, function () {
-            return Role::all();
-        });
-
-        $permissions = Cache::store('redis')->remember('permissions.all', $cacheTime, function () {
-            return Permission::all();
-        });
+        // Прямой запрос без кэширования
+        $roles = Role::all();
+        $permissions = Permission::all();
 
         return Inertia::render('Admin/Users/Create', [
             'roles' => RoleResource::collection($roles),
@@ -69,7 +56,7 @@ class UserController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request): \Illuminate\Http\RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
@@ -97,18 +84,15 @@ class UserController extends Controller
 
         Log::info('Пользователь создан:', $user->toArray());
 
-        $this->clearCache(['users', 'roles', 'permissions']);
-
         return redirect()->route('users.index')->with('success', 'Пользователь успешно создан');
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(User $user): \Inertia\Response
+    public function edit(User $user): Response
     {
         $user->load(['roles', 'permissions']);
-
         $roles = Role::all();
         $permissions = Permission::all();
 
@@ -122,7 +106,7 @@ class UserController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, User $user): \Illuminate\Http\RedirectResponse
+    public function update(Request $request, User $user): RedirectResponse
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
@@ -148,23 +132,18 @@ class UserController extends Controller
 
         Log::info('Пользователь обновлён:', $user->toArray());
 
-        $this->clearCache(['users', 'roles', 'permissions']);
-
         return redirect()->route('users.index')->with('success', 'Пользователь успешно обновлён');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(User $user): \Illuminate\Http\RedirectResponse
+    public function destroy(User $user): RedirectResponse
     {
         $user->delete();
 
         Log::info('Пользователь удалён:', $user->toArray());
 
-        $this->clearCache(['users', 'roles', 'permissions']);
-
         return redirect()->route('users.index')->with('success', 'Пользователь успешно удалён');
     }
-
 }
