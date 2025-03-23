@@ -1,6 +1,6 @@
 <script setup>
+import AdminLayout from "@/Layouts/AdminLayout.vue";
 import ApiTokenManager from '@/Pages/API/Partials/ApiTokenManager.vue';
-import AppLayout from '@/Layouts/AppLayout.vue';
 import { useI18n } from 'vue-i18n';
 
 defineProps({
@@ -13,7 +13,7 @@ const { t } = useI18n();
 </script>
 
 <template>
-    <AppLayout :title="t('apiTokens')">
+    <AdminLayout :title="t('apiTokens')">
         <template #header>
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 {{ t('apiTokens') }}
@@ -30,5 +30,5 @@ const { t } = useI18n();
                 />
             </div>
         </div>
-    </AppLayout>
+    </AdminLayout>
 </template>

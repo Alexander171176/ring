@@ -50,9 +50,9 @@ const fetchBlocks = async () => {
     try {
         const response = await axios.get(`/api/plugins/${props.pluginName}/blocks`);
         blocks.value = response.data;
-        // console.log('Загруженные блоки:', blocks.value);
+        //console.log('Загруженные блоки:', blocks.value);
     } catch (error) {
-        // console.error('Ошибка при получении блоков:', error.response ? error.response.data : error.message);
+        console.error('Ошибка при получении блоков:', error.response ? error.response.data : error.message);
     }
 };
 

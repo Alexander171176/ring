@@ -108,12 +108,14 @@
      `docker exec ring-php-app php artisan make:middleware SetLocaleFromSettings` <br>
      `docker exec ring-php-app php artisan make:resource Admin/Setting/SettingSharedResource` <br>
      `docker exec ring-php-app php artisan make:controller Admin/System/SystemController` <br>
+     `docker exec ring-php-app php artisan make:controller Api/Parameter/ApiParameterController --api` <br>
 
 20) creating business logic app Plugin <br>
     `docker exec ring-php-app php artisan make:model Admin/Plugin/Plugin -mf` <br>
     `docker exec ring-php-app php artisan migrate` <br>
     `docker exec ring-php-app php artisan make:seeder PluginsSeeder` <br>
     `docker exec ring-php-app php artisan db:seed --class=PluginsSeeder` <br>
+    `docker exec ring-php-app php artisan make:controller Api/Plugin/ApiPluginController --api` <br>
     `docker exec ring-php-app php artisan make:controller Admin/Plugin/PluginController --resource` <br>
     `docker exec ring-php-app php artisan make:resource Admin/Plugin/PluginResource` <br>
     `docker exec ring-php-app php artisan make:resource Admin/Plugin/PluginSharedResource` <br>
