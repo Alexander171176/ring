@@ -26,7 +26,7 @@ const logout = () => {
 </script>
 
 <template>
-    <div class="w-full h-fit shadow z-10 font-sans">
+    <header class="w-full h-fit shadow z-10 font-sans">
         <nav class="bg-cyan-700 dark:bg-blue-950 border-b border-gray-100">
             <div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex items-center justify-between h-16">
@@ -120,5 +120,5 @@ const logout = () => {
                 </div>
             </div>
         </nav>
-    </div>
+    </header>
 </template>

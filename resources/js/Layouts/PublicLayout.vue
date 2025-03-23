@@ -18,9 +18,7 @@ const props = defineProps({
     <!-- Импортируем Header и передаем пропсы -->
     <Header :can-login="canLogin" :can-register="canRegister" />
 
-    <main>
-        <slot />
-    </main>
+    <slot />
 
     <Footer :can-login="canLogin" :can-register="canRegister" />
 

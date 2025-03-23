@@ -30,7 +30,7 @@ class ArticleResource extends JsonResource
             'meta_title'    => $this->meta_title,
             'meta_keywords' => $this->meta_keywords,
             'meta_desc'     => $this->meta_desc,
-            'created_at'    => $this->created_at?->format('Y-m-d H:i:s'),
+            'created_at' => $this->created_at?->format('d-m-Y'),
             'updated_at'    => $this->updated_at?->format('Y-m-d H:i:s'),
 
             // Количество комментариев

@@ -1,13 +1,13 @@
 <script setup>
 import {Head, Link, usePage} from '@inertiajs/vue3';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
-
-const {rubric, sections, activeArticlesCount} = usePage().props;
-
-// Если нужно использовать i18n:
+import RightSidebar from "@/Components/Public/Default/Partials/RightSidebar.vue";
 import {useI18n} from 'vue-i18n';
+import MainSlider from "@/Components/Public/Default/Partials/MainSlider.vue";
 
 const {t} = useI18n();
+
+const {rubric, sections, activeArticlesCount} = usePage().props;
 </script>
 
 <template>
@@ -36,13 +36,13 @@ const {t} = useI18n();
             <meta name="DC.language" :content="rubric.locale || 'ru'"/>
         </Head>
 
-        <div class="relative min-h-screen
-                    sm:flex sm:justify-center sm:items-center
-                    bg-dots-darker bg-center bg-gray-100
-                    dark:bg-dots-lighter dark:bg-slate-900
-                    selection:bg-red-500 selection:text-white">
+        <main class="min-h-screen flex flex-col lg:flex-row tracking-wider">
 
-            <div class="max-w-8xl mx-auto tracking-wider">
+            <div class="flex-1 p-4
+                         bg-slate-100 dark:bg-slate-800
+                         selection:bg-red-400 selection:text-white">
+
+                <MainSlider />
 
                 <!-- Заголовок рубрики -->
                 <h1 class="flex items-center justify-center my-4
@@ -70,7 +70,7 @@ const {t} = useI18n();
                 <div v-if="sections.length" class="space-y-8">
 
                     <div v-for="section in sections" :key="section.id"
-                         class="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden">
+                         class="bg-white dark:bg-gray-800 shadow-lg rounded-sm overflow-hidden">
 
                         <div class="p-6">
 
@@ -119,13 +119,13 @@ const {t} = useI18n();
                                                     </h3>
                                                 </header>
 
-                                                <div class="flex flex-wrap items-center mb-3">
+                                                <div class="flex flex-wrap items-center">
                                                     <p class="font-semibold text-slate-600 dark:text-slate-300 text-sm">
                                                         {{ article.short }}
                                                     </p>
                                                 </div>
 
-                                                <ul class="text-sm space-y-2 mb-3">
+                                                <ul class="text-sm space-y-2 mb-1">
                                                     <li class="flex items-center justify-between">
                                                         <div class="font-semibold text-amber-500 dark:text-amber-300">
                                                             {{ article.author }}
@@ -183,13 +183,19 @@ const {t} = useI18n();
                                                                 d="M15.686 5.695L10.291.3c-.4-.4-.999-.4-1.399 0s-.4.999 0 1.399l.6.599-6.794 3.697-1-1c-.4-.399-.999-.399-1.398 0-.4.4-.4 1 0 1.4l1.498 1.498 2.398 2.398L.6 13.988 2 15.387l3.696-3.697 3.997 3.996c.5.5 1.199.2 1.398 0 .4-.4.4-.999 0-1.398l-.999-1 3.697-6.694.6.6c.599.6 1.199.2 1.398 0 .3-.4.3-1.1-.1-1.499zM8.493 11.79L4.196 7.494l6.695-3.697 1.298 1.299-3.696 6.694z"></path>
                                                         </svg>
                                                     </li>
+                                                    <li class="flex items-center justify-center">
+                                                        <span class="text-sm font-semibold
+                                                                     text-teal-500 dark:text-teal-300">
+                                                            {{ article.created_at }}
+                                                        </span>
+                                                    </li>
                                                 </ul>
 
                                             </div>
 
                                             <div>
                                                 <Link :href="`/articles/${article.url}`"
-                                                      class="block w-full flex items-center justify-center
+                                                      class="w-full flex items-center justify-center
                                                              rounded-sm py-1 bg-blue-500 hover:bg-indigo-600 text-white">
                                                     {{ t('readMore') }}
                                                 </Link>
@@ -219,7 +225,10 @@ const {t} = useI18n();
 
             </div>
 
-        </div>
+            <!-- Правый сайдбар -->
+            <RightSidebar />
+
+        </main>
 
     </PublicLayout>
 </template>
