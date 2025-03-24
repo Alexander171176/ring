@@ -32,19 +32,22 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <div class="slider w-full flex justify-center">
+    <div class="slider w-full md:w-2/3 h-auto
+                max-h-48 sm:max-h-80 md:max-h-96
+                bg-gray-200 p-1 flex justify-center">
         <!-- Родительский контейнер с адаптивными размерами -->
         <div class="relative overflow-hidden w-full max-w-2xl bg-gray-100 dark:bg-gray-800">
             <transition name="fade" mode="out-in">
                 <div v-if="currentArticle" :key="currentArticle.id" class="slide absolute inset-0">
                     <!-- Информация о статье -->
-                    <div class="p-3">
-                        <div class="text-xs font-semibold text-orange-500 dark:text-orange-400 mb-1">
+                    <div class="w-full absolute p-3 bg-slate-800 opacity-75">
+                        <div class="text-xs font-semibold text-yellow-200 mb-1">
                             {{ currentArticle.created_at.substring(0, 10) }}
                         </div>
                         <Link
                             :href="`/articles/${currentArticle.url}`"
-                            class="font-semibold text-gray-900 dark:text-white hover:text-blue-700 dark:hover:text-blue-600"
+                            class="font-semibold text-white
+                                   hover:text-blue-700 dark:hover:text-blue-600"
                         >
                             {{ currentArticle.title }}
                         </Link>
@@ -67,20 +70,26 @@ onUnmounted(() => {
             <!-- Кнопки навигации (скрывать на маленьких экранах, например) -->
             <button
                 @click="prev"
-                class="hidden sm:block absolute left-2 top-1/2 transform -translate-y-1/2 bg-gray-700 bg-opacity-50 hover:bg-opacity-75 text-white p-2 rounded-full focus:outline-none"
+                class="hidden sm:block absolute left-2 top-1/2
+                       transform -translate-y-1/2
+                       bg-gray-700 bg-opacity-50 hover:bg-opacity-75
+                       text-white p-2 rounded-sm focus:outline-none"
                 title="Previous"
             >
                 <svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M12.293 16.293a1 1 0 010-1.414L15.586 12H4a1 1 0 110-2h11.586l-3.293-3.293a1 1 0 111.414-1.414l5 5a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                    <path fill-rule="evenodd" d="M7.707 3.707a1 1 0 010 1.414L4.414 8H16a1 1 0 110 2H4.414l3.293 3.293a1 1 0 01-1.414 1.414l-5-5a1 1 0 010-1.414l5-5a1 1 0 011.414 0z" clip-rule="evenodd" />
                 </svg>
             </button>
             <button
                 @click="next"
-                class="hidden sm:block absolute right-2 top-1/2 transform -translate-y-1/2 bg-gray-700 bg-opacity-50 hover:bg-opacity-75 text-white p-2 rounded-full focus:outline-none"
+                class="hidden sm:block absolute right-2 top-1/2
+                       transform -translate-y-1/2
+                       bg-gray-700 bg-opacity-50 hover:bg-opacity-75
+                       text-white p-2 rounded-sm focus:outline-none"
                 title="Next"
             >
                 <svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M7.707 3.707a1 1 0 010 1.414L4.414 8H16a1 1 0 110 2H4.414l3.293 3.293a1 1 0 01-1.414 1.414l-5-5a1 1 0 010-1.414l5-5a1 1 0 011.414 0z" clip-rule="evenodd" />
+                    <path fill-rule="evenodd" d="M12.293 16.293a1 1 0 010-1.414L15.586 12H4a1 1 0 110-2h11.586l-3.293-3.293a1 1 0 111.414-1.414l5 5a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0z" clip-rule="evenodd" />
                 </svg>
             </button>
         </div>
@@ -89,7 +98,7 @@ onUnmounted(() => {
 
 <style scoped>
 .fade-enter-active, .fade-leave-active {
-    transition: opacity 0.9s;
+    transition: opacity 3s;
 }
 
 .fade-enter-from, .fade-leave-to {

@@ -23,7 +23,7 @@ const sidebarClasses = computed(() => {
         'bg-slate-100',
         'dark:bg-slate-800',
         'w-full', // на маленьких экранах всегда full width
-        isCollapsed.value ? 'lg:w-12' : 'lg:w-64'
+        isCollapsed.value ? 'lg:w-8' : 'lg:w-64'
     ].join(' ');
 });
 </script>
@@ -50,6 +50,12 @@ const sidebarClasses = computed(() => {
             <ul>
                 <li v-for="article in articles" :key="article.id"
                     class="mb-2 pb-2 border-b border-dashed border-slate-500 dark:border-slate-300">
+                    <img
+                        v-if="article.images && article.images.length > 0"
+                        :src="article.images[0].url"
+                        :alt="article.images[0].alt"
+                        class="w-full h-full object-cover"
+                    />
                     <div class="font-semibold text-xs text-orange-500 dark:text-orange-400 ml-2">
                         {{ article.created_at }}
                     </div>

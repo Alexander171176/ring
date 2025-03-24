@@ -1,7 +1,7 @@
 <script setup>
 import {defineEmits, ref} from "vue";
 import { Link, router, usePage } from "@inertiajs/vue3";
-import Rubrics from "@/Components/Public/Default/Rubrics.vue";
+import TopMenuRubrics from "@/Components/Public/Default/Rubric/TopMenuRubrics.vue";
 import ApplicationMark from "@/Components/ApplicationMark.vue";
 import ThemeToggle from "@/Components/User/ThemeToggle/ThemeToggle.vue";
 import LogoutButton from "@/Components/User/Button/LogoutButton.vue";
@@ -37,7 +37,7 @@ const logout = () => {
                     </div>
 
                     <!-- Меню рубрик -->
-                    <Rubrics :isOpen="showingNavigationDropdown"
+                    <TopMenuRubrics :isOpen="showingNavigationDropdown"
                               class="hidden md:flex flex-grow justify-center space-x-2 px-4"/>
 
                     <!-- Меню пользователя -->
@@ -106,7 +106,7 @@ const logout = () => {
 
             <!-- Мобильное меню -->
             <div :class="{ block: showingNavigationDropdown, hidden: !showingNavigationDropdown }" class="md:hidden">
-                <Rubrics :isOpen="showingNavigationDropdown" class="px-4 py-2 border-t dark:border-gray-700"/>
+                <TopMenuRubrics :isOpen="showingNavigationDropdown" class="px-4 py-2 border-t dark:border-gray-700"/>
 
                 <div v-if="canLogin" class="pt-2 pb-3 space-y-1">
                     <ResponsiveNavLink v-if="auth.user" :href="route('dashboard')">{{ t('profile') }}</ResponsiveNavLink>

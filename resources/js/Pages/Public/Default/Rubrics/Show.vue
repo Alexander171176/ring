@@ -3,7 +3,8 @@ import {Head, Link, usePage} from '@inertiajs/vue3';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import RightSidebar from "@/Components/Public/Default/Partials/RightSidebar.vue";
 import {useI18n} from 'vue-i18n';
-import MainSlider from "@/Components/Public/Default/Partials/MainSlider.vue";
+import MainSlider from "@/Components/Public/Default/Article/MainSlider.vue";
+import RightColumn from "@/Components/Public/Default/Partials/RightColumn.vue";
 
 const {t} = useI18n();
 
@@ -42,7 +43,10 @@ const {rubric, sections, activeArticlesCount} = usePage().props;
                          bg-slate-100 dark:bg-slate-800
                          selection:bg-red-400 selection:text-white">
 
-                <MainSlider />
+                <div class="flex justify-center flex-col md:flex-row md:space-x-4">
+                    <MainSlider/>
+                    <RightColumn/>
+                </div>
 
                 <!-- Заголовок рубрики -->
                 <h1 class="flex items-center justify-center my-4
@@ -226,7 +230,7 @@ const {rubric, sections, activeArticlesCount} = usePage().props;
             </div>
 
             <!-- Правый сайдбар -->
-            <RightSidebar />
+            <RightSidebar/>
 
         </main>
 

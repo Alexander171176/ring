@@ -30,6 +30,9 @@ Route::get('/', fn() => Inertia::render('Welcome'));
 // Отображение конкретной рубрики
 Route::get('/rubrics/{url}', [\App\Http\Controllers\Public\Default\RubricController::class, 'show'])->where('url', '.*');
 
+// Отображение конкретной статьи
+Route::get('/articles/{url}', [\App\Http\Controllers\Public\Default\ArticleController::class, 'show'])->where('url', '.*');
+
 // Профиль Пользователя
 Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',])->group(function () {
     Route::get('/dashboard', function () {return Inertia::render('Dashboard');})

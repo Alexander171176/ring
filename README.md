@@ -152,6 +152,7 @@
     `docker exec ring-php-app php artisan make:resource Admin/Article/ArticleResource` <br>
     `docker exec ring-php-app php artisan make:request Admin/Article/ArticleRequest` <br>
     `docker exec ring-php-app php artisan make:controller Admin/Article/ArticleController --resource` <br>
+    `docker exec ring-php-app php artisan make:controller Public/Default/ArticleController` <br>
 
 24) Create revoke controllers Section and Article <br>
     `docker exec ring-php-app php artisan make:controller Admin/Invokable/RemoveArticleFromSectionController --invokable` <br>
