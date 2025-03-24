@@ -54,6 +54,7 @@
     `npm i vue-echarts-v3` <br>
     `npm install date-fns` <br>
     `npm install highlight.js` <br>
+     `npm i ` <br>
 
 12) Install Jetstream <br>
     `composer require laravel/jetstream` <br>
