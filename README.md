@@ -131,6 +131,7 @@
     `docker exec ring-php-app php artisan make:request Admin/Rubric/RubricRequest` <br>
     `docker exec ring-php-app php artisan make:controller Admin/Rubric/RubricController --resource` <br>
     `docker exec ring-php-app php artisan make:controller Public/Default/RubricController` <br>
+    `docker exec ring-php-app php artisan make:resource Admin/Rubric/RubricSharedResource` <br>
 
 22) creating business logic app Section <br>
     `docker exec ring-php-app php artisan make:model Admin/Section/Section -mf` <br>
@@ -153,6 +154,7 @@
     `docker exec ring-php-app php artisan make:request Admin/Article/ArticleRequest` <br>
     `docker exec ring-php-app php artisan make:controller Admin/Article/ArticleController --resource` <br>
     `docker exec ring-php-app php artisan make:controller Public/Default/ArticleController` <br>
+    `docker exec ring-php-app php artisan make:resource Admin/Article/ArticleSharedResource` <br>
 
 24) Create revoke controllers Section and Article <br>
     `docker exec ring-php-app php artisan make:controller Admin/Invokable/RemoveArticleFromSectionController --invokable` <br>

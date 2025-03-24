@@ -154,6 +154,7 @@ export default {
     kazakh: 'Казахский',
     lastActive: 'Последний активный',
     lastUsed: 'Последнее использование',
+    latestNews: 'Последние новости',
     leave: 'Покинуть',
     leaveComment: 'Оставьте комментарий',
     leaveTeam: 'Покинуть группу',

@@ -99,7 +99,7 @@ onUnmounted(() => {
 
 <style scoped>
 .fade-enter-active, .fade-leave-active {
-    transition: opacity 3s;
+    transition: opacity 5s;
 }
 
 .fade-enter-from, .fade-leave-to {

@@ -154,6 +154,7 @@ export default {
     kazakh: 'Kazakh',
     lastActive: 'Last active',
     lastUsed: 'Last used',
+    latestNews: 'Latest news',
     leave: 'Leave',
     leaveComment: 'Leave a comment',
     leaveTeam: 'Leave Team',

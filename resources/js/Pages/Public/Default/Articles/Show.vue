@@ -1,10 +1,7 @@
 <script setup>
 import {Head, Link, usePage} from '@inertiajs/vue3';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
-import RightSidebar from "@/Components/Public/Default/Partials/RightSidebar.vue";
 import {useI18n} from 'vue-i18n';
-import MainSlider from "@/Components/Public/Default/Article/MainSlider.vue";
-import RightColumn from "@/Components/Public/Default/Partials/RightColumn.vue";
 
 const {t} = useI18n();
 
@@ -15,49 +12,100 @@ const {article} = usePage().props;
     <PublicLayout :title="article.title" :can-login="$page.props.canLogin" :can-register="$page.props.canRegister">
         <Head>
             <title>{{ article.title }}</title>
-            <meta name="title" :content="article.title || ''"/>
-            <meta name="keywords" :content="article.meta_keywords || ''"/>
-            <meta name="description" :content="article.meta_desc || ''"/>
+            <!-- Основные метатеги, Open Graph, Twitter, Dublin Core, Schema.org и т.д. -->
+            <meta name="title" :content="article.title || ''" />
+            <meta name="description" :content="article.meta_desc || ''" />
+            <meta name="keywords" :content="article.meta_keywords || ''" />
+            <meta name="author" :content="article.author || ''" />
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-            <meta property="og:title" :content="article.title || ''"/>
-            <meta property="og:description" :content="article.meta_desc || ''"/>
-            <meta property="og:type" content="website"/>
-            <meta property="og:url" :content="`/articles/${article.url}`"/>
-            <meta property="og:image" :content="article.icon || ''"/>
-            <meta property="og:locale" :content="article.locale || 'ru_RU'"/>
+            <!-- Open Graph / Facebook -->
+            <meta property="og:title" :content="article.title || ''" />
+            <meta property="og:description" :content="article.meta_desc || ''" />
+            <meta property="og:type" content="article" />
+            <meta property="og:url" :content="`/articles/${article.url}`" />
+            <meta property="og:image" :content="article.images && article.images.length > 0 ? article.images[0].url : ''" />
+            <meta property="og:locale" :content="article.locale || 'ru_RU'" />
 
-            <meta name="twitter:card" content="summary_large_image"/>
-            <meta name="twitter:title" :content="article.title || ''"/>
-            <meta name="twitter:description" :content="article.meta_desc || ''"/>
-            <meta name="twitter:image" :content="article.icon || ''"/>
+            <!-- Twitter -->
+            <meta name="twitter:card" content="summary_large_image" />
+            <meta name="twitter:title" :content="article.title || ''" />
+            <meta name="twitter:description" :content="article.meta_desc || ''" />
+            <meta name="twitter:image" :content="article.images && article.images.length > 0 ? article.images[0].url : ''" />
 
-            <meta name="DC.title" :content="article.title || ''"/>
-            <meta name="DC.description" :content="article.meta_desc || ''"/>
-            <meta name="DC.identifier" :content="`/articles/${article.url}`"/>
-            <meta name="DC.language" :content="article.locale || 'ru'"/>
+            <!-- Schema.org / Google -->
+            <meta itemprop="name" :content="article.title || ''" />
+            <meta itemprop="description" :content="article.meta_desc || ''" />
+            <meta itemprop="image" :content="article.images && article.images.length > 0 ? article.images[0].url : ''" />
         </Head>
 
-        <main class="min-h-screen flex flex-col lg:flex-row tracking-wider">
-
-            <div class="flex-1 p-4
-                         bg-slate-100 dark:bg-slate-800
-                         selection:bg-red-400 selection:text-white">
-
-                <!-- Заголовок статьи -->
-                <h1 class="flex items-center justify-center my-4
-                           text-center font-bolder text-3xl
-                           text-gray-900 dark:text-slate-100">
+        <!-- Обернём основное содержимое в блок с микроданными для BlogPosting -->
+        <article itemscope itemtype="https://schema.org/BlogPosting"
+                 class="flex-1 p-4 bg-slate-100 dark:bg-slate-800 selection:bg-red-400 selection:text-white">
+            <!-- Микроданные для заголовка -->
+            <header>
+                <h1 itemprop="headline"
+                    class="flex items-center justify-center my-4
+                           text-center font-bolder text-3xl text-gray-900 dark:text-slate-100">
                     {{ article.title }}
+                    <span :title="t('views')"
+                          class="ml-2 px-1 py-0 text-xs font-semibold text-white bg-emerald-500 rounded-full">
+            {{ article.views }}
+          </span>
                 </h1>
+                <!-- Дата публикации, форматируем по необходимости -->
+                <time itemprop="datePublished" datetime="{{ article.created_at.substring(0, 10) }}"
+                      class="flex items-center justify-center text-sm text-orange-500 dark:text-orange-400 mb-2">
+                    {{ article.created_at.substring(0, 10) }}
+                </time>
+            </header>
 
-                <p class="flex items-center justify-center mb-4
-                          text-center text-xl text-gray-500 dark:text-gray-400">
-                    {{ article.short }}
-                </p>
+            <!-- Краткое описание -->
+            <p itemprop="description"
+               class="flex items-center justify-center my-4 text-center text-xl text-teal-700 dark:text-teal-200">
+                {{ article.short }}
+            </p>
 
+            <!-- Изображение статьи -->
+            <div v-if="article.images && article.images.length > 0"
+                 class="flex flex-col justify-center items-center"
+                 itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
+                <img
+                    :src="article.images[0].url"
+                    :alt="article.images[0].alt"
+                    class="w-full max-w-4xl h-auto object-cover
+                           border-4 border-sky-600 shadow-lg shadow-gray-400 dark:shadow-gray-600"
+                    itemprop="url"
+                />
+                <!-- Дополнительные метатеги для изображения -->
+                <meta itemprop="width" content="800" />
+                <meta itemprop="height" content="600" />
+                <!-- Блок для caption -->
+                <div v-if="article.images[0].caption"
+                     class="mt-2 text-center text-sm text-gray-600 dark:text-gray-300 italic underline decoration-double"
+                     itemprop="caption">
+                    {{ article.images[0].caption }}
+                </div>
             </div>
 
-        </main>
+            <!-- Полное описание -->
+            <div class="w-full max-w-4xl mx-auto my-4 text-center text-xl text-gray-700 dark:text-gray-200
+                        border border-dashed border-slate-400 dark:border-slate-200"
+                 v-html="article.description" itemprop="articleBody"></div>
 
+            <!-- Теги -->
+            <div class="flex justify-center items-center mb-3 font-semibold text-violet-600 dark:text-violet-300">
+                <span v-for="(tag, index) in article.tags" :key="tag.id">
+                  <Link :href="`/tags/${tag.slug}`" itemprop="keywords">{{ tag.name }}</Link>
+                  <span v-if="index < article.tags.length - 1">, </span>
+                </span>
+            </div>
+
+            <!-- Автор -->
+            <div class="flex justify-center items-center font-semibold text-sky-600 dark:text-sky-300"
+                 itemprop="author">
+                {{ article.author }}
+            </div>
+        </article>
     </PublicLayout>
 </template>

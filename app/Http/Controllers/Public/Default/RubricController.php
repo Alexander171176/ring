@@ -15,12 +15,13 @@ use Inertia\Response;
 
 class RubricController extends Controller
 {
+
     /**
      * Возвращает список активных рубрик в зависимости от выбранного языка.
      *
-     * @return JsonResponse
+     * @return Response
      */
-    public function index(): JsonResponse
+    public function index(): Response
     {
         // Получаем текущую локаль
         $locale = Setting::where('option', 'locale')->value('value');
@@ -37,7 +38,7 @@ class RubricController extends Controller
         // Логирование результата перед отправкой
         //Log::info("Найденные рубрики: ", $rubrics->toArray());
 
-        return response()->json([
+        return Inertia::render('Public/Default/Rubrics/Index', [
             'rubrics' => $rubrics,
             'rubricsCount' => $rubrics->count()
         ]);
@@ -96,6 +97,34 @@ class RubricController extends Controller
             'activeArticlesCount' => $activeArticlesCount,
             'sidebarArticles'     => ArticleResource::collection($sidebarArticles),
             'mainArticles'        => ArticleResource::collection($mainArticles),
+        ]);
+    }
+
+    /**
+     * Возвращает список активных рубрик в зависимости от выбранного языка.
+     *
+     * @return JsonResponse
+     */
+    public function menuRubrics(): JsonResponse
+    {
+        // Получаем текущую локаль
+        $locale = Setting::where('option', 'locale')->value('value');
+
+        // Логирование для проверки текущей локали
+        //Log::info("Текущая локаль для фильтрации: " . $locale);
+
+        // Получаем рубрики с фильтрацией по активности и локали
+        $rubrics = Rubric::where('activity', 1)
+            ->where('locale', $locale)
+            ->orderBy('sort')
+            ->get(['id', 'title', 'url', 'locale']);
+
+        // Логирование результата перед отправкой
+        //Log::info("Найденные рубрики: ", $rubrics->toArray());
+
+        return response()->json([
+            'rubrics' => $rubrics,
+            'rubricsCount' => $rubrics->count()
         ]);
     }
 

@@ -1,7 +1,11 @@
 <script setup>
-import { Head } from "@inertiajs/vue3";
+import {defineProps} from 'vue';
+import {Head, usePage} from "@inertiajs/vue3";
 import Header from "@/Partials/Public/Header.vue";
 import Footer from "@/Partials/Public/Footer.vue";
+import {useRubric} from '@/composables/rubrics.js';
+import {useArticle} from "@/composables/articles.js";
+import RightSidebar from "@/Components/Public/Default/Partials/RightSidebar.vue";
 
 const props = defineProps({
     title: String,
@@ -10,16 +14,26 @@ const props = defineProps({
     laravelVersion: String,
     phpVersion: String,
 });
+
+const {HasRubric} = useRubric();
+const {HasArticle} = useArticle();
+
+const {props: pageProps} = usePage();
 </script>
 
 <template>
-    <Head :title="title" />
+    <Head :title="title"/>
 
     <!-- Импортируем Header и передаем пропсы -->
-    <Header :can-login="canLogin" :can-register="canRegister" />
+    <Header :can-login="canLogin" :can-register="canRegister"/>
 
-    <slot />
+    <main class="min-h-screen flex flex-col lg:flex-row tracking-wider">
+        <slot/>
 
-    <Footer :can-login="canLogin" :can-register="canRegister" />
+        <!-- Правый сайдбар -->
+        <RightSidebar/>
+    </main>
+
+    <Footer :can-login="canLogin" :can-register="canRegister"/>
 
 </template>

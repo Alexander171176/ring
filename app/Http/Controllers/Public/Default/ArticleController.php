@@ -26,8 +26,18 @@ class ArticleController extends Controller
             ->where('url', $url)
             ->firstOrFail();
 
+        // Отдельно выбираем статьи для правого сайдбара:
+        // Только активные статьи с locale, равной локали рубрики, и sidebar = true.
+        $sidebarArticles = Article::where('activity', 1)
+            ->where('locale', $locale)
+            ->where('sidebar', true)
+            ->orderBy('sort', 'asc')
+            ->with(['images', 'tags'])
+            ->get();
+
         return Inertia::render('Public/Default/Articles/Show', [
             'article' => new ArticleResource($article),
+            'sidebarArticles'     => ArticleResource::collection($sidebarArticles),
         ]);
     }
 }

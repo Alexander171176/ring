@@ -21,7 +21,7 @@ const props = defineProps({
 const {hasPlugin} = usePlugin();
 const {hasSetting} = useSetting();
 const {HasRole} = usePermission();
-const {HasRubric} = useArticle();
+const {HasSection} = useArticle();
 
 const sidebarOpen = ref(false);
 const showingNavigationDropdown = ref(false);

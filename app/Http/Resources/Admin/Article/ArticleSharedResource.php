@@ -6,10 +6,12 @@ use App\Http\Resources\Admin\Section\SectionResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class ArticleResource extends JsonResource
+class ArticleSharedResource extends JsonResource
 {
     /**
-     * Преобразует ресурс в массив.
+     * Transform the resource into an array.
+     *
+     * @return array<string, mixed>
      */
     public function toArray(Request $request): array
     {
@@ -32,19 +34,6 @@ class ArticleResource extends JsonResource
             'meta_desc'     => $this->meta_desc,
             'created_at' => $this->created_at?->format('d-m-Y'),
             'updated_at'    => $this->updated_at?->format('Y-m-d H:i:s'),
-
-            // Количество комментариев
-            'comments_count' => $this->whenNotNull($this->comments_count, 0),
-
-            // Связанные рубрики
-            'sections' => SectionResource::collection($this->whenLoaded('sections')),
-
-            // Связанные теги
-            'tags' => TagResource::collection($this->whenLoaded('tags')),
-
-            // Связанные изображения
-            'images' => ArticleImageResource::collection($this->whenLoaded('images') ?? collect()),
-
         ];
     }
 }

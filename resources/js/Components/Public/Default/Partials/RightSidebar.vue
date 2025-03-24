@@ -5,7 +5,7 @@ import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 // Получаем данные из страницы, включая новый пропс sidebarArticles
-const { rubric, sidebarArticles, } = usePage().props;
+const { sidebarArticles, } = usePage().props;
 
 // Используем prop sidebarArticles вместо вычисления через секции
 const articles = computed(() => sidebarArticles || []);
@@ -23,7 +23,7 @@ const sidebarClasses = computed(() => {
         'bg-slate-100',
         'dark:bg-slate-800',
         'w-full', // на маленьких экранах всегда full width
-        isCollapsed.value ? 'lg:w-8' : 'lg:w-64'
+        isCollapsed.value ? 'lg:w-8' : 'lg:w-80'
     ].join(' ');
 });
 </script>
@@ -32,7 +32,7 @@ const sidebarClasses = computed(() => {
     <aside :class="sidebarClasses">
         <div class="flex items-center justify-between">
             <h2 v-if="!isCollapsed" class="text-xl font-semibold text-gray-900 dark:text-slate-100">
-                {{ rubric.title }}
+                {{ t('latestNews') }}
             </h2>
             <button @click="toggleSidebar" class="focus:outline-none" :title="t('toggleSidebar')">
                 <svg v-if="isCollapsed"
