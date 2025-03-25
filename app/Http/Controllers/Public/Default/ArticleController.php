@@ -34,6 +34,9 @@ class ArticleController extends Controller
             ->where('url', $url)
             ->firstOrFail();
 
+        // Увеличиваем количество просмотров
+        $article->increment('views');
+
         // Отдельно выбираем статьи для правого сайдбара:
         $sidebarArticles = Article::where('activity', 1)
             ->where('locale', $locale)
