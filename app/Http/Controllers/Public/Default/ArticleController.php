@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Admin\Article\ArticleResource;
 use App\Models\Admin\Article\Article;
 use App\Models\Admin\Setting\Setting;
+use Illuminate\Http\JsonResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -51,4 +52,21 @@ class ArticleController extends Controller
             'recommendedArticles'  => ArticleResource::collection($article->relatedArticles),
         ]);
     }
+
+    /**
+     * Лайк статьи
+     *
+     * @param string $id
+     * @return JsonResponse
+     */
+    public function like(string $id): JsonResponse
+    {
+        $article = Article::findOrFail($id);
+        $article->increment('likes');
+        return response()->json([
+            'success' => true,
+            'likes'   => $article->likes,
+        ]);
+    }
+
 }

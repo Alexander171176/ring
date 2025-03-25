@@ -159,6 +159,7 @@ export default {
     leaveComment: 'Leave a comment',
     leaveTeam: 'Leave Team',
     leaveTeamConfirmation: 'Are you sure you would like to leave this team?',
+    like: 'the «Like» button',
     likes: 'Likes',
     login: 'Login',
     loginTitle: 'Login',

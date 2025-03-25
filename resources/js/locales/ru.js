@@ -159,6 +159,7 @@ export default {
     leaveComment: 'Оставьте комментарий',
     leaveTeam: 'Покинуть группу',
     leaveTeamConfirmation: 'Вы уверены, что хотели бы покинуть эту группу?',
+    like: 'кнопка «Мне нравится»',
     likes: 'Нравится',
     login: 'Вход',
     loginTitle: 'Вход в систему',

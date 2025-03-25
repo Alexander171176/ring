@@ -33,6 +33,10 @@ Route::get('/rubrics/{url}', [\App\Http\Controllers\Public\Default\RubricControl
 // Отображение конкретной статьи
 Route::get('/articles/{url}', [\App\Http\Controllers\Public\Default\ArticleController::class, 'show'])->where('url', '.*');
 
+// Лайк статьи
+Route::post('/articles/{article}/like', [\App\Http\Controllers\Public\Default\ArticleController::class, 'like'])
+    ->name('articles.like');
+
 // Профиль Пользователя
 Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',])->group(function () {
     Route::get('/dashboard', function () {return Inertia::render('Dashboard');})

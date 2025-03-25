@@ -159,6 +159,7 @@ export default {
     leaveComment: 'Пікір қалдырыңыз',
     leaveTeam: 'Топтан шығу',
     leaveTeamConfirmation: 'Сіз бұл топтан шыққыңыз келетініне сенімдісіз бе?',
+    like: '«маған ұнайды» батырмасы',
     likes: 'Ұнайды',
     login: 'Кіру',
     loginTitle: 'Жүйеге кіру',

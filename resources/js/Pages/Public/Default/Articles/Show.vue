@@ -2,6 +2,7 @@
 import {Head, Link, usePage} from '@inertiajs/vue3';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import {useI18n} from 'vue-i18n';
+import LikeButton from "@/Components/Public/Default/Article/LikeButton.vue";
 
 const {t} = useI18n();
 
@@ -47,15 +48,20 @@ const {article, recommendedArticles} = usePage().props;
                  class="flex-1 p-4 bg-slate-100 dark:bg-slate-800 selection:bg-red-400 selection:text-white">
             <!-- Микроданные для заголовка -->
             <header>
-                <h1 itemprop="headline"
-                    class="flex items-center justify-center my-4
-                           text-center font-bolder text-3xl text-gray-900 dark:text-slate-100">
-                    {{ article.title }}
-                    <span :title="t('views')"
-                          class="ml-2 px-1 py-0 text-xs font-semibold text-white bg-emerald-500 rounded-full">
-            {{ article.views }}
-          </span>
-                </h1>
+                <div class="flex items-center justify-center my-4">
+                    <h1 itemprop="headline"
+                        class="text-center font-bolder text-3xl text-gray-900 dark:text-slate-100">
+                        {{ article.title }}
+                    </h1>
+                    <div itemprop="interactionStatistic" itemscope itemtype="http://schema.org/InteractionCounter">
+                        <meta itemprop="interactionType" content="http://schema.org/ViewAction">
+                        <meta itemprop="userInteractionCount" :content="article.views">
+                        <span :title="t('views')"
+                              class="ml-2 px-1 py-0.5 text-xs font-semibold text-white bg-emerald-500 rounded-full">
+                            {{ article.views }}
+                        </span>
+                    </div>
+                </div>
                 <!-- Дата публикации, форматируем по необходимости -->
                 <time itemprop="datePublished" datetime="{{ article.created_at.substring(0, 10) }}"
                       class="flex items-center justify-center text-sm text-orange-500 dark:text-orange-400 mb-2">
@@ -63,11 +69,15 @@ const {article, recommendedArticles} = usePage().props;
                 </time>
             </header>
 
-            <!-- Краткое описание -->
-            <p itemprop="description"
-               class="flex items-center justify-center my-4 text-center text-xl text-teal-700 dark:text-teal-200">
-                {{ article.short }}
-            </p>
+            <div class="flex items-center justify-center my-4">
+                <!-- Краткое описание -->
+                <p itemprop="description"
+                   class="text-center text-xl text-teal-700 dark:text-teal-200 mr-2">
+                    {{ article.short }}
+                </p>
+                <!-- Лайк -->
+                <LikeButton/>
+            </div>
 
             <!-- Изображение статьи -->
             <div v-if="article.images && article.images.length > 0"
@@ -104,10 +114,14 @@ const {article, recommendedArticles} = usePage().props;
                 </span>
             </div>
 
-            <!-- Автор -->
-            <div class="flex justify-center items-center font-semibold text-sky-600 dark:text-sky-300"
-                 itemprop="author">
-                {{ article.author }}
+            <div class="flex justify-center items-center">
+                <!-- Автор -->
+                <div class="font-semibold text-sky-600 dark:text-sky-300"
+                     itemprop="author">
+                    <span class="mr-2">{{ article.author }}</span>
+                </div>
+                <!-- Лайк -->
+                <LikeButton/>
             </div>
 
             <!-- Блок рекомендованных статей -->
@@ -130,7 +144,8 @@ const {article, recommendedArticles} = usePage().props;
                                     :alt="rec.images[0].alt"
                                     class="w-full h-full object-cover"
                                 />
-                                <div v-else class="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-400">
+                                <div v-else
+                                     class="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-400">
                                     <span class="text-gray-500 dark:text-gray-700">{{ t('noCurrentImage') }}</span>
                                 </div>
                             </div>
@@ -143,7 +158,7 @@ const {article, recommendedArticles} = usePage().props;
                                       class="text-sm font-semibold text-white hover:text-amber-400">
                                     {{ rec.title }}
                                 </Link>
-<!--                                <p class="text-xs text-gray-200 mt-1">{{ rec.short }}</p>-->
+                                <!--                                <p class="text-xs text-gray-200 mt-1">{{ rec.short }}</p>-->
                             </div>
                         </div>
                     </div>
