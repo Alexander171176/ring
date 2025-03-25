@@ -19,15 +19,22 @@ class ArticleController extends Controller
         // Получаем текущую локаль из настроек
         $locale = Setting::where('option', 'locale')->value('value');
 
-        // Получаем конкретную статью, фильтруя по активности, локали и URL
-        $article = Article::with(['images', 'tags'])
+        // Загружаем статью с изображениями, тегами и рекомендованными статьями,
+        // при этом для связанных статей задаём фильтр по активности и локали
+        $article = Article::with([
+            'images',
+            'tags',
+            'relatedArticles' => function ($query) use ($locale) {
+                $query->where('activity', 1)->where('locale', $locale);
+            },
+            'relatedArticles.images' // добавляем вложенную загрузку изображений для связанных статей
+        ])
             ->where('activity', 1)
             ->where('locale', $locale)
             ->where('url', $url)
             ->firstOrFail();
 
         // Отдельно выбираем статьи для правого сайдбара:
-        // Только активные статьи с locale, равной локали рубрики, и sidebar = true.
         $sidebarArticles = Article::where('activity', 1)
             ->where('locale', $locale)
             ->where('sidebar', true)
@@ -36,8 +43,9 @@ class ArticleController extends Controller
             ->get();
 
         return Inertia::render('Public/Default/Articles/Show', [
-            'article' => new ArticleResource($article),
-            'sidebarArticles'     => ArticleResource::collection($sidebarArticles),
+            'article'              => new ArticleResource($article),
+            'sidebarArticles'      => ArticleResource::collection($sidebarArticles),
+            'recommendedArticles'  => ArticleResource::collection($article->relatedArticles),
         ]);
     }
 }

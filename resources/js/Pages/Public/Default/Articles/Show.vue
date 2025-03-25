@@ -5,7 +5,8 @@ import {useI18n} from 'vue-i18n';
 
 const {t} = useI18n();
 
-const {article} = usePage().props;
+const {article, recommendedArticles} = usePage().props;
+
 </script>
 
 <template>
@@ -13,30 +14,32 @@ const {article} = usePage().props;
         <Head>
             <title>{{ article.title }}</title>
             <!-- Основные метатеги, Open Graph, Twitter, Dublin Core, Schema.org и т.д. -->
-            <meta name="title" :content="article.title || ''" />
-            <meta name="description" :content="article.meta_desc || ''" />
-            <meta name="keywords" :content="article.meta_keywords || ''" />
-            <meta name="author" :content="article.author || ''" />
-            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            <meta name="title" :content="article.title || ''"/>
+            <meta name="description" :content="article.meta_desc || ''"/>
+            <meta name="keywords" :content="article.meta_keywords || ''"/>
+            <meta name="author" :content="article.author || ''"/>
+            <meta name="viewport" content="width=device-width, initial-scale=1"/>
 
             <!-- Open Graph / Facebook -->
-            <meta property="og:title" :content="article.title || ''" />
-            <meta property="og:description" :content="article.meta_desc || ''" />
-            <meta property="og:type" content="article" />
-            <meta property="og:url" :content="`/articles/${article.url}`" />
-            <meta property="og:image" :content="article.images && article.images.length > 0 ? article.images[0].url : ''" />
-            <meta property="og:locale" :content="article.locale || 'ru_RU'" />
+            <meta property="og:title" :content="article.title || ''"/>
+            <meta property="og:description" :content="article.meta_desc || ''"/>
+            <meta property="og:type" content="article"/>
+            <meta property="og:url" :content="`/articles/${article.url}`"/>
+            <meta property="og:image"
+                  :content="article.images && article.images.length > 0 ? article.images[0].url : ''"/>
+            <meta property="og:locale" :content="article.locale || 'ru_RU'"/>
 
             <!-- Twitter -->
-            <meta name="twitter:card" content="summary_large_image" />
-            <meta name="twitter:title" :content="article.title || ''" />
-            <meta name="twitter:description" :content="article.meta_desc || ''" />
-            <meta name="twitter:image" :content="article.images && article.images.length > 0 ? article.images[0].url : ''" />
+            <meta name="twitter:card" content="summary_large_image"/>
+            <meta name="twitter:title" :content="article.title || ''"/>
+            <meta name="twitter:description" :content="article.meta_desc || ''"/>
+            <meta name="twitter:image"
+                  :content="article.images && article.images.length > 0 ? article.images[0].url : ''"/>
 
             <!-- Schema.org / Google -->
-            <meta itemprop="name" :content="article.title || ''" />
-            <meta itemprop="description" :content="article.meta_desc || ''" />
-            <meta itemprop="image" :content="article.images && article.images.length > 0 ? article.images[0].url : ''" />
+            <meta itemprop="name" :content="article.title || ''"/>
+            <meta itemprop="description" :content="article.meta_desc || ''"/>
+            <meta itemprop="image" :content="article.images && article.images.length > 0 ? article.images[0].url : ''"/>
         </Head>
 
         <!-- Обернём основное содержимое в блок с микроданными для BlogPosting -->
@@ -78,8 +81,8 @@ const {article} = usePage().props;
                     itemprop="url"
                 />
                 <!-- Дополнительные метатеги для изображения -->
-                <meta itemprop="width" content="800" />
-                <meta itemprop="height" content="600" />
+                <meta itemprop="width" content="800"/>
+                <meta itemprop="height" content="600"/>
                 <!-- Блок для caption -->
                 <div v-if="article.images[0].caption"
                      class="mt-2 text-center text-sm text-gray-600 dark:text-gray-300 italic underline decoration-double"
@@ -106,6 +109,48 @@ const {article} = usePage().props;
                  itemprop="author">
                 {{ article.author }}
             </div>
+
+            <!-- Блок рекомендованных статей -->
+            <div class="mt-4">
+                <h2 class="text-orange-400 dark:text-orange-300 text-center text-2xl font-semibold mb-4">
+                    {{ t('relatedArticles') }}:
+                </h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+
+                    <!-- Изменённый фрагмент для каждого рекомендованного элемента -->
+                    <div v-for="rec in recommendedArticles" :key="rec.id"
+                         class="p-4 border border-gray-300 rounded shadow">
+                        <div class="relative w-full">
+                            <!-- Обёртка с соотношением сторон 4:3 -->
+                            <div class="w-full aspect-[4/3] overflow-hidden">
+                                <img
+                                    v-if="rec.images && rec.images.length > 0"
+                                    :src="rec.images[0].url"
+                                    :alt="rec.images[0].alt"
+                                    class="w-full h-full object-cover"
+                                />
+                                <div v-else class="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-400">
+                                    <span class="text-gray-500 dark:text-gray-700">{{ t('noCurrentImage') }}</span>
+                                </div>
+                            </div>
+                            <!-- Прозрачный блок с информацией, накладывается снизу на изображение -->
+                            <div class="absolute bottom-0 left-0 w-full p-2 bg-slate-800 bg-opacity-75">
+                                <div class="text-xs font-semibold text-yellow-200">
+                                    {{ rec.created_at.substring(0, 10) }}
+                                </div>
+                                <Link :href="`/articles/${rec.url}`"
+                                      class="text-sm font-semibold text-white hover:text-amber-400">
+                                    {{ rec.title }}
+                                </Link>
+<!--                                <p class="text-xs text-gray-200 mt-1">{{ rec.short }}</p>-->
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
         </article>
+
     </PublicLayout>
 </template>
