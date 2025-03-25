@@ -35,11 +35,13 @@ onUnmounted(() => {
     <div class="slider p-1 flex justify-center
                 w-full md:w-2/3 h-auto
                 max-h-48 sm:max-h-80 md:max-h-96
-                bg-slate-100 dark:bg-slate-800">
-        <!-- Родительский контейнер с адаптивными размерами -->
+                bg-slate-100 dark:bg-slate-800
+                border-4 border-sky-600 shadow-lg shadow-gray-400 dark:shadow-gray-600">
+
         <div class="relative overflow-hidden w-full max-w-2xl bg-slate-100 dark:bg-slate-800">
             <transition name="fade" mode="out-in">
                 <div v-if="currentArticle" :key="currentArticle.id" class="slide absolute inset-0">
+
                     <!-- Информация о статье -->
                     <div class="w-full absolute p-3 bg-slate-800 opacity-75">
                         <div class="text-xs font-semibold text-yellow-200 mb-1">

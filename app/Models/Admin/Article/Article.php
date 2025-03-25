@@ -7,6 +7,7 @@ use App\Models\Admin\Section\Section;
 use App\Models\User\Like\ArticleLike;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Article extends Model
 {
@@ -36,7 +37,7 @@ class Article extends Model
     /**
      * Связь: Статья - Секции (многие ко многим)
      */
-    public function sections(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function sections(): BelongsToMany
     {
         return $this->belongsToMany(Section::class, 'article_has_section');
     }
@@ -60,7 +61,7 @@ class Article extends Model
     /**
      * Связь: Статья - Теги (многие ко многим)
      */
-    public function tags(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function tags(): BelongsToMany
     {
         return $this->belongsToMany(Tag::class, 'article_has_tag', 'article_id', 'tag_id');
     }
@@ -68,9 +69,33 @@ class Article extends Model
     /**
      * Связь: Статья - Изображения (многие ко многим)
      */
-    public function images(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function images(): BelongsToMany
     {
         return $this->belongsToMany(ArticleImage::class, 'article_has_images', 'article_id', 'image_id');
+    }
+
+    /**
+     * Прямое связывание статьи с рекомендованными статьями.
+     */
+    public function relatedArticles(): BelongsToMany
+    {
+        return $this->belongsToMany(self::class, 'article_related', 'article_id', 'related_article_id');
+    }
+
+    /**
+     * Обратное связывание, если статья указана как рекомендуемая для других.
+     */
+    public function relatedTo(): BelongsToMany
+    {
+        return $this->belongsToMany(self::class, 'article_related', 'related_article_id', 'article_id');
+    }
+
+    /**
+     * Получение всех связанных статей (как прямых, так и обратных).
+     */
+    public function allRelatedArticles()
+    {
+        return $this->relatedArticles->merge($this->relatedTo);
     }
 
 }

@@ -45,25 +45,49 @@ const sidebarClasses = computed(() => {
                 </svg>
             </button>
         </div>
+
         <!-- Содержимое сайдбара показывается, когда он развернут -->
         <div v-show="!isCollapsed" class="mt-4">
             <ul>
                 <li v-for="article in articles" :key="article.id"
-                    class="mb-2 pb-2 border-b border-dashed border-slate-500 dark:border-slate-300">
-                    <img
-                        v-if="article.images && article.images.length > 0"
-                        :src="article.images[0].url"
-                        :alt="article.images[0].alt"
-                        class="w-full h-full object-cover"
-                    />
-                    <div class="font-semibold text-xs text-orange-500 dark:text-orange-400 ml-2">
-                        {{ article.created_at }}
-                    </div>
-                    <Link :href="`/articles/${article.url}`"
-                          class="font-semibold text-gray-900 dark:text-white
-                                 hover:text-blue-700 dark:hover:text-blue-600">
-                        {{ article.title }}
+                    class="mb-2 pb-2 border-b border-slate-500 dark:border-slate-300">
+
+                    <!-- Изображение статьи -->
+                    <Link v-if="article.images && article.images.length > 0"
+                          :href="`/articles/${article.url}`"
+                          class="h-40 overflow-hidden">
+                        <img
+                            :src="article.images[0].url"
+                            :alt="article.images[0].alt"
+                            class="w-full h-full object-cover border-2 border-gray-200"
+                        />
                     </Link>
+                    <Link v-else :href="`/articles/${article.url}`"
+                          class="h-40 flex items-center justify-center bg-gray-200 dark:bg-gray-400">
+                        <span class="text-gray-500 dark:text-gray-700">{{ t('noCurrentImage') }}</span>
+                    </Link>
+
+                    <!-- Ссылка и дата статьи -->
+                    <div class="px-3 my-1">
+                        <div class="text-xs font-semibold text-orange-500 dark:text-orange-400 mb-1">
+                            {{ article.created_at.substring(0, 10) }}
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                            <Link :href="`/articles/${article.url}`"
+                                  class="hover:text-blue-600 dark:hover:text-blue-400">
+                                {{ article.title }}
+                            </Link>
+                        </h3>
+                    </div>
+
+                    <!-- Краткое описание статьи -->
+                    <div class="flex flex-wrap items-center pl-1
+                                border border-dashed border-slate-400 dark:border-slate-200">
+                        <p class="italic text-sm font-semibold text-slate-600 dark:text-slate-300">
+                            {{ article.short }}
+                        </p>
+                    </div>
+
                 </li>
             </ul>
         </div>

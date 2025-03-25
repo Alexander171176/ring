@@ -76,6 +76,9 @@ class ArticleRequest extends FormRequest
                 },
             ],
 
+            'related_articles'   => ['sometimes', 'array'],
+            'related_articles.*' => ['integer', 'exists:articles,id'],
+
         ];
     }
 
@@ -130,6 +133,10 @@ class ArticleRequest extends FormRequest
 
             'sections.array' => 'Секции должны быть массивом.',
             'tags.array' => 'Теги должны быть массивом.',
+
+            'related_articles.array' => 'Список связанных статей должен быть массивом.',
+            'related_articles.*.integer' => 'Каждый идентификатор связанной статьи должен быть числом.',
+            'related_articles.*.exists'  => 'Статья с идентификатором :input не найдена.',
 
         ];
     }
