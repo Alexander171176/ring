@@ -75,27 +75,11 @@ class Article extends Model
     }
 
     /**
-     * Прямое связывание статьи с рекомендованными статьями.
+     * Связь: Статья - Рекомендованные статьи (самоссылочная связь, многие ко многим)
      */
     public function relatedArticles(): BelongsToMany
     {
         return $this->belongsToMany(self::class, 'article_related', 'article_id', 'related_article_id');
-    }
-
-    /**
-     * Обратное связывание, если статья указана как рекомендуемая для других.
-     */
-    public function relatedTo(): BelongsToMany
-    {
-        return $this->belongsToMany(self::class, 'article_related', 'related_article_id', 'article_id');
-    }
-
-    /**
-     * Получение всех связанных статей (как прямых, так и обратных).
-     */
-    public function allRelatedArticles()
-    {
-        return $this->relatedArticles->merge($this->relatedTo);
     }
 
 }

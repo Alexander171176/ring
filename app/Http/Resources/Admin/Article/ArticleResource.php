@@ -46,7 +46,8 @@ class ArticleResource extends JsonResource
             'images' => ArticleImageResource::collection($this->whenLoaded('images') ?? collect()),
 
             // Связанные статьи (ручные рекомендации)
-            'related_articles' => ArticleResource::collection($this->allRelatedArticles()),
+            'related_articles' => ArticleResource::collection($this->whenLoaded('relatedArticles')),
+
         ];
     }
 }

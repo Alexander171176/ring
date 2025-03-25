@@ -240,6 +240,7 @@ export default {
     register: 'Register',
     registerModule: 'Register a module',
     registerPrompt: 'Register in the system?',
+    relatedArticles: 'Recommended articles',
     rememberMe: 'Remember me',
     remove: 'Remove',
     removeTeamMember: 'Remove Team Member',

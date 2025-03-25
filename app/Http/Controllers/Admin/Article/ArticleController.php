@@ -55,10 +55,14 @@ class ArticleController extends Controller
         // Загрузка изображений
         $images = ArticleImage::all();
 
+        // Загрузка всех статей для выбора в рекомендованных (или нужный поднабор)
+        $allArticles = Article::select('id', 'title')->get();
+
         return Inertia::render('Admin/Articles/Create', [
             'sections' => SectionResource::collection($sections),
             'tags' => TagResource::collection($tags),
             'images' => ArticleImageResource::collection($images),
+            'related_articles' => $allArticles,
         ]);
     }
 
@@ -129,6 +133,16 @@ class ArticleController extends Controller
             }
         }
 
+        // Обработка связанных статей через мультиселект (по title)
+        if ($request->has('related_articles')) {
+            $relatedTitles = array_column($request->input('related_articles'), 'title');
+            $relatedIds = Article::whereIn('title', $relatedTitles)
+                ->where('id', '<>', $article->id) // Исключаем саму статью
+                ->pluck('id')
+                ->toArray();
+            $article->relatedArticles()->sync($relatedIds);
+        }
+
         return redirect()->route('articles.index')->with('success', 'Статья успешно создана.');
     }
 
@@ -140,8 +154,8 @@ class ArticleController extends Controller
      */
     public function edit(string $id): Response
     {
-        // Находим статью с рубриками, тегами и изображениями
-        $article = Article::with(['sections', 'tags', 'images'])->findOrFail($id);
+        // Находим статью с рубриками, тегами, изображениями и связанными статьями
+        $article = Article::with(['sections', 'tags', 'images', 'relatedArticles'])->findOrFail($id);
 
         // Получаем все рубрики
         $sections = Section::all();
@@ -149,10 +163,14 @@ class ArticleController extends Controller
         // Получаем все теги
         $tags = Tag::all();
 
+        // Загружаем все статьи для мультиселекта (исключая текущую)
+        $allArticles = Article::where('id', '<>', $article->id)->select('id', 'title')->get();
+
         return Inertia::render('Admin/Articles/Edit', [
             'article' => new ArticleResource($article),
             'sections' => SectionResource::collection($sections),
             'tags' => TagResource::collection($tags),
+            'related_articles' => $allArticles,
         ]);
     }
 
@@ -189,6 +207,14 @@ class ArticleController extends Controller
             ? Tag::whereIn('name', array_column($request->input('tags'), 'name'))->pluck('id')->toArray()
             : [];
         $article->tags()->sync($tagIds);
+
+        // Обновляем связи связанных статей (по title)
+        $relatedIds = $request->has('related_articles')
+            ? Article::whereIn('title', array_column($request->input('related_articles'), 'title'))
+                ->pluck('id')
+                ->toArray()
+            : [];
+        $article->relatedArticles()->sync($relatedIds);
 
         // Обрабатываем изображения: новые и обновление существующих
         if (!empty($imagesData)) {

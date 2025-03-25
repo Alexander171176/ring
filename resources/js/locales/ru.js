@@ -240,6 +240,7 @@ export default {
     register: 'Регистрация',
     registerModule: 'Зарегистрировать модуль',
     registerPrompt: 'Зарегистрироваться в системе?',
+    relatedArticles: 'Рекомендуемые статьи',
     rememberMe: 'Запомнить меня',
     remove: 'Удалить',
     removeTeamMember: 'Удаление участника из группы',

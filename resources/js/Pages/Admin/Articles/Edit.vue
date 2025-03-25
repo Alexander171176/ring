@@ -29,7 +29,8 @@ const { t } = useI18n();
 const props = defineProps({
     article: { type: Object, required: true },
     sections: Array,
-    tags: Array
+    tags: Array,
+    related_articles: { type: Array, default: () => [] } // задаём дефолтное значение
 });
 
 // Формируем форму редактирования статьи
@@ -52,6 +53,7 @@ const form = useForm({
     sidebar: Boolean(props.article.sidebar),
     sections: props.article.sections ?? [],
     tags: props.article.tags ?? [],
+    related_articles: props.article.related_articles ?? [],
     deletedImages: [] // массив для хранения ID удалённых изображений
 });
 
@@ -284,6 +286,19 @@ const submitForm = () => {
                                         :placeholder="t('select')"
                                         label="name"
                                         track-by="name" />
+                    </div>
+
+                    <!-- Мультиселект для связанных статей -->
+                    <div class="mb-3 flex flex-col items-start">
+                        <LabelInput for="related_articles" :value="t('relatedArticles')" class="mb-1" />
+                        <VueMultiselect v-model="form.related_articles"
+                                        :options="related_articles"
+                                        :multiple="true"
+                                        :close-on-select="true"
+                                        :placeholder="t('select')"
+                                        label="title"
+                                        track-by="title" />
+                        <InputError class="mt-2" :message="form.errors.related_articles" />
                     </div>
 
                     <div class="mb-3 flex justify-between">

@@ -240,6 +240,7 @@ export default {
     register: 'Тіркелу',
     registerModule: 'Модульді тіркеу',
     registerPrompt: 'Жүйеге тіркелгіңіз келе ме?',
+    relatedArticles: 'Ұсынылатын мақалалар',
     rememberMe: 'Мені есте сақтау',
     remove: 'Жою',
     removeTeamMember: 'Топ мүшесін жою',

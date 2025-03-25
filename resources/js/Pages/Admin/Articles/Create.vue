@@ -26,7 +26,8 @@ const { t } = useI18n();
 defineProps({
     sections: Array,
     tags: Array,
-    images: Array // Добавляем этот пропс для передачи списка изображений
+    images: Array, // Добавляем этот пропс для передачи списка изображений
+    related_articles: { type: Array, default: () => [] } // задаём дефолтное значение
 })
 
 // пустая форма
@@ -48,6 +49,7 @@ const form = useForm({
     sidebar: false,
     sections: [],
     tags: [],
+    related_articles: [],
     images: [] // Добавляем массив для загруженных изображений
 });
 
@@ -269,6 +271,19 @@ const submitForm = () => {
                                         label="name"
                                         track-by="name"
                         />
+                    </div>
+
+                    <!-- Мультиселект для связанных статей -->
+                    <div class="mb-3 flex flex-col items-start">
+                        <LabelInput for="related_articles" :value="t('relatedArticles')" class="mb-1" />
+                        <VueMultiselect v-model="form.related_articles"
+                                        :options="related_articles"
+                                        :multiple="true"
+                                        :close-on-select="true"
+                                        :placeholder="t('select')"
+                                        label="title"
+                                        track-by="title" />
+                        <InputError class="mt-2" :message="form.errors.related_articles" />
                     </div>
 
                     <div class="mb-3 flex justify-between">
