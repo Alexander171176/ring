@@ -7,13 +7,13 @@ use App\Http\Requests\Admin\Article\ArticleRequest;
 use App\Http\Resources\Admin\Article\ArticleResource;
 use App\Models\Admin\Article\Article;
 use App\Models\Admin\Article\ArticleImage;
-use App\Models\Admin\Article\Tag;
 use App\Models\Admin\Section\Section;
+use App\Models\Admin\Tag\Tag;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Http\JsonResponse;
 
 /**
  * @OA\Info(

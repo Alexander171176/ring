@@ -1,9 +1,11 @@
 <?php
 
-namespace App\Models\Admin\Article;
+namespace App\Models\Admin\Tag;
 
+use App\Models\Admin\Article\Article;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Tag extends Model
 {
@@ -19,7 +21,7 @@ class Tag extends Model
     ];
 
     // Отношение многие ко многим с моделью Article
-    public function articles(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function articles(): BelongsToMany
     {
         return $this->belongsToMany(Article::class, 'article_has_tag', 'tag_id', 'article_id');
     }

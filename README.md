@@ -190,8 +190,11 @@
     `docker exec ring-php-app php artisan migrate` <br>
     `docker exec ring-php-app php artisan make:seeder TagSeeder` <br>
     `docker exec ring-php-app php artisan db:seed --class=TagSeeder` <br>
-    `docker exec ring-php-app php artisan make:resource Admin/Article/TagResource` <br>
-    `docker exec ring-php-app php artisan make:request Admin/Article/TagRequest` <br>
+    `docker exec ring-php-app php artisan make:model Admin/Tag/Tag` <br>
+    `docker exec ring-php-app php artisan make:resource Admin/Tag/TagResource` <br>
+    `docker exec ring-php-app php artisan make:request Admin/Tag/TagRequest` <br>
+    `docker exec ring-php-app php artisan make:controller Admin/Tag/TagController --resource` <br>
+    `docker exec ring-php-app php artisan make:controller Admin/Invokable/RemoveArticleFromTagController --invokable` <br>
 
 29) creating business logic app Report <br>
     `docker exec ring-php-app php artisan make:controller Admin/Report/ReportController --resource` <br>

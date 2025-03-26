@@ -3,11 +3,12 @@
 namespace App\Models\Admin\Comment;
 
 use App\Models\Admin\Article\Article;
-use App\Models\Admin\Rubric\Rubric;
 use App\Models\Admin\Section\Section;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Comment extends Model
 {
@@ -26,27 +27,27 @@ class Comment extends Model
         'activity',
     ];
 
-    public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id'); // Связываем с таблицей users через user_id
     }
 
-    public function article(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function article(): BelongsTo
     {
         return $this->belongsTo(Article::class);
     }
 
-    public function section(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function section(): BelongsTo
     {
         return $this->belongsTo(Section::class);
     }
 
-    public function parent(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function parent(): BelongsTo
     {
         return $this->belongsTo(Comment::class, 'parent_id');
     }
 
-    public function replies(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function replies(): HasMany
     {
         return $this->hasMany(Comment::class, 'parent_id');
     }

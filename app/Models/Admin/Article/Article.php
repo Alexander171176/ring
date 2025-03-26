@@ -4,10 +4,12 @@ namespace App\Models\Admin\Article;
 
 use App\Models\Admin\Comment\Comment;
 use App\Models\Admin\Section\Section;
+use App\Models\Admin\Tag\Tag;
 use App\Models\User\Like\ArticleLike;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Article extends Model
 {
@@ -45,7 +47,7 @@ class Article extends Model
     /**
      * Связь: Статья - Комментарии (один ко многим)
      */
-    public function comments(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function comments(): HasMany
     {
         return $this->hasMany(Comment::class);
     }
@@ -53,7 +55,7 @@ class Article extends Model
     /**
      * Связь: Статья - Лайки (один ко многим)
      */
-    public function likes(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function likes(): HasMany
     {
         return $this->hasMany(ArticleLike::class, 'article_id');
     }

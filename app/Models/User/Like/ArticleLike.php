@@ -6,6 +6,7 @@ use App\Models\Admin\Article\Article;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ArticleLike extends Model
 {
@@ -17,13 +18,13 @@ class ArticleLike extends Model
     protected $fillable = ['user_id', 'article_id'];
 
     // Убедитесь, что есть отношение к статье
-    public function article(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function article(): BelongsTo
     {
         return $this->belongsTo(Article::class);
     }
 
     // Отношение к пользователю (если есть)
-    public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }

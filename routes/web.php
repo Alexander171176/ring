@@ -66,6 +66,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::resource('/rubrics', \App\Http\Controllers\Admin\Rubric\RubricController::class);
         Route::resource('/sections', \App\Http\Controllers\Admin\Section\SectionController::class);
         Route::resource('/articles', \App\Http\Controllers\Admin\Article\ArticleController::class);
+        Route::resource('/tags', \App\Http\Controllers\Admin\Tag\TagController::class);
         Route::resource('/charts', \App\Http\Controllers\Admin\Chart\ChartController::class);
         Route::resource('/reports', \App\Http\Controllers\Admin\Report\ReportController::class)
             ->only(['index']);
@@ -103,6 +104,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::delete('/sections/{section}/articles/{article}',
             \App\Http\Controllers\Admin\Invokable\RemoveArticleFromSectionController::class)
             ->name('sections.articles.destroy');
+
+        Route::delete('/articles/{article}/tags/{tag}',
+            \App\Http\Controllers\Admin\Invokable\RemoveArticleFromTagController::class)
+            ->name('articles.tags.destroy');
 
         // Группа маршрутов для клонирования сущности
         Route::post('/rubrics/clone/{id}',
@@ -176,6 +181,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::delete('/admin/articles/bulk-delete',
             [\App\Http\Controllers\Admin\Article\ArticleController::class, 'bulkDestroy'])
             ->name('articles.bulkDestroy');
+
+        Route::delete('/admin/tags/bulk-delete',
+            [\App\Http\Controllers\Admin\Tag\TagController::class, 'bulkDestroy'])
+            ->name('tags.bulkDestroy');
 
         Route::delete('/comments/bulk-delete',
             [\App\Http\Controllers\Admin\Comment\CommentController::class, 'bulkDestroy'])

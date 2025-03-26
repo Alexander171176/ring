@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Admin\Article\Article;
-use App\Models\Admin\Article\Tag;
+use App\Models\Admin\Tag\Tag;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 

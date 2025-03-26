@@ -3,6 +3,7 @@
 namespace App\Http\Resources\Admin\Article;
 
 use App\Http\Resources\Admin\Section\SectionResource;
+use App\Http\Resources\Admin\Tag\TagResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 

@@ -97,7 +97,9 @@ const toggleAll = (event) => {
                             </td>
                             <td class="px-2 first:pl-7 last:pr-7 py-1 whitespace-nowrap">
                                 <div class="text-center">
-                                    <input type="checkbox" :checked="selectedRubrics.includes(rubric.id)" @change="$emit('toggle-select', rubric.id)" />
+                                    <input type="checkbox"
+                                           :checked="selectedRubrics.includes(rubric.id)"
+                                           @change="$emit('toggle-select', rubric.id)" />
                                 </div>
                             </td>
                         </tr>

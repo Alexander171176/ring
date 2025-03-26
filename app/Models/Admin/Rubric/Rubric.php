@@ -2,10 +2,10 @@
 
 namespace App\Models\Admin\Rubric;
 
-use App\Models\Admin\Article\Article;
 use App\Models\Admin\Section\Section;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Rubric extends Model
 {
@@ -28,7 +28,7 @@ class Rubric extends Model
     ];
 
     // Определите отношение многие ко многим с моделью Section
-    public function sections(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function sections(): BelongsToMany
     {
         return $this->belongsToMany(Section::class, 'rubric_has_sections', 'rubric_id', 'section_id');
     }

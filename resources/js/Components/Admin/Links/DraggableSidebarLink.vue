@@ -22,6 +22,7 @@ const linkInfo = {
     rubrics: {label: t('rubrics'), route: 'rubrics.index'},
     sections: {label: t('sections'), route: 'sections.index'},
     articles: {label: t('posts'), route: 'articles.index'},
+    tags: {label: t('tags'), route: 'tags.index'},
     comments: {label: t('comments'), route: 'comments.index'},
     reports: {label: t('reports'), route: 'reports.index'},
     charts: {label: t('charts'), route: 'charts.index'},

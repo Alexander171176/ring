@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Admin\Article;
+namespace App\Http\Requests\Admin\Tag;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;

@@ -170,7 +170,7 @@ const submitForm = () => {
 
                     <!-- Поле url -->
                     <div class="mb-3 flex flex-col items-start">
-                        <LabelInput for="title">
+                        <LabelInput for="url">
                             <span class="text-red-500 dark:text-red-300 font-semibold">*</span> {{ t('rubricUrl') }}
                         </LabelInput>
                         <InputText

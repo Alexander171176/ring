@@ -6,6 +6,7 @@ use App\Models\Admin\Article\Article;
 use App\Models\Admin\Rubric\Rubric;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Section extends Model
 {
@@ -26,13 +27,13 @@ class Section extends Model
     /**
      * Связь: Секция - Рубрики (многие ко многим)
      */
-    public function rubrics(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function rubrics(): BelongsToMany
     {
         return $this->belongsToMany(Rubric::class, 'rubric_has_sections');
     }
 
     // Определите отношение многие ко многим с моделью Article
-    public function articles(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function articles(): BelongsToMany
     {
         return $this->belongsToMany(Article::class, 'article_has_section', 'section_id', 'article_id');
     }
