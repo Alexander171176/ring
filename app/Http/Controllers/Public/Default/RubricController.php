@@ -74,9 +74,9 @@ class RubricController extends Controller
 
         // Отдельно выбираем статьи для правого сайдбара:
         // Только активные статьи с locale, равной локали рубрики, и sidebar = true.
-        $sidebarArticles = Article::where('activity', 1)
+        $leftArticles = Article::where('activity', 1)
             ->where('locale', $locale)
-            ->where('sidebar', true)
+            ->where('left', true)
             ->orderBy('sort', 'asc')
             ->with(['images', 'tags'])
             ->get();
@@ -90,13 +90,23 @@ class RubricController extends Controller
             ->with(['images', 'tags'])
             ->get();
 
+        // Отдельно выбираем статьи для правого сайдбара:
+        // Только активные статьи с locale, равной локали рубрики, и sidebar = true.
+        $rightArticles = Article::where('activity', 1)
+            ->where('locale', $locale)
+            ->where('right', true)
+            ->orderBy('sort', 'asc')
+            ->with(['images', 'tags'])
+            ->get();
+
         return Inertia::render('Public/Default/Rubrics/Show', [
             'rubric'              => new RubricResource($rubric),
             'sections'            => SectionResource::collection($rubric->sections),
             'sectionsCount'       => $rubric->sections->count(),
             'activeArticlesCount' => $activeArticlesCount,
-            'sidebarArticles'     => ArticleResource::collection($sidebarArticles),
+            'leftArticles'     => ArticleResource::collection($leftArticles),
             'mainArticles'        => ArticleResource::collection($mainArticles),
+            'rightArticles'     => ArticleResource::collection($rightArticles),
         ]);
     }
 

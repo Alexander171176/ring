@@ -17,8 +17,9 @@ class ArticleRequest extends FormRequest
         return [
             'sort' => 'nullable|integer',
             'activity' => 'required|boolean',
+            'left' => 'required|boolean',
             'main' => 'required|boolean',
-            'sidebar' => 'required|boolean',
+            'right' => 'required|boolean',
             'locale' => [
                 'required',
                 'string',

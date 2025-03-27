@@ -262,6 +262,28 @@ class ArticleController extends Controller
     }
 
     /**
+     * Включение Статьи в правом сайдбаре
+     *
+     * @param Request $request
+     * @param $id
+     * @return JsonResponse
+     */
+    public function updateLeft(Request $request, $id): JsonResponse
+    {
+        $validated = $request->validate([
+            'left' => 'required|boolean',
+        ]);
+
+        $article = Article::findOrFail($id);
+        $article->left = $validated['left'];
+        $article->save();
+
+        Log::info("Обновлено включение статьи в левом сайдбар с ID: $id с данными: ", $validated);
+
+        return response()->json(['success' => true, 'reload' => true]);
+    }
+
+    /**
      * Включение Главными
      *
      * @param Request $request
@@ -284,23 +306,23 @@ class ArticleController extends Controller
     }
 
     /**
-     * Включение Статьи в сайдбаре
+     * Включение Статьи в правом сайдбаре
      *
      * @param Request $request
      * @param $id
      * @return JsonResponse
      */
-    public function updateSidebar(Request $request, $id): JsonResponse
+    public function updateRight(Request $request, $id): JsonResponse
     {
         $validated = $request->validate([
-            'sidebar' => 'required|boolean',
+            'right' => 'required|boolean',
         ]);
 
         $article = Article::findOrFail($id);
-        $article->sidebar = $validated['sidebar'];
+        $article->right = $validated['right'];
         $article->save();
 
-        Log::info("Обновлено включение статьи в сайдбар с ID: $id с данными: ", $validated);
+        Log::info("Обновлено включение статьи в правом сайдбар с ID: $id с данными: ", $validated);
 
         return response()->json(['success' => true, 'reload' => true]);
     }

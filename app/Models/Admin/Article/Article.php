@@ -21,8 +21,9 @@ class Article extends Model
     protected $fillable = [
         'sort',
         'activity',
+        'left',
         'main',
-        'sidebar',
+        'right',
         'locale',
         'title',
         'url',

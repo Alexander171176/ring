@@ -49,8 +49,9 @@ const form = useForm({
     meta_keywords: props.article.meta_keywords ?? '',
     meta_desc: props.article.meta_desc ?? '',
     activity: Boolean(props.article.activity),
+    left: Boolean(props.article.left),
     main: Boolean(props.article.main),
-    sidebar: Boolean(props.article.sidebar),
+    right: Boolean(props.article.right),
     sections: props.article.sections ?? [],
     tags: props.article.tags ?? [],
     related_articles: props.article.related_articles ?? [],
@@ -137,7 +138,7 @@ const submitForm = () => {
         ...data,
         activity: data.activity ? 1 : 0,
         main: data.main ? 1 : 0,
-        sidebar: data.sidebar ? 1 : 0,
+        right: data.right ? 1 : 0,
         images: [
             ...newImages.value.map(img => ({
                 file: img.file,
@@ -218,16 +219,22 @@ const submitForm = () => {
 
                     <div class="mb-3 flex justify-between flex-col lg:flex-row items-center gap-4">
 
+                        <!-- Показывать в левом сайдбаре -->
+                        <div class="flex flex-row items-center gap-2">
+                            <ActivityCheckbox v-model="form.left"/>
+                            <LabelCheckbox for="left" :text="t('left')" class="text-sm h-8 flex items-center"/>
+                        </div>
+
                         <!-- Показывать в главных новостях -->
                         <div class="flex flex-row items-center gap-2">
                             <ActivityCheckbox v-model="form.main"/>
                             <LabelCheckbox for="main" :text="t('main')" class="text-sm h-8 flex items-center"/>
                         </div>
 
-                        <!-- Показывать в сайдбаре -->
+                        <!-- Показывать в правом сайдбаре -->
                         <div class="flex flex-row items-center gap-2">
-                            <ActivityCheckbox v-model="form.sidebar"/>
-                            <LabelCheckbox for="sidebar" :text="t('sidebar')" class="text-sm h-8 flex items-center"/>
+                            <ActivityCheckbox v-model="form.right"/>
+                            <LabelCheckbox for="right" :text="t('right')" class="text-sm h-8 flex items-center"/>
                         </div>
 
                     </div>

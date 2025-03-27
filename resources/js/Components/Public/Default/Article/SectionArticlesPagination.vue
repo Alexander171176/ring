@@ -14,7 +14,7 @@ const props = defineProps({
     // Можно передавать количество элементов на страницу, по умолчанию 4
     itemsPerPage: {
         type: Number,
-        default: 4,
+        default: 3,
     },
 });
 
@@ -55,7 +55,7 @@ const prevPage = () => {
             <div
                 v-for="article in paginatedArticles"
                 :key="article.id"
-                class="px-1 py-1 col-span-full sm:col-span-6 xl:col-span-3
+                class="px-1 py-1 col-span-full sm:col-span-6 md:col-span-4 lg:col-span-12 xl:col-span-6 2xl:col-span-4
                        overflow-hidden transition-all duration-300
                        hover:bg-slate-50 hover:dark:bg-slate-800
                        hover:scale-101 shadow-none border-0 rounded-sm

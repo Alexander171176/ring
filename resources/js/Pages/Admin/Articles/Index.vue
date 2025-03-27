@@ -41,6 +41,21 @@ const deleteArticle = () => {
     }
 };
 
+// Кнопка включения статьи в левой колонке
+const toggleLeft = (article) => {
+    const newLeft = !article.left;
+    axios.put(route('articles.updateLeft', article.id), { left: newLeft })
+        .then(response => {
+            article.left = newLeft;
+            if (response.data.reload) {
+                window.location.reload();
+            }
+        })
+        .catch(error => {
+            console.error(error.response.data);
+        });
+};
+
 // Кнопка включения статьи как главной
 const toggleMain = (article) => {
     const newMain = !article.main;
@@ -56,12 +71,12 @@ const toggleMain = (article) => {
         });
 };
 
-// Кнопка включения статьи как главной
-const toggleSidebar = (article) => {
-    const newSidebar = !article.sidebar;
-    axios.put(route('articles.updateSidebar', article.id), { sidebar: newSidebar })
+// Кнопка включения статьи в правой колонке
+const toggleRight = (article) => {
+    const newRight = !article.right;
+    axios.put(route('articles.updateRight', article.id), { right: newRight })
         .then(response => {
-            article.sidebar = newSidebar;
+            article.right = newRight;
             if (response.data.reload) {
                 window.location.reload();
             }
@@ -117,17 +132,23 @@ const sortArticles = (articles) => {
     if (sortParam.value === 'inactive') {
         return articles.filter(article => !article.activity);
     }
+    if (sortParam.value === 'left') {
+        return articles.filter(article => article.left);
+    }
+    if (sortParam.value === 'noLeft') {
+        return articles.filter(article => !article.left);
+    }
     if (sortParam.value === 'main') {
         return articles.filter(article => article.main);
     }
     if (sortParam.value === 'noMain') {
         return articles.filter(article => !article.main);
     }
-    if (sortParam.value === 'sidebar') {
-        return articles.filter(article => article.sidebar);
+    if (sortParam.value === 'right') {
+        return articles.filter(article => article.right);
     }
-    if (sortParam.value === 'noSidebar') {
-        return articles.filter(article => !article.sidebar);
+    if (sortParam.value === 'noRight') {
+        return articles.filter(article => !article.right);
     }
     return articles.slice().sort((a, b) => {
         if (sortParam.value === 'views' || sortParam.value === 'likes') {
@@ -215,6 +236,24 @@ const bulkToggleActivity = (newActivity) => {
         });
 };
 
+// Функции для массового включения/выключения в левую колонку
+const bulkToggleLeft = (newLeft) => {
+    const updatePromises = selectedArticles.value.map((articleId) =>
+        axios.put(route('articles.updateLeft', articleId), { left: newLeft })
+    );
+
+    Promise.all(updatePromises)
+        .then((responses) => {
+            const reloadRequired = responses.some(response => response.data.reload);
+            if (reloadRequired) {
+                window.location.reload();
+            }
+        })
+        .catch(error => {
+            console.error(error.response.data);
+        });
+};
+
 // Функции для массового включения/выключения в слайдер
 const bulkToggleMain = (newMain) => {
     const updatePromises = selectedArticles.value.map((articleId) =>
@@ -234,9 +273,9 @@ const bulkToggleMain = (newMain) => {
 };
 
 // Функции для массового включения/выключения в правую колонку
-const bulkToggleSidebar = (newSidebar) => {
+const bulkToggleRight = (newRight) => {
     const updatePromises = selectedArticles.value.map((articleId) =>
-        axios.put(route('articles.updateSidebar', articleId), { sidebar: newSidebar })
+        axios.put(route('articles.updateRight', articleId), { right: newRight })
     );
 
     Promise.all(updatePromises)
@@ -278,14 +317,18 @@ const handleBulkAction = (event) => {
         bulkToggleActivity(true);
     } else if (action === 'deactivate') {
         bulkToggleActivity(false);
+    } else if (action === 'left') {
+        bulkToggleLeft(true);
+    } else if (action === 'noLeft') {
+        bulkToggleLeft(false);
     } else if (action === 'main') {
         bulkToggleMain(true);
     } else if (action === 'noMain') {
         bulkToggleMain(false);
-    } else if (action === 'sidebar') {
-        bulkToggleSidebar(true);
-    } else if (action === 'noSidebar') {
-        bulkToggleSidebar(false);
+    } else if (action === 'right') {
+        bulkToggleRight(true);
+    } else if (action === 'noRight') {
+        bulkToggleRight(false);
     } else if (action === 'delete') {
         bulkDelete();
     }
@@ -322,8 +365,9 @@ const handleBulkAction = (event) => {
                 <ArticleTable
                     :articles="paginatedArticles"
                     :selected-articles="selectedArticles"
+                    @toggle-left="toggleLeft"
                     @toggle-main="toggleMain"
-                    @toggle-sidebar="toggleSidebar"
+                    @toggle-right="toggleRight"
                     @toggle-activity="toggleActivity"
                     @delete="confirmDelete"
                     @clone="cloneArticle"

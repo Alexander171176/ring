@@ -34,7 +34,7 @@ onUnmounted(() => {
 <template>
     <div v-if="currentArticle"
          class="slider p-1 flex justify-center
-                w-full md:w-2/3 h-auto max-h-48 sm:max-h-80 md:max-h-96
+                w-full md:w-2/3 h-auto max-h-56 sm:max-h-96 lg:max-h-72 xl:max-h-96
                 bg-slate-100 dark:bg-slate-800 border-4 border-sky-600
                 shadow-lg shadow-gray-400 dark:shadow-gray-600">
         <div class="relative overflow-hidden w-full max-w-2xl bg-slate-100 dark:bg-slate-800">

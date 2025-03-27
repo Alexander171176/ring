@@ -147,14 +147,18 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
             [\App\Http\Controllers\Admin\Comment\CommentController::class, 'updateActivity'])
             ->name('comments.updateActivity');
 
-        // Группа маршрутов для переключения Статей как главными и в сайдбаре
+        // Группа маршрутов для переключения Статей как главными и в левом и правом сайдбарах
+        Route::put('/articles/{id}/updateLeft',
+            [\App\Http\Controllers\Admin\Article\ArticleController::class, 'updateLeft'])
+            ->name('articles.updateLeft');
+
         Route::put('/articles/{id}/updateMain',
             [\App\Http\Controllers\Admin\Article\ArticleController::class, 'updateMain'])
             ->name('articles.updateMain');
 
-        Route::put('/articles/{id}/updateSidebar',
-            [\App\Http\Controllers\Admin\Article\ArticleController::class, 'updateSidebar'])
-            ->name('articles.updateSidebar');
+        Route::put('/articles/{id}/updateRight',
+            [\App\Http\Controllers\Admin\Article\ArticleController::class, 'updateRight'])
+            ->name('articles.updateRight');
 
         // Группа маршрутов для обновления сортировки
         Route::put('/rubrics/{rubric}/updateSort',

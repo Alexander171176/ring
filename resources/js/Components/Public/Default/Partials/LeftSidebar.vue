@@ -4,11 +4,11 @@ import { usePage, Link } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
-// Получаем данные из страницы, включая новый пропс rightArticles
-const { rightArticles, } = usePage().props;
+// Получаем данные из страницы, включая новый пропс leftArticles
+const { leftArticles, } = usePage().props;
 
-// Используем prop rightArticles вместо вычисления через секции
-const articles = computed(() => rightArticles || []);
+// Используем prop leftArticles вместо вычисления через секции
+const articles = computed(() => leftArticles || []);
 
 const isCollapsed = ref(false);
 const toggleSidebar = () => {
@@ -30,21 +30,21 @@ const sidebarClasses = computed(() => {
 
 <template>
     <aside v-if="articles.length > 0" :class="sidebarClasses">
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-start">
+            <button @click="toggleSidebar" class="focus:outline-none" :title="t('toggleSidebar')">
+                <svg v-if="isCollapsed"
+                     class="w-6 h-6 text-rose-500 dark:text-rose-400" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M8 5v14l11-7z" />
+                </svg>
+                <svg v-else
+                     class="w-6 h-6 text-rose-500 dark:text-rose-400" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M16 5v14l-11-7z" />
+                </svg>
+            </button>
             <h2 v-if="!isCollapsed"
                 class="w-full text-center text-xl font-semibold text-gray-900 dark:text-slate-100">
                 {{ t('latestNews') }}
             </h2>
-            <button @click="toggleSidebar" class="focus:outline-none" :title="t('toggleSidebar')">
-                <svg v-if="isCollapsed"
-                     class="w-6 h-6 text-rose-500 dark:text-rose-400" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M16 5v14l-11-7z" />
-                </svg>
-                <svg v-else
-                     class="w-6 h-6 text-rose-500 dark:text-rose-400" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M8 5v14l11-7z" />
-                </svg>
-            </button>
         </div>
 
         <!-- Содержимое сайдбара показывается, когда он развернут -->

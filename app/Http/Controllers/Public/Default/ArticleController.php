@@ -39,16 +39,25 @@ class ArticleController extends Controller
         $article->increment('views');
 
         // Отдельно выбираем статьи для правого сайдбара:
-        $sidebarArticles = Article::where('activity', 1)
+        $leftArticles = Article::where('activity', 1)
             ->where('locale', $locale)
-            ->where('sidebar', true)
+            ->where('left', true)
+            ->orderBy('sort', 'asc')
+            ->with(['images', 'tags'])
+            ->get();
+
+        // Отдельно выбираем статьи для правого сайдбара:
+        $rightArticles = Article::where('activity', 1)
+            ->where('locale', $locale)
+            ->where('right', true)
             ->orderBy('sort', 'asc')
             ->with(['images', 'tags'])
             ->get();
 
         return Inertia::render('Public/Default/Articles/Show', [
             'article'              => new ArticleResource($article),
-            'sidebarArticles'      => ArticleResource::collection($sidebarArticles),
+            'leftArticles'         => ArticleResource::collection($leftArticles),
+            'rightArticles'        => ArticleResource::collection($rightArticles),
             'recommendedArticles'  => ArticleResource::collection($article->relatedArticles),
         ]);
     }

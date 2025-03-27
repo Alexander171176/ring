@@ -15,8 +15,9 @@ return new class extends Migration
             $table->id();
             $table->integer('sort')->default(0); // Поле для хранения порядка сортировки постов
             $table->boolean('activity')->default(false); // Активность поста
+            $table->boolean('left')->default(false); // Печатать пост в левом сайдбаре
             $table->boolean('main')->default(false); // Печатать пост как главный
-            $table->boolean('sidebar')->default(false); // Печатать пост в сайдбаре
+            $table->boolean('right')->default(false); // Печатать пост в правом сайдбаре
             $table->string('locale', 2); // Язык (ru, en, kz)
             $table->string('title')->unique(); // Заголовок поста
             $table->text('url')->unique(); // Адрес поста

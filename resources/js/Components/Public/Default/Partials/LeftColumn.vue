@@ -12,7 +12,7 @@ const articles = computed(() => mainArticles || []);
 </script>
 
 <template>
-    <div class="w-full md:w-1/3 h-auto max-h-96 md:max-h-full">
+    <div class="w-full hidden md:block lg:hidden xl:block md:w-1/3 h-auto max-h-96 md:max-h-full">
         <ul>
             <li v-for="article in articles" :key="article.id"
                 class="mt-2 pb-2 border-b border-dashed border-slate-500 dark:border-slate-300">

@@ -27,10 +27,12 @@ const {t} = useI18n();
             <option value="deselectAll">{{ t('deselectAll') }}</option>
             <option value="activate">{{ t('activate') }}</option>
             <option value="deactivate">{{ t('deactivate') }}</option>
+            <option value="left">{{ t('left') }}</option>
+            <option value="noLeft">{{ t('noLeft') }}</option>
             <option value="main">{{ t('main') }}</option>
             <option value="noMain">{{ t('noMain') }}</option>
-            <option value="sidebar">{{ t('sidebar') }}</option>
-            <option value="noSidebar">{{ t('noSidebar') }}</option>
+            <option value="right">{{ t('right') }}</option>
+            <option value="noRight">{{ t('noRight') }}</option>
             <option value="delete">{{ t('deleteSelected') }}</option>
         </select>
     </div>

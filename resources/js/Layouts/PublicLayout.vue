@@ -1,11 +1,12 @@
 <script setup>
 import {defineProps} from 'vue';
-import {Head, usePage} from "@inertiajs/vue3";
-import Header from "@/Partials/Public/Header.vue";
-import Footer from "@/Partials/Public/Footer.vue";
 import {useRubric} from '@/composables/rubrics.js';
 import {useArticle} from "@/composables/articles.js";
+import {Head, usePage} from "@inertiajs/vue3";
+import Header from "@/Partials/Public/Header.vue";
+import LeftSidebar from "@/Components/Public/Default/Partials/LeftSidebar.vue";
 import RightSidebar from "@/Components/Public/Default/Partials/RightSidebar.vue";
+import Footer from "@/Partials/Public/Footer.vue";
 
 const props = defineProps({
     title: String,
@@ -28,6 +29,9 @@ const {props: pageProps} = usePage();
     <Header :can-login="canLogin" :can-register="canRegister"/>
 
     <main class="min-h-screen flex justify-center flex-col lg:flex-row tracking-wider">
+        <!-- Левый сайдбар -->
+        <LeftSidebar/>
+
         <slot/>
 
         <!-- Правый сайдбар -->

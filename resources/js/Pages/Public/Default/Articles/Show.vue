@@ -130,7 +130,7 @@ const {article, recommendedArticles} = usePage().props;
                     class="text-orange-400 dark:text-orange-300 text-center text-2xl font-semibold mb-4">
                     {{ t('relatedArticles') }}:
                 </h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3 gap-4">
 
                     <!-- Изменённый фрагмент для каждого рекомендованного элемента -->
                     <div v-for="rec in recommendedArticles" :key="rec.id"

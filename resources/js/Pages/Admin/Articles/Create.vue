@@ -45,8 +45,9 @@ const form = useForm({
     meta_keywords: '',
     meta_desc: '',
     activity: false,
+    left: false,
     main: false,
-    sidebar: false,
+    right: false,
     sections: [],
     tags: [],
     related_articles: [],
@@ -90,8 +91,9 @@ const submitForm = () => {
     form.transform((data) => ({
         ...data,
         activity: data.activity ? 1 : 0,
+        left: data.left ? 1 : 0,
         main: data.main ? 1 : 0,
-        sidebar: data.sidebar ? 1 : 0,
+        right: data.right ? 1 : 0,
 
         images: form.images.map(image => {
             if (image.file) {
@@ -182,16 +184,22 @@ const submitForm = () => {
 
                     <div class="mb-3 flex justify-between flex-col lg:flex-row items-center gap-4">
 
+                        <!-- Показывать в левом сайдбаре -->
+                        <div class="flex flex-row items-center gap-2">
+                            <ActivityCheckbox v-model="form.left"/>
+                            <LabelCheckbox for="left" :text="t('left')" class="text-sm h-8 flex items-center"/>
+                        </div>
+
                         <!-- Показывать в главных новостях -->
                         <div class="flex flex-row items-center gap-2">
                             <ActivityCheckbox v-model="form.main"/>
                             <LabelCheckbox for="main" :text="t('main')" class="text-sm h-8 flex items-center"/>
                         </div>
 
-                        <!-- Показывать в сайдбаре -->
+                        <!-- Показывать в правом сайдбаре -->
                         <div class="flex flex-row items-center gap-2">
-                            <ActivityCheckbox v-model="form.sidebar"/>
-                            <LabelCheckbox for="sidebar" :text="t('sidebar')" class="text-sm h-8 flex items-center"/>
+                            <ActivityCheckbox v-model="form.right"/>
+                            <LabelCheckbox for="right" :text="t('right')" class="text-sm h-8 flex items-center"/>
                         </div>
 
                     </div>
