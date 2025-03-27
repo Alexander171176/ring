@@ -58,18 +58,19 @@ const form = useForm({
 });
 
 // Массив для существующих изображений
-// Если в article.images поле path отсутствует, используем пустую строку или фильтруем такие записи
 const existingImages = ref(
     (props.article.images || [])
-        .filter(img => img.path) // фильтруем, если необходимо
+        .filter(img => img.url) // фильтруем изображения, у которых есть URL
         .map(img => ({
             id: img.id,
-            url: img.url ? img.url : `/storage/${img.path}`, // здесь вычисляется правильный URL
+            // Если есть WebP-версия, используем её, иначе — оригинальный URL
+            url: img.webp_url || img.url,
             order: img.order || 0,
             alt: img.alt || '',
             caption: img.caption || ''
         }))
 );
+
 
 // Массив для новых изображений (будут содержать свойство file)
 const newImages = ref([]);

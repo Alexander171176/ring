@@ -23,15 +23,17 @@ RUN apk --update add wget \
     libjpeg-turbo-dev \
     libpng-dev \
     libwebp-dev \
-    gd \
-    nano  # Добавляем nano для удобства работы в контейнере
+    imagemagick \
+    imagemagick-dev \
+    nano \
+    unzip
 
 # Устанавливаем расширения PHP
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp && \
     docker-php-ext-install gd pdo_pgsql pcntl exif
 
-# Устанавливаем и активируем Redis
-RUN pecl install redis && docker-php-ext-enable redis
+# Устанавливаем и активируем Redis и Imagick
+RUN pecl install redis imagick && docker-php-ext-enable redis imagick
 
 # Устанавливаем Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename composer
@@ -40,7 +42,8 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 COPY ./docker/php/php.ini /usr/local/etc/php/conf.d/php.ini
 
 # Очищаем кеш пакетного менеджера для уменьшения размера образа
-RUN rm -rf /var/cache/apk/*
+RUN rm -rf /var/cache/apk/* && \
+    rm -rf /tmp/*
 
 # Очищаем лишние данные для оптимизации образа
 RUN rm -rf /usr/share/php8

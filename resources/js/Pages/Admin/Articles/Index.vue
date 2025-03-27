@@ -12,7 +12,7 @@ import SearchInput from '@/Components/Admin/Search/SearchInput.vue';
 import SortSelect from '@/Components/Admin/Article/Sort/SortSelect.vue';
 import ArticleTable from '@/Components/Admin/Article/Table/ArticleTable.vue';
 import CountTable from '@/Components/Admin/Count/CountTable.vue';
-import BulkActionSelect from '@/Components/Admin/Select/BulkActionSelect.vue';
+import BulkActionSelect from '@/Components/Admin/Article/Select/BulkActionSelect.vue';
 import axios from 'axios';
 
 const { t } = useI18n();
@@ -117,6 +117,18 @@ const sortArticles = (articles) => {
     if (sortParam.value === 'inactive') {
         return articles.filter(article => !article.activity);
     }
+    if (sortParam.value === 'main') {
+        return articles.filter(article => article.main);
+    }
+    if (sortParam.value === 'noMain') {
+        return articles.filter(article => !article.main);
+    }
+    if (sortParam.value === 'sidebar') {
+        return articles.filter(article => article.sidebar);
+    }
+    if (sortParam.value === 'noSidebar') {
+        return articles.filter(article => !article.sidebar);
+    }
     return articles.slice().sort((a, b) => {
         if (sortParam.value === 'views' || sortParam.value === 'likes') {
             // ✅ Сортировка в порядке убывания для просмотров и лайков
@@ -203,6 +215,42 @@ const bulkToggleActivity = (newActivity) => {
         });
 };
 
+// Функции для массового включения/выключения в слайдер
+const bulkToggleMain = (newMain) => {
+    const updatePromises = selectedArticles.value.map((articleId) =>
+        axios.put(route('articles.updateMain', articleId), { main: newMain })
+    );
+
+    Promise.all(updatePromises)
+        .then((responses) => {
+            const reloadRequired = responses.some(response => response.data.reload);
+            if (reloadRequired) {
+                window.location.reload();
+            }
+        })
+        .catch(error => {
+            console.error(error.response.data);
+        });
+};
+
+// Функции для массового включения/выключения в правую колонку
+const bulkToggleSidebar = (newSidebar) => {
+    const updatePromises = selectedArticles.value.map((articleId) =>
+        axios.put(route('articles.updateSidebar', articleId), { sidebar: newSidebar })
+    );
+
+    Promise.all(updatePromises)
+        .then((responses) => {
+            const reloadRequired = responses.some(response => response.data.reload);
+            if (reloadRequired) {
+                window.location.reload();
+            }
+        })
+        .catch(error => {
+            console.error(error.response.data);
+        });
+};
+
 const bulkDelete = () => {
     axios.delete(route('articles.bulkDestroy'), { data: { ids: selectedArticles.value } })
         .then(response => {
@@ -230,6 +278,14 @@ const handleBulkAction = (event) => {
         bulkToggleActivity(true);
     } else if (action === 'deactivate') {
         bulkToggleActivity(false);
+    } else if (action === 'main') {
+        bulkToggleMain(true);
+    } else if (action === 'noMain') {
+        bulkToggleMain(false);
+    } else if (action === 'sidebar') {
+        bulkToggleSidebar(true);
+    } else if (action === 'noSidebar') {
+        bulkToggleSidebar(false);
     } else if (action === 'delete') {
         bulkDelete();
     }

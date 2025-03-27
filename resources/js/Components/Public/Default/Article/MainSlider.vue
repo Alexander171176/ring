@@ -32,16 +32,14 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <div class="slider p-1 flex justify-center
-                w-full md:w-2/3 h-auto
-                max-h-48 sm:max-h-80 md:max-h-96
-                bg-slate-100 dark:bg-slate-800
-                border-4 border-sky-600 shadow-lg shadow-gray-400 dark:shadow-gray-600">
-
+    <div v-if="currentArticle"
+         class="slider p-1 flex justify-center
+                w-full md:w-2/3 h-auto max-h-48 sm:max-h-80 md:max-h-96
+                bg-slate-100 dark:bg-slate-800 border-4 border-sky-600
+                shadow-lg shadow-gray-400 dark:shadow-gray-600">
         <div class="relative overflow-hidden w-full max-w-2xl bg-slate-100 dark:bg-slate-800">
             <transition name="fade" mode="out-in">
                 <div v-if="currentArticle" :key="currentArticle.id" class="slide absolute inset-0">
-
                     <!-- Информация о статье -->
                     <div class="w-full absolute p-3 bg-slate-800 opacity-75">
                         <div class="text-xs font-semibold text-yellow-200 mb-1">
@@ -49,9 +47,7 @@ onUnmounted(() => {
                         </div>
                         <Link
                             :href="`/articles/${currentArticle.url}`"
-                            class="font-semibold text-white
-                                   hover:text-blue-700 dark:hover:text-blue-600"
-                        >
+                            class="font-semibold text-white hover:text-blue-700 dark:hover:text-blue-600">
                             {{ currentArticle.title }}
                         </Link>
                     </div>
@@ -59,7 +55,7 @@ onUnmounted(() => {
                     <div class="w-full aspect-[4/3] overflow-hidden">
                         <img
                             v-if="currentArticle.images && currentArticle.images.length > 0"
-                            :src="currentArticle.images[0].url"
+                            :src="currentArticle.images[0].webp_url || currentArticle.images[0].url"
                             :alt="currentArticle.images[0].alt"
                             class="w-full h-full object-cover"
                         />
@@ -70,27 +66,23 @@ onUnmounted(() => {
                 </div>
             </transition>
 
-            <!-- Кнопки навигации (скрывать на маленьких экранах, например) -->
+            <!-- Кнопки навигации -->
             <button
                 @click="prev"
-                class="hidden sm:block absolute left-2 top-1/2
-                       transform -translate-y-1/2
-                       bg-gray-700 bg-opacity-50 hover:bg-opacity-75
-                       text-white p-2 rounded-sm focus:outline-none"
-                title="Previous"
-            >
+                class="hidden sm:block absolute left-2 top-1/2 transform -translate-y-1/2
+                       bg-gray-700 bg-opacity-50 hover:bg-opacity-75 text-white p-2 rounded-sm
+                       focus:outline-none"
+                title="Previous">
                 <svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M7.707 3.707a1 1 0 010 1.414L4.414 8H16a1 1 0 110 2H4.414l3.293 3.293a1 1 0 01-1.414 1.414l-5-5a1 1 0 010-1.414l5-5a1 1 0 011.414 0z" clip-rule="evenodd" />
                 </svg>
             </button>
             <button
                 @click="next"
-                class="hidden sm:block absolute right-2 top-1/2
-                       transform -translate-y-1/2
-                       bg-gray-700 bg-opacity-50 hover:bg-opacity-75
-                       text-white p-2 rounded-sm focus:outline-none"
-                title="Next"
-            >
+                class="hidden sm:block absolute right-2 top-1/2 transform -translate-y-1/2
+                       bg-gray-700 bg-opacity-50 hover:bg-opacity-75 text-white p-2 rounded-sm
+                       focus:outline-none"
+                title="Next">
                 <svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M12.293 16.293a1 1 0 010-1.414L15.586 12H4a1 1 0 110-2h11.586l-3.293-3.293a1 1 0 111.414-1.414l5 5a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0z" clip-rule="evenodd" />
                 </svg>

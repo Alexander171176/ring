@@ -2,7 +2,7 @@
 import {Head, Link, usePage} from '@inertiajs/vue3';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import MainSlider from "@/Components/Public/Default/Article/MainSlider.vue";
-import RightColumn from "@/Components/Public/Default/Partials/RightColumn.vue";
+import LeftColumn from "@/Components/Public/Default/Partials/LeftColumn.vue";
 import {useI18n} from 'vue-i18n';
 import SectionArticlesPagination from "@/Components/Public/Default/Article/SectionArticlesPagination.vue";
 
@@ -42,8 +42,8 @@ const {rubric, sections, activeArticlesCount} = usePage().props;
                          selection:bg-red-400 selection:text-white">
 
             <div class="flex justify-center flex-col md:flex-row md:space-x-4">
+                <LeftColumn/>
                 <MainSlider/>
-                <RightColumn/>
             </div>
 
             <!-- Заголовок рубрики -->

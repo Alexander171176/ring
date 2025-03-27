@@ -5,10 +5,10 @@ import {useI18n} from 'vue-i18n';
 
 const {t} = useI18n();
 // Получаем данные из страницы, включая новый пропс sidebarArticles
-const {sidebarArticles,} = usePage().props;
+const {mainArticles} = usePage().props;
 
-// Используем prop sidebarArticles вместо вычисления через секции
-const articles = computed(() => sidebarArticles || []);
+// Используем prop mainArticles вместо вычисления через секции
+const articles = computed(() => mainArticles || []);
 </script>
 
 <template>

@@ -84,7 +84,7 @@ const {article, recommendedArticles} = usePage().props;
                  class="flex flex-col justify-center items-center"
                  itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
                 <img
-                    :src="article.images[0].url"
+                    :src="article.images[0].webp_url || article.images[0].url"
                     :alt="article.images[0].alt"
                     class="w-full max-w-4xl h-auto object-cover
                            border-4 border-sky-600 shadow-lg shadow-gray-400 dark:shadow-gray-600"
@@ -140,7 +140,7 @@ const {article, recommendedArticles} = usePage().props;
                             <div class="w-full aspect-[4/3] overflow-hidden">
                                 <img
                                     v-if="rec.images && rec.images.length > 0"
-                                    :src="rec.images[0].url"
+                                    :src="rec.images[0].webp_url || rec.images[0].url"
                                     :alt="rec.images[0].alt"
                                     class="w-full h-full object-cover"
                                 />

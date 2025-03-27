@@ -29,7 +29,7 @@ const sidebarClasses = computed(() => {
 </script>
 
 <template>
-    <aside :class="sidebarClasses">
+    <aside v-if="articles.length > 0" :class="sidebarClasses">
         <div class="flex items-center justify-between">
             <h2 v-if="!isCollapsed" class="text-xl font-semibold text-gray-900 dark:text-slate-100">
                 {{ t('latestNews') }}
@@ -57,9 +57,10 @@ const sidebarClasses = computed(() => {
                           :href="`/articles/${article.url}`"
                           class="h-40 overflow-hidden">
                         <img
-                            :src="article.images[0].url"
+                            v-if="article.images && article.images.length > 0"
+                            :src="article.images[0].webp_url || article.images[0].url"
                             :alt="article.images[0].alt"
-                            class="w-full h-full object-cover border-2 border-gray-200"
+                            class="w-full h-full object-cover"
                         />
                     </Link>
                     <Link v-else :href="`/articles/${article.url}`"

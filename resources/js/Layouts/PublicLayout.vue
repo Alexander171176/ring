@@ -27,7 +27,7 @@ const {props: pageProps} = usePage();
     <!-- Импортируем Header и передаем пропсы -->
     <Header :can-login="canLogin" :can-register="canRegister"/>
 
-    <main class="min-h-screen flex flex-col lg:flex-row tracking-wider">
+    <main class="min-h-screen flex justify-center flex-col lg:flex-row tracking-wider">
         <slot/>
 
         <!-- Правый сайдбар -->

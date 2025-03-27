@@ -28,16 +28,6 @@ const emits = defineEmits([
     'toggle-select'
 ]);
 
-const imagePath = (path) => {
-    if (!path || path === 'default-image.png') {
-        return '/storage/article_images/default-image.png';
-    }
-    if (path.startsWith('http') || path.startsWith('https')) {
-        return path;
-    }
-    return `/storage/${path}`;
-};
-
 const recalculateSort = (event) => {
     emits('recalculate-sort', event);
 };
@@ -117,13 +107,12 @@ const toggleAll = (event) => {
                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
                                 <div class="flex justify-center">
                                     <img v-if="article.images && article.images.length"
-                                         :src="imagePath(article.images[0].path)"
+                                         :src="article.images[0].webp_url || article.images[0].url"
                                          :alt="article.images[0].alt || t('defaultImageAlt')"
                                          :title="article.images[0].caption || t('postImage')"
-                                         class="h-8 w-8 object-cover rounded-full"
-                                         @click="console.log('Изображения:', article.images)">
+                                         class="h-8 w-8 object-cover rounded-full">
                                     <img v-else
-                                         :src="imagePath('default-image.png')"
+                                         src="/storage/article_images/default-image.png"
                                          :alt="t('defaultImageTitle')"
                                          class="h-8 w-8 object-cover rounded-full">
                                 </div>

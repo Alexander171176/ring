@@ -12,15 +12,26 @@ class ArticleImageResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        // Получаем первое медиа из коллекции 'images'
+        $media = $this->getFirstMedia('images');
+
         return [
-            'id'      => $this->id,
-            'order'   => $this->order,
-            'path'    => $this->path,
-            'url'        => asset('storage/' . $this->path), // полный URL изображения
-            'alt'     => $this->alt,
-            'caption' => $this->caption,
+            'id'         => $this->id,
+            'order'      => $this->order,
+            'alt'        => $this->alt,
+            'caption'    => $this->caption,
             'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at?->format('Y-m-d H:i:s'),
+
+            // URL оригинального изображения
+            'url' => $media ? $media->getUrl() : null,
+
+            // URL WebP-версии изображения
+            'webp_url' => $media ? $media->getUrl('webp') : null,
+
+            // Дополнительные свойства (опционально)
+            'mime_type' => $media->mime_type ?? null,
+            'size'      => $media->size ?? null,
         ];
     }
 }

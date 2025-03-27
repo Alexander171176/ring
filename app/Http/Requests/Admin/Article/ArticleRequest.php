@@ -7,17 +7,11 @@ use Illuminate\Validation\Rule;
 
 class ArticleRequest extends FormRequest
 {
-    /**
-     * Определяет, авторизован ли пользователь для выполнения запроса.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Возвращает правила валидации для запроса.
-     */
     public function rules(): array
     {
         return [
@@ -58,30 +52,23 @@ class ArticleRequest extends FormRequest
             'tags' => ['sometimes', 'array'],
             'related_articles' => ['sometimes', 'array'],
 
-            // Обновленная валидация изображений
-            'images.*' => [
-                'nullable',
-                function ($attribute, $value, $fail) {
-                    if (is_array($value) && array_key_exists('id', $value) && !is_numeric($value['id'])) {
-                        $fail('ID изображения должен быть числом.');
-                    }
-                    if (is_array($value) && array_key_exists('order', $value) && !is_numeric($value['order'])) {
-                        $fail('Сортирвка изображения должна быть числом.');
-                    }
-                    if (is_array($value) && array_key_exists('file', $value) && !$value['file'] instanceof \Illuminate\Http\UploadedFile) {
-                        $fail('Загружаемый файл должен быть изображением.');
-                    }
-                    if (!isset($value['id']) && !isset($value['file'])) {
-                        $fail('Каждое изображение должно содержать либо ID, либо загруженный файл.');
-                    }
-                },
-            ],
+            // Валидация массива изображений
+            'images' => ['sometimes', 'array'],
+            'images.*.id' => ['nullable', 'integer', 'exists:article_images,id'],
+            'images.*.order' => ['nullable', 'integer'],
+            'images.*.alt' => ['nullable', 'string', 'max:255'],
+            'images.*.caption' => ['nullable', 'string', 'max:255'],
+            'images.*.file' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:10240'], // 10MB
+
+            // Если файла и ID нет одновременно, то ошибка:
+            'images.*' => ['array', function ($attr, $value, $fail) {
+                if (empty($value['id']) && empty($value['file'])) {
+                    $fail("Изображение должно иметь либо загруженный файл, либо ID существующего изображения.");
+                }
+            }],
         ];
     }
 
-    /**
-     * Сообщения об ошибках валидации.
-     */
     public function messages(): array
     {
         return [
@@ -132,6 +119,11 @@ class ArticleRequest extends FormRequest
             'tags.array' => 'Теги должны быть массивом.',
             'related_articles.array' => 'Список связанных статей должен быть массивом.',
 
+            'images.array' => 'Изображения должны быть массивом.',
+            'images.*.id.exists' => 'Указанного изображения не существует.',
+            'images.*.file.image' => 'Файл должен быть изображением.',
+            'images.*.file.mimes' => 'Файл должен быть формата jpeg, jpg, png или webp.',
+            'images.*.file.max' => 'Размер файла изображения не должен превышать 10 Мб.',
         ];
     }
 }

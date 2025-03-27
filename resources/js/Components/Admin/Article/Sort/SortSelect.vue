@@ -23,7 +23,7 @@ const updateSort = (event) => {
             {{ t('sort') }}
         </label>
         <select id="sortParam" :value="sortParam" @change="updateSort"
-                class="w-36 px-3 py-0.5 form-select bg-white dark:bg-gray-200
+                class="w-40 px-3 py-0.5 form-select bg-white dark:bg-gray-200
                        text-gray-600 dark:text-gray-900
                        border border-slate-400 dark:border-slate-600
                        rounded-sm shadow-sm">
@@ -35,6 +35,10 @@ const updateSort = (event) => {
             <option value="likes">{{ t('likes') }}</option>
             <option value="activity">{{ t('active') }}</option>
             <option value="inactive">{{ t('inactive') }}</option>
+            <option value="main">{{ t('inMain') }}</option>
+            <option value="noMain">{{ t('notMain') }}</option>
+            <option value="sidebar">{{ t('inSidebar') }}</option>
+            <option value="noSidebar">{{ t('notSidebar') }}</option>
         </select>
     </div>
 </template>
