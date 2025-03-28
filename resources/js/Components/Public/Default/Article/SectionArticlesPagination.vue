@@ -3,6 +3,7 @@
 import { ref, computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import {useI18n} from 'vue-i18n';
+import ArticleImageSlider from "@/Components/Public/Default/Article/ArticleImageSlider.vue";
 
 const {t} = useI18n();
 
@@ -65,16 +66,14 @@ const prevPage = () => {
                 <div class="flex flex-col h-full">
 
                     <!-- Изображение статьи -->
-                    <Link v-if="article.images && article.images.length > 0"
-                          :href="`/articles/${article.url}`"
-                          class="h-40 overflow-hidden">
-                        <img
-                            v-if="article.images && article.images.length > 0"
-                            :src="article.images[0].webp_url || article.images[0].url"
-                            :alt="article.images[0].alt"
-                            class="w-full h-full object-cover"
+                    <div v-if="article.images && article.images.length > 0" class="h-40 overflow-hidden">
+                        <ArticleImageSlider
+                            :images="article.images"
+                            :link="`/articles/${article.url}`"
+                            :alt="t('defaultImageAlt')"
+                            :title="t('postImage')"
                         />
-                    </Link>
+                    </div>
                     <Link v-else :href="`/articles/${article.url}`"
                           class="h-40 flex items-center justify-center bg-gray-200 dark:bg-gray-400">
                         <span class="text-gray-500 dark:text-gray-700">{{ t('noCurrentImage') }}</span>

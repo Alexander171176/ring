@@ -61,7 +61,7 @@ class RubricController extends Controller
                     ->with(['articles' => function ($query) use ($locale) {
                         $query->where('activity', 1)
                             ->where('locale', $locale)
-                            ->orderBy('sort', 'asc')
+                            ->orderBy('sort', 'desc')
                             ->with(['images', 'tags']);
                     }]);
             }
@@ -77,7 +77,7 @@ class RubricController extends Controller
         $leftArticles = Article::where('activity', 1)
             ->where('locale', $locale)
             ->where('left', true)
-            ->orderBy('sort', 'asc')
+            ->orderBy('sort', 'desc')
             ->with(['images', 'tags'])
             ->get();
 
@@ -86,7 +86,7 @@ class RubricController extends Controller
         $mainArticles = Article::where('activity', 1)
             ->where('locale', $locale)
             ->where('main', true)
-            ->orderBy('sort', 'asc')
+            ->orderBy('sort', 'desc')
             ->with(['images', 'tags'])
             ->get();
 
@@ -95,7 +95,7 @@ class RubricController extends Controller
         $rightArticles = Article::where('activity', 1)
             ->where('locale', $locale)
             ->where('right', true)
-            ->orderBy('sort', 'asc')
+            ->orderBy('sort', 'desc')
             ->with(['images', 'tags'])
             ->get();
 

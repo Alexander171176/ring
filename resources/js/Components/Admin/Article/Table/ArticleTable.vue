@@ -91,6 +91,9 @@ const toggleAll = (event) => {
                         </div>
                     </th>
                     <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
+                        <div class="font-medium text-center">{{ t('show') }}</div>
+                    </th>
+                    <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
                         <div class="font-medium text-center">{{ t('actions') }}</div>
                     </th>
                     <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
@@ -106,7 +109,7 @@ const toggleAll = (event) => {
                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
                                 <div class="text-center text-blue-600 dark:text-blue-200">{{ article.id }}</div>
                             </td>
-                            <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
+                            <td class="first:pl-5 last:pr-5 py-1">
                                 <div class="flex justify-center">
                                     <img v-if="article.images && article.images.length"
                                          :src="article.images[0].webp_url || article.images[0].url"
@@ -147,14 +150,18 @@ const toggleAll = (event) => {
                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
                                 <div class="flex justify-center space-x-2">
                                     <LeftToggle :isActive="article.left"
-                                                   @toggle-left="$emit('toggle-left', article)"
-                                                   :title="article.left ? t('enabled') : t('disabled')"/>
+                                                @toggle-left="$emit('toggle-left', article)"
+                                                :title="article.left ? t('enabled') : t('disabled')"/>
                                     <MainToggle :isActive="article.main"
-                                                    @toggle-main="$emit('toggle-main', article)"
-                                                    :title="article.main ? t('enabled') : t('disabled')"/>
+                                                @toggle-main="$emit('toggle-main', article)"
+                                                :title="article.main ? t('enabled') : t('disabled')"/>
                                     <RightToggle :isActive="article.right"
-                                                @toggle-right="$emit('toggle-right', article)"
-                                                :title="article.right ? t('enabled') : t('disabled')"/>
+                                                 @toggle-right="$emit('toggle-right', article)"
+                                                 :title="article.right ? t('enabled') : t('disabled')"/>
+                                </div>
+                            </td>
+                            <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
+                                <div class="flex justify-center space-x-2">
                                     <ActivityToggle :isActive="article.activity"
                                                     @toggle-activity="$emit('toggle-activity', article)"
                                                     :title="article.activity ? t('enabled') : t('disabled')"/>

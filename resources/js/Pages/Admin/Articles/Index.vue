@@ -122,10 +122,11 @@ const itemsPerPage = ref(10); // Количество элементов на с
 const searchQuery = ref('');
 
 // Параметр сортировки
-const sortParam = ref('sort');
+const sortParam = ref('idDesc');
 
 // Функция сортировки
 const sortArticles = (articles) => {
+    // Фильтры для отдельных состояний остаются прежними:
     if (sortParam.value === 'activity') {
         return articles.filter(article => article.activity);
     }
@@ -150,11 +151,22 @@ const sortArticles = (articles) => {
     if (sortParam.value === 'noRight') {
         return articles.filter(article => !article.right);
     }
+
+    // Добавляем сортировку по id в двух направлениях:
+    if (sortParam.value === 'idAsc') {
+        return articles.slice().sort((a, b) => a.id - b.id);
+    }
+    if (sortParam.value === 'idDesc') {
+        return articles.slice().sort((a, b) => b.id - a.id);
+    }
+
+    // Для просмотров и лайков сортировка по убыванию:
+    if (sortParam.value === 'views' || sortParam.value === 'likes') {
+        return articles.slice().sort((a, b) => b[sortParam.value] - a[sortParam.value]);
+    }
+
+    // Для остальных полей — стандартное сравнение:
     return articles.slice().sort((a, b) => {
-        if (sortParam.value === 'views' || sortParam.value === 'likes') {
-            // ✅ Сортировка в порядке убывания для просмотров и лайков
-            return b[sortParam.value] - a[sortParam.value];
-        }
         if (a[sortParam.value] < b[sortParam.value]) {
             return -1;
         }

@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue';
 import { usePage, Link } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
+import ArticleImageSlider from "@/Components/Public/Default/Article/ArticleImageSlider.vue";
 
 const { t } = useI18n();
 // Получаем данные из страницы, включая новый пропс leftArticles
@@ -57,11 +58,11 @@ const sidebarClasses = computed(() => {
                     <Link v-if="article.images && article.images.length > 0"
                           :href="`/articles/${article.url}`"
                           class="h-40 overflow-hidden">
-                        <img
-                            v-if="article.images && article.images.length > 0"
-                            :src="article.images[0].webp_url || article.images[0].url"
-                            :alt="article.images[0].alt"
-                            class="w-full h-full object-cover"
+                        <ArticleImageSlider
+                            :images="article.images"
+                            :link="`/articles/${article.url}`"
+                            :alt="article.images[0].alt || t('noCurrentImage')"
+                            :title="article.images[0].caption || t('postImage')"
                         />
                     </Link>
                     <Link v-else :href="`/articles/${article.url}`"

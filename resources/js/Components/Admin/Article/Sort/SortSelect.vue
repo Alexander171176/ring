@@ -1,8 +1,8 @@
 <script setup>
-import { defineProps, defineEmits } from 'vue';
-import { useI18n } from 'vue-i18n';
+import {defineProps, defineEmits} from 'vue';
+import {useI18n} from 'vue-i18n';
 
-const { t } = useI18n();
+const {t} = useI18n();
 
 const props = defineProps({
     sortParam: String
@@ -27,7 +27,10 @@ const updateSort = (event) => {
                        text-gray-600 dark:text-gray-900
                        border border-slate-400 dark:border-slate-600
                        rounded-sm shadow-sm">
-            <option value="id">{{ t('id') }}</option>
+            <!-- Новые варианты для id -->
+            <option value="idDesc">{{ t('idDesc') }}</option>
+            <option value="idAsc">{{ t('idAsc') }}</option>
+            <!-- Остальные варианты сортировки -->
             <option value="sort">{{ t('sortNumber') }}</option>
             <option value="locale">{{ t('localization') }}</option>
             <option value="title">{{ t('title') }}</option>
