@@ -223,10 +223,10 @@ const approveComment = (commentId) => {
                         overflow-hidden shadow-lg shadow-gray-500 dark:shadow-slate-400
                         bg-opacity-95 dark:bg-opacity-95">
                 <div class="sm:flex sm:justify-end sm:items-center mb-2">
-                    <BulkActionSelect @change="handleBulkAction" />
+                    <BulkActionSelect v-if="commentsCount" @change="handleBulkAction" />
                 </div>
-                <SearchInput v-model="searchQuery" :placeholder="t('search')"/>
-                <CountTable> {{ commentsCount }} </CountTable>
+                <SearchInput v-if="commentsCount" v-model="searchQuery" :placeholder="t('search')"/>
+                <CountTable v-if="commentsCount"> {{ commentsCount }} </CountTable>
                 <CommentTable
                     :comments="paginatedComments"
                     :selected-comments="selectedComments"
@@ -242,7 +242,7 @@ const approveComment = (commentId) => {
                     :comment="commentDetails"
                     @close="closeCommentDetailsModal"
                 />
-                <div class="flex justify-between items-center flex-col md:flex-row my-1">
+                <div class="flex justify-between items-center flex-col md:flex-row my-1" v-if="commentsCount">
                     <ItemsPerPageSelect :items-per-page="itemsPerPage" @update:itemsPerPage="itemsPerPage = $event" />
                     <Pagination :current-page="currentPage"
                                 :items-per-page="itemsPerPage"

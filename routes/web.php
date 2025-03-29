@@ -67,6 +67,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::resource('/sections', \App\Http\Controllers\Admin\Section\SectionController::class);
         Route::resource('/articles', \App\Http\Controllers\Admin\Article\ArticleController::class);
         Route::resource('/tags', \App\Http\Controllers\Admin\Tag\TagController::class);
+        Route::resource('/banners', \App\Http\Controllers\Admin\Banner\BannerController::class);
         Route::resource('/charts', \App\Http\Controllers\Admin\Chart\ChartController::class);
         Route::resource('/reports', \App\Http\Controllers\Admin\Report\ReportController::class)
             ->only(['index']);
@@ -105,6 +106,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
             \App\Http\Controllers\Admin\Invokable\RemoveArticleFromSectionController::class)
             ->name('sections.articles.destroy');
 
+        Route::delete('/sections/{section}/banners/{banner}',
+            \App\Http\Controllers\Admin\Invokable\RemoveBannerFromSectionController::class)
+            ->name('sections.banners.destroy');
+
         Route::delete('/articles/{article}/tags/{tag}',
             \App\Http\Controllers\Admin\Invokable\RemoveArticleFromTagController::class)
             ->name('articles.tags.destroy');
@@ -135,6 +140,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
             [\App\Http\Controllers\Admin\Article\ArticleController::class, 'updateActivity'])
             ->name('articles.updateActivity');
 
+        Route::put('/banners/{id}/updateActivity',
+            [\App\Http\Controllers\Admin\Banner\BannerController::class, 'updateActivity'])
+            ->name('banners.updateActivity');
+
         Route::put('/settings/{id}/updateActivity',
             [\App\Http\Controllers\Admin\Parameter\ParameterController::class, 'updateActivity'])
             ->name('settings.updateActivity');
@@ -160,6 +169,15 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
             [\App\Http\Controllers\Admin\Article\ArticleController::class, 'updateRight'])
             ->name('articles.updateRight');
 
+        // Группа маршрутов для переключения Статей в левом и правом сайдбарах
+        Route::put('/banners/{id}/updateLeft',
+            [\App\Http\Controllers\Admin\Banner\BannerController::class, 'updateLeft'])
+            ->name('banners.updateLeft');
+
+        Route::put('/banners/{id}/updateRight',
+            [\App\Http\Controllers\Admin\Banner\BannerController::class, 'updateRight'])
+            ->name('banners.updateRight');
+
         // Группа маршрутов для обновления сортировки
         Route::put('/rubrics/{rubric}/updateSort',
             [\App\Http\Controllers\Admin\Rubric\RubricController::class, 'updateSort'])
@@ -172,6 +190,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::put('/articles/{article}/updateSort',
             [\App\Http\Controllers\Admin\Article\ArticleController::class, 'updateSort'])
             ->name('articles.updateSort');
+
+        Route::put('/banners/{banner}/updateSort',
+            [\App\Http\Controllers\Admin\Banner\BannerController::class, 'updateSort'])
+            ->name('banners.updateSort');
 
         // Группа маршрутов для массового удаления сущностей
         Route::delete('/admin/rubrics/bulk-delete',
@@ -189,6 +211,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::delete('/admin/tags/bulk-delete',
             [\App\Http\Controllers\Admin\Tag\TagController::class, 'bulkDestroy'])
             ->name('tags.bulkDestroy');
+
+        Route::delete('/admin/banners/bulk-delete',
+            [\App\Http\Controllers\Admin\Banner\BannerController::class, 'bulkDestroy'])
+            ->name('banners.bulkDestroy');
 
         Route::delete('/comments/bulk-delete',
             [\App\Http\Controllers\Admin\Comment\CommentController::class, 'bulkDestroy'])

@@ -155,10 +155,10 @@ const handleBulkAction = (event) => {
                         </template>
                         {{ t('addTag') }}
                     </DefaultButton>
-                    <BulkActionSelect @change="handleBulkAction" />
+                    <BulkActionSelect v-if="tagsCount" @change="handleBulkAction" />
                 </div>
-                <SearchInput v-model="searchQuery" :placeholder="t('searchByName')"/>
-                <CountTable> {{ tagsCount }} </CountTable>
+                <SearchInput v-if="tagsCount" v-model="searchQuery" :placeholder="t('searchByName')"/>
+                <CountTable v-if="tagsCount"> {{ tagsCount }} </CountTable>
                 <TagTable
                     :tags="paginatedTags"
                     :selected-tags="selectedTags"
@@ -166,7 +166,7 @@ const handleBulkAction = (event) => {
                     @toggle-select="toggleSelectTag"
                     @toggle-all="toggleAll"
                 />
-                <div class="flex justify-between items-center flex-col md:flex-row my-1">
+                <div class="flex justify-between items-center flex-col md:flex-row my-1" v-if="tagsCount">
                     <ItemsPerPageSelect :items-per-page="itemsPerPage" @update:itemsPerPage="itemsPerPage = $event" />
                     <Pagination :current-page="currentPage"
                                 :items-per-page="itemsPerPage"

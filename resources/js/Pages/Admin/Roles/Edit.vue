@@ -76,7 +76,9 @@ watch(
                 <div class="py-4 flex flex-wrap justify-around relative bg-white dark:bg-slate-700">
                     <form @submit.prevent="submit" class="p-3 w-full md:w-1/2">
                         <div class="mb-3 flex flex-col items-start">
-                            <LabelInput for="name" :value="t('roleName')" />
+                            <LabelInput for="name">
+                                <span class="text-red-500 dark:text-red-300 font-semibold">*</span> {{ t('roleName') }}
+                            </LabelInput>
                             <InputText
                                 id="name"
                                 type="text"

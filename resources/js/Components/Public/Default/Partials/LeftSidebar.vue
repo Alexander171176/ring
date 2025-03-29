@@ -3,13 +3,15 @@ import { ref, computed } from 'vue';
 import { usePage, Link } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import ArticleImageSlider from "@/Components/Public/Default/Article/ArticleImageSlider.vue";
+import BannerImageSlider from "@/Components/Public/Default/Banner/BannerImageSlider.vue";
 
 const { t } = useI18n();
 // Получаем данные из страницы, включая новый пропс leftArticles
-const { leftArticles, } = usePage().props;
+const { leftArticles, leftBanners } = usePage().props;
 
 // Используем prop leftArticles вместо вычисления через секции
 const articles = computed(() => leftArticles || []);
+const banners = computed(() => leftBanners || []);
 
 const isCollapsed = ref(false);
 const toggleSidebar = () => {
@@ -51,6 +53,36 @@ const sidebarClasses = computed(() => {
         <!-- Содержимое сайдбара показывается, когда он развернут -->
         <div v-show="!isCollapsed" class="mt-4">
             <ul>
+                <li v-for="banner in banners" :key="banner.id"
+                    class="mb-2 pb-2 border-b border-slate-500 dark:border-slate-300">
+
+                    <!-- Название баннера -->
+                    <div class="px-3 my-1">
+                        <h3 class="text-center text-lg font-semibold text-teal-600 dark:text-yellow-200">
+                            {{ banner.title }}
+                        </h3>
+                    </div>
+
+                    <!-- Изображение баннера -->
+                    <div v-if="banner.images && banner.images.length > 0"
+                         class="h-40 overflow-hidden">
+                        <BannerImageSlider
+                            :images="banner.images"
+                            :alt="t('defaultImageAlt')"
+                            :title="t('postImage')"
+                        />
+                    </div>
+                    <div v-else
+                         class="h-40 flex items-center justify-center bg-gray-200 dark:bg-gray-400">
+                        <span class="text-gray-500 dark:text-gray-700">{{ t('noCurrentImage') }}</span>
+                    </div>
+
+                    <!-- Краткое описание статьи -->
+                    <p class="mt-2 text-center text-sm font-semibold text-slate-600 dark:text-slate-300">
+                        {{ banner.short }}
+                    </p>
+
+                </li>
                 <li v-for="article in articles" :key="article.id"
                     class="mb-2 pb-2 border-b border-slate-500 dark:border-slate-300">
 

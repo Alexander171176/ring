@@ -111,7 +111,6 @@ const submitForm = () => {
         preserveScroll: true,
         onSuccess: () => {
             //console.log("✔️ Форма успешно отправлена.");
-            window.location.href = route('articles.index');
         },
         onError: (errors) => {
             console.error("❌ Ошибка при отправке формы:", errors);
@@ -217,7 +216,9 @@ const submitForm = () => {
                     </div>
 
                     <div class="mb-3 flex flex-col items-start">
-                        <LabelInput for="title" :value="t('postTitle')"/>
+                        <LabelInput for="title">
+                            <span class="text-red-500 dark:text-red-300 font-semibold">*</span> {{ t('postTitle') }}
+                        </LabelInput>
                         <InputText
                             id="title"
                             type="text"
@@ -229,7 +230,9 @@ const submitForm = () => {
                     </div>
 
                     <div class="mb-3 flex flex-col items-start">
-                        <LabelInput for="url" :value="t('postUrl')"/>
+                        <LabelInput for="url">
+                            <span class="text-red-500 dark:text-red-300 font-semibold">*</span> {{ t('postUrl') }}
+                        </LabelInput>
                         <InputText
                             id="url"
                             type="text"
@@ -243,7 +246,7 @@ const submitForm = () => {
 
                     <div class="mb-3 flex flex-col items-start">
                         <div class="flex justify-between w-full">
-                            <LabelInput for="meta_desc" :value="t('shortDescription')"/>
+                            <LabelInput for="short" :value="t('shortDescription')"/>
                             <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
                                 {{ form.short.length }} / 255 {{ t('characters') }}
                             </div>

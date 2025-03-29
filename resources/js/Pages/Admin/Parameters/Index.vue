@@ -137,20 +137,20 @@ const totalPages = computed(() => Math.ceil(filteredSettings.value.length / item
                         {{ t('addParameter') }}
                     </DefaultButton>
                 </div>
-                <SearchInput v-model="searchQuery" :placeholder="t('searchByParameter')"/>
+                <SearchInput v-if="settingsCount" v-model="searchQuery" :placeholder="t('searchByParameter')"/>
                 <span class="mb-4 py-1 px-3
                          w-full flex items-center justify-center
                          text-md italic font-semibold text-rose-400
                          bg-amber-50 opacity-80 border border-rose-200">
                     {{ t('componentParametersWarning') }}
                 </span>
-                <CountTable> {{ settingsCount }}</CountTable>
+                <CountTable v-if="settingsCount"> {{ settingsCount }}</CountTable>
                 <ParameterTable
                     :settings="paginatedSettings"
                     @toggle-activity="toggleActivity"
                     @delete="confirmDelete"
                 />
-                <div class="flex justify-between items-center flex-col md:flex-row my-1">
+                <div class="flex justify-between items-center flex-col md:flex-row my-1" v-if="settingsCount">
                     <ItemsPerPageSelect :items-per-page="itemsPerPage" @update:itemsPerPage="itemsPerPage = $event"/>
                     <Pagination :current-page="currentPage"
                                 :items-per-page="itemsPerPage"

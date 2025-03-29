@@ -97,13 +97,13 @@ const totalPages = computed(() => Math.ceil(filteredUsers.value.length / itemsPe
                         {{ t('addUser') }}
                     </DefaultButton>
                 </div>
-                <SearchInput v-model="searchQuery" :placeholder="t('searchByNameOrEmail')"/>
-                <CountTable> {{ usersCount }} </CountTable>
+                <SearchInput v-if="usersCount" v-model="searchQuery" :placeholder="t('searchByNameOrEmail')"/>
+                <CountTable v-if="usersCount"> {{ usersCount }} </CountTable>
                 <UserTable
                     :users="paginatedUsers"
                     @delete="confirmDelete"
                 />
-                <div class="flex justify-between items-center flex-col md:flex-row my-1">
+                <div class="flex justify-between items-center flex-col md:flex-row my-1" v-if="usersCount">
                     <Pagination
                         :current-page="currentPage"
                         :items-per-page="itemsPerPage"

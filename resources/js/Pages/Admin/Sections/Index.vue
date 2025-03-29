@@ -224,10 +224,10 @@ const handleBulkAction = (event) => {
                         </template>
                         {{ t('addSection') }}
                     </DefaultButton>
-                    <BulkActionSelect @change="handleBulkAction" />
+                    <BulkActionSelect v-if="sectionsCount" @change="handleBulkAction" />
                 </div>
-                <SearchInput v-model="searchQuery" :placeholder="t('searchByName')"/>
-                <CountTable> {{ sectionsCount }} </CountTable>
+                <SearchInput v-if="sectionsCount" v-model="searchQuery" :placeholder="t('searchByName')"/>
+                <CountTable v-if="sectionsCount"> {{ sectionsCount }} </CountTable>
                 <SectionTable
                     :sections="paginatedSections"
                     :selected-sections="selectedSections"
@@ -238,7 +238,7 @@ const handleBulkAction = (event) => {
                     @toggle-select="toggleSelectSection"
                     @toggle-all="toggleAll"
                 />
-                <div class="flex justify-between items-center flex-col md:flex-row my-1">
+                <div class="flex justify-between items-center flex-col md:flex-row my-1" v-if="sectionsCount">
                     <ItemsPerPageSelect :items-per-page="itemsPerPage" @update:itemsPerPage="itemsPerPage = $event" />
                     <Pagination :current-page="currentPage"
                                 :items-per-page="itemsPerPage"

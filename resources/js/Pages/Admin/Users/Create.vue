@@ -67,7 +67,9 @@ const submit = () => {
 
                     <div class="pb-12">
                         <div class="mb-3 flex flex-col items-start">
-                            <LabelInput for="name" :value="t('userName')"/>
+                            <LabelInput for="name">
+                                <span class="text-red-500 dark:text-red-300 font-semibold">*</span> {{ t('userName') }}
+                            </LabelInput>
                             <InputText
                                 id="name"
                                 type="text"
@@ -79,7 +81,9 @@ const submit = () => {
                         </div>
 
                         <div class="mb-3 flex flex-col items-start">
-                            <LabelInput for="email" :value="t('userEmail')"/>
+                            <LabelInput for="email">
+                                <span class="text-red-500 dark:text-red-300 font-semibold">*</span> {{ t('userEmail') }}
+                            </LabelInput>
                             <InputText
                                 id="email"
                                 type="email"
@@ -91,7 +95,9 @@ const submit = () => {
                         </div>
 
                         <div class="mb-3 flex flex-col items-start">
-                            <LabelInput for="password" :value="t('userPassword')"/>
+                            <LabelInput for="password">
+                                <span class="text-red-500 dark:text-red-300 font-semibold">*</span> {{ t('userPassword') }}
+                            </LabelInput>
                             <InputText
                                 id="password"
                                 type="password"
@@ -103,7 +109,10 @@ const submit = () => {
                         </div>
 
                         <div class="mb-3 flex flex-col items-start">
-                            <LabelInput for="password_confirmation" :value="t('passwordConfirmation')"/>
+                            <LabelInput for="password_confirmation">
+                                <span class="text-red-500 dark:text-red-300 font-semibold">*</span>
+                                {{ t('passwordConfirmation') }}
+                            </LabelInput>
                             <InputText
                                 id="password_confirmation"
                                 type="password"

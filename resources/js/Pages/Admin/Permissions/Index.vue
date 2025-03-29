@@ -104,13 +104,13 @@ const totalPages = computed(() => Math.ceil(filteredPermissions.value.length / i
                         {{ t('addPermission') }}
                     </DefaultButton>
                 </div>
-                <SearchInput v-model="searchQuery" :placeholder="t('searchByName')"/>
-                <CountTable> {{ permissionsCount }} </CountTable>
+                <SearchInput v-if="permissionsCount" v-model="searchQuery" :placeholder="t('searchByName')"/>
+                <CountTable v-if="permissionsCount"> {{ permissionsCount }} </CountTable>
                 <PermissionTable
                     :permissions="paginatedPermissions"
                     @delete="confirmDelete"
                 />
-                <div class="flex justify-between items-center flex-col md:flex-row my-1">
+                <div class="flex justify-between items-center flex-col md:flex-row my-1"  v-if="permissionsCount">
                     <Pagination :current-page="currentPage"
                                 :items-per-page="itemsPerPage"
                                 :total-items="filteredPermissions.length"

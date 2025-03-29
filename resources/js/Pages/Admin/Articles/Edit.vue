@@ -87,8 +87,8 @@ const handleDeleteExistingImage = (deletedId) => {
         form.deletedImages.push(deletedId);
     }
     existingImages.value = existingImages.value.filter(img => img.id !== deletedId);
-    console.log("Deleted IDs:", form.deletedImages);
-    console.log("Remaining images:", existingImages.value);
+    // console.log("Deleted IDs:", form.deletedImages);
+    // console.log("Remaining images:", existingImages.value);
 };
 
 // Обработчик обновления новых изображений из компонента MultiImageUpload
@@ -137,6 +137,7 @@ const submitForm = () => {
     form.transform((data) => ({
         ...data,
         activity: data.activity ? 1 : 0,
+        left: data.left ? 1 : 0,
         main: data.main ? 1 : 0,
         right: data.right ? 1 : 0,
         images: [
@@ -161,7 +162,6 @@ const submitForm = () => {
         forceFormData: true, // Принудительно отправляем как FormData
         onSuccess: (page) => {
             //console.log("Edit.vue onSuccess:", page);
-            window.location.href = route('articles.index');
         },
         onError: (errors) => {
             console.error("❌ Ошибка при обновлении статьи:", errors);
@@ -251,20 +251,24 @@ const submitForm = () => {
                     </div>
 
                     <div class="mb-3 flex flex-col items-start">
-                        <LabelInput for="title" :value="t('postTitle')" />
+                        <LabelInput for="title">
+                            <span class="text-red-500 dark:text-red-300 font-semibold">*</span> {{ t('postTitle') }}
+                        </LabelInput>
                         <InputText id="title" type="text" v-model="form.title" required autocomplete="title" />
                         <InputError class="mt-2" :message="form.errors.title" />
                     </div>
 
                     <div class="mb-3 flex flex-col items-start">
-                        <LabelInput for="url" :value="t('postUrl')" />
+                        <LabelInput for="url">
+                            <span class="text-red-500 dark:text-red-300 font-semibold">*</span> {{ t('postUrl') }}
+                        </LabelInput>
                         <InputText id="url" type="text" v-model="form.url" required autocomplete="url" @focus="handleUrlInputFocus" />
                         <InputError class="mt-2" :message="form.errors.url" />
                     </div>
 
                     <div class="mb-3 flex flex-col items-start">
                         <div class="flex justify-between w-full">
-                            <LabelInput for="meta_desc" :value="t('shortDescription')" />
+                            <LabelInput for="short" :value="t('shortDescription')" />
                             <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
                                 {{ form.short.length }} / 255 {{ t('characters') }}
                             </div>

@@ -19,6 +19,16 @@ class CustomPathGenerator implements PathGenerator
             return 'article_images/' . $media->model_id . '/';
         }
 
+        // Если медиа привязано к сущности Banner (напрямую)
+        if ($media->model_type === 'App\\Models\\Admin\\Banner\\Banner') {
+            return 'banners/' . $media->model_id . '/';
+        }
+
+        // Если медиа привязано к сущности BannerImage
+        if ($media->model_type === 'App\\Models\\Admin\\Banner\\BannerImage') {
+            return 'banner_images/' . $media->model_id . '/';
+        }
+
         // Дефолтный путь для остальных случаев
         return 'media/' . $media->model_id . '/';
     }

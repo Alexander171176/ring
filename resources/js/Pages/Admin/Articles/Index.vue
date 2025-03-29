@@ -370,10 +370,10 @@ const handleBulkAction = (event) => {
                         </template>
                         {{ t('addPost') }}
                     </DefaultButton>
-                    <BulkActionSelect @change="handleBulkAction" />
+                    <BulkActionSelect v-if="articlesCount" @change="handleBulkAction" />
                 </div>
-                <SearchInput v-model="searchQuery" :placeholder="t('searchByName')"/>
-                <CountTable> {{ articlesCount }}</CountTable>
+                <SearchInput v-if="articlesCount" v-model="searchQuery" :placeholder="t('searchByName')"/>
+                <CountTable v-if="articlesCount"> {{ articlesCount }}</CountTable>
                 <ArticleTable
                     :articles="paginatedArticles"
                     :selected-articles="selectedArticles"
@@ -387,7 +387,7 @@ const handleBulkAction = (event) => {
                     @toggle-select="toggleSelectArticle"
                     @toggle-all="toggleAll"
                 />
-                <div class="flex justify-between items-center flex-col md:flex-row my-1">
+                <div class="flex justify-between items-center flex-col md:flex-row my-1" v-if="articlesCount">
                     <ItemsPerPageSelect :items-per-page="itemsPerPage" @update:itemsPerPage="itemsPerPage = $event" />
                     <Pagination :current-page="currentPage"
                                 :items-per-page="itemsPerPage"

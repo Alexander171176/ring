@@ -2,6 +2,7 @@
 import {defineProps} from 'vue';
 import {useRubric} from '@/composables/rubrics.js';
 import {useArticle} from "@/composables/articles.js";
+import {useBanner} from "@/composables/banners.js";
 import {Head, usePage} from "@inertiajs/vue3";
 import Header from "@/Partials/Public/Header.vue";
 import LeftSidebar from "@/Components/Public/Default/Partials/LeftSidebar.vue";
@@ -18,6 +19,7 @@ const props = defineProps({
 
 const {HasRubric} = useRubric();
 const {HasArticle} = useArticle();
+const {HasBanner} = useBanner();
 
 const {props: pageProps} = usePage();
 </script>

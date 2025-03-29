@@ -192,12 +192,11 @@
     `docker exec ring-php-app php artisan migrate` <br>
 
 29) creating business logic app Tag <br>
-    `docker exec ring-php-app php artisan make:model Admin/Article/Tag -mf` <br>
+    `docker exec ring-php-app php artisan make:model Admin/Tag/Tag -mf` <br>
     `docker exec ring-php-app php artisan make:migration create_article_has_tag_table --create=article_has_tag` <br>
     `docker exec ring-php-app php artisan migrate` <br>
     `docker exec ring-php-app php artisan make:seeder TagSeeder` <br>
     `docker exec ring-php-app php artisan db:seed --class=TagSeeder` <br>
-    `docker exec ring-php-app php artisan make:model Admin/Tag/Tag` <br>
     `docker exec ring-php-app php artisan make:resource Admin/Tag/TagResource` <br>
     `docker exec ring-php-app php artisan make:request Admin/Tag/TagRequest` <br>
     `docker exec ring-php-app php artisan make:controller Admin/Tag/TagController --resource` <br>
@@ -218,7 +217,21 @@
 34) creating business logic app Diagram <br>
   `docker exec ring-php-app php artisan make:controller Admin/Diagram/DiagramController --resource` <br>
 
-35) creating business logic app API <br>
+35) creating business logic ap Banner
+    `docker exec ring-php-app php artisan make:model Admin/Banner/Banner -mf` <br>
+    `docker exec ring-php-app php artisan make:migration create_banner_has_section_table --create=banner_has_section` <br>
+    `docker exec ring-php-app php artisan migrate` <br>
+    `docker exec ring-php-app php artisan make:resource Admin/Banner/BannerResource` <br>
+    `docker exec ring-php-app php artisan make:request Admin/Banner/BannerRequest` <br>
+    `docker exec ring-php-app php artisan make:controller Admin/Banner/BannerController --resource` <br>
+    `docker exec ring-php-app php artisan make:controller Admin/Invokable/RemoveBannerFromSectionController --invokable` <br>
+    `docker exec ring-php-app php artisan make:model Admin/Banner/BannerImage -mf` <br>
+    `docker exec ring-php-app php artisan make:migration create_banner_has_images_table --create=banner_has_images` <br>
+    `docker exec ring-php-app php artisan make:resource Admin/Banner/BannerImageResource` <br>
+    `docker exec ring-php-app php artisan make:resource Admin/Banner/BannerSharedResource` <br>
+    `docker exec ring-php-app php artisan migrate` <br>
+
+36) creating business logic app API <br>
     `composer require "darkaonline/l5-swagger` <br>
     `docker exec ring-php-app php artisan vendor:publish --provider "L5Swagger\L5SwaggerServiceProvider"` <br>
     `docker exec ring-php-app php artisan make:controller Api/User/ApiUserController --api` <br>
@@ -239,7 +252,7 @@
     `docker-compose restart` <br>
     `docker exec ring-php-app php artisan l5-swagger:generate` <br>
 
-36) Помощь в командах
+37) Помощь в командах
     Удалите существующие символические ссылки <br>
     `docker exec -it ring-php-app rm /var/www/public/storage` <br>
     `docker exec -it ring-php-app rm /var/www/storage/api-docs` <br>
@@ -262,7 +275,7 @@
     `docker restart ring-php-app`  <br>
     `docker exec -it ring-php-app php artisan route:list`  <br>
     `mkdir -p app/Services`  <br>
-37) `composer config --global disable-tls true` <br> отключение сертификатов, если нужно
+38) `composer config --global disable-tls true` <br> отключение сертификатов, если нужно
     `php --ini` <br> найти php.ini
     `composer diagnose` <br> диагностика composer
     `composer self-update` <br> обновление текущей версии composer

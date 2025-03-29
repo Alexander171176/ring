@@ -105,13 +105,13 @@ const totalPages = computed(() => Math.ceil(filteredRoles.value.length / itemsPe
                         {{ t('addRole') }}
                     </DefaultButton>
                 </div>
-                <SearchInput v-model="searchQuery" :placeholder="t('searchByName')"/>
-                <CountTable> {{ rolesCount }} </CountTable>
+                <SearchInput v-if="rolesCount" v-model="searchQuery" :placeholder="t('searchByName')"/>
+                <CountTable v-if="rolesCount"> {{ rolesCount }} </CountTable>
                 <RoleTable
                     :roles="paginatedRoles"
                     @delete="confirmDelete"
                 />
-                <div class="flex justify-between items-center flex-col md:flex-row my-1">
+                <div class="flex justify-between items-center flex-col md:flex-row my-1" v-if="rolesCount">
                     <Pagination :current-page="currentPage"
                                 :items-per-page="itemsPerPage"
                                 :total-items="filteredRoles.length"

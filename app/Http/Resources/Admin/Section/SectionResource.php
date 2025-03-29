@@ -3,6 +3,7 @@
 namespace App\Http\Resources\Admin\Section;
 
 use App\Http\Resources\Admin\Article\ArticleResource;
+use App\Http\Resources\Admin\Banner\BannerResource;
 use App\Http\Resources\Admin\Rubric\RubricResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -28,6 +29,9 @@ class SectionResource extends JsonResource
             // Связанные рубрики и статьи
             'rubrics' => RubricResource::collection($this->whenLoaded('rubrics')),
             'articles'    => ArticleResource::collection($this->whenLoaded('articles')),
+
+            // Добавляем баннеры, если они загружены
+            'banners' => BannerResource::collection($this->whenLoaded('banners')),
 
             // Подсчитываем активные статьи по всем секциям
             'active_articles_count' => $this->whenLoaded('sections', function () {

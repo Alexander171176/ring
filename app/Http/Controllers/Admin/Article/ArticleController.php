@@ -278,7 +278,7 @@ class ArticleController extends Controller
         $article->left = $validated['left'];
         $article->save();
 
-        Log::info("Обновлено включение статьи в левом сайдбар с ID: $id с данными: ", $validated);
+        Log::info("Обновлено включение статьи в левом сайдбаре с ID: $id с данными: ", $validated);
 
         return response()->json(['success' => true, 'reload' => true]);
     }
@@ -300,7 +300,7 @@ class ArticleController extends Controller
         $article->main = $validated['main'];
         $article->save();
 
-        Log::info("Обновлено включение основным статьи с ID: $id с данными: ", $validated);
+        Log::info("Обновлено включение основной статьи с ID: $id с данными: ", $validated);
 
         return response()->json(['success' => true, 'reload' => true]);
     }
@@ -322,7 +322,7 @@ class ArticleController extends Controller
         $article->right = $validated['right'];
         $article->save();
 
-        Log::info("Обновлено включение статьи в правом сайдбар с ID: $id с данными: ", $validated);
+        Log::info("Обновлено включение статьи в правом сайдбаре с ID: $id с данными: ", $validated);
 
         return response()->json(['success' => true, 'reload' => true]);
     }

@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Public\Default;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Admin\Article\ArticleResource;
+use App\Http\Resources\Admin\Banner\BannerResource;
 use App\Http\Resources\Admin\Rubric\RubricResource;
 use App\Http\Resources\Admin\Section\SectionResource;
 use App\Models\Admin\Article\Article;
+use App\Models\Admin\Banner\Banner;
 use App\Models\Admin\Rubric\Rubric;
 use App\Models\Admin\Setting\Setting;
 use Illuminate\Http\JsonResponse;
@@ -52,24 +54,35 @@ class RubricController extends Controller
         // Получаем текущую локаль из настроек
         $locale = Setting::where('option', 'locale')->value('value');
 
-        // Загружаем рубрику с секциями и статьями, фильтруя по активности и локали
+        // Загружаем рубрику с секциями, статьями и баннерами секций
         $rubric = Rubric::with([
             'sections' => function ($query) use ($locale) {
                 $query->where('activity', 1)
                     ->where('locale', $locale)
                     ->orderBy('sort', 'asc')
-                    ->with(['articles' => function ($query) use ($locale) {
-                        $query->where('activity', 1)
-                            ->where('locale', $locale)
-                            ->orderBy('sort', 'desc')
-                            ->with([
-                                // Добавляем сортировку изображений по полю order
-                                'images' => function ($query) {
-                                    $query->orderBy('order', 'asc');
-                                },
-                                'tags'
-                            ]);
-                    }]);
+                    ->with([
+                        'articles' => function ($query) use ($locale) {
+                            $query->where('activity', 1)
+                                ->where('locale', $locale)
+                                ->orderBy('sort', 'desc')
+                                ->with([
+                                    'images' => function ($query) {
+                                        $query->orderBy('order', 'asc');
+                                    },
+                                    'tags'
+                                ]);
+                        },
+                        // Загружаем баннеры, привязанные к секции
+                        'banners' => function ($query) {
+                            $query->where('activity', 1)
+                                ->orderBy('sort', 'desc')
+                                ->with([
+                                    'images' => function ($query) {
+                                        $query->orderBy('order', 'asc');
+                                    }
+                                ]);
+                        }
+                    ]);
             }
         ])->where('url', $url)->firstOrFail();
 
@@ -78,7 +91,7 @@ class RubricController extends Controller
             return $carry + ($section->articles ? $section->articles->count() : 0);
         }, 0);
 
-        // Отдельно выбираем статьи для левого, главного и правого сайдбаров с сортировкой изображений
+        // Отдельно выбираем статьи для левой, главной и правой колонки с сортировкой изображений
         $leftArticles = Article::where('activity', 1)
             ->where('locale', $locale)
             ->where('left', true)
@@ -115,6 +128,41 @@ class RubricController extends Controller
             ])
             ->get();
 
+        // Выбираем активные баннеры, связанные с секциями, у которых активность = 1
+        $sectionBanners = Banner::where('activity', 1)
+            ->whereHas('sections', function ($query) use ($locale) {
+                $query->where('activity', 1)
+                    ->where('locale', $locale);
+            })
+            ->orderBy('sort', 'desc')
+            ->with([
+                'images' => function ($query) {
+                    $query->orderBy('order', 'asc');
+                }
+            ])
+            ->get();
+
+        // Отдельно выбираем баннеры для левой и правой колонки с сортировкой изображений
+        $leftBanners = Banner::where('activity', 1)
+            ->where('left', true)
+            ->orderBy('sort', 'desc')
+            ->with([
+                'images' => function ($query) {
+                    $query->orderBy('order', 'asc');
+                }
+            ])
+            ->get();
+
+        $rightBanners = Banner::where('activity', 1)
+            ->where('right', true)
+            ->orderBy('sort', 'desc')
+            ->with([
+                'images' => function ($query) {
+                    $query->orderBy('order', 'asc');
+                }
+            ])
+            ->get();
+
         return Inertia::render('Public/Default/Rubrics/Show', [
             'rubric'              => new RubricResource($rubric),
             'sections'            => SectionResource::collection($rubric->sections),
@@ -123,6 +171,8 @@ class RubricController extends Controller
             'leftArticles'        => ArticleResource::collection($leftArticles),
             'mainArticles'        => ArticleResource::collection($mainArticles),
             'rightArticles'       => ArticleResource::collection($rightArticles),
+            'leftBanners'         => BannerResource::collection($leftBanners),
+            'rightBanners'        => BannerResource::collection($rightBanners),
         ]);
     }
 

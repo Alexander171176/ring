@@ -60,7 +60,9 @@ const submit = () => {
                 <form @submit.prevent="submit" class="p-3 w-full">
 
                     <div class="mb-3 flex flex-col items-start">
-                        <LabelInput for="name" :value="t('roleName')" />
+                        <LabelInput for="name">
+                            <span class="text-red-500 dark:text-red-300 font-semibold">*</span> {{ t('roleName') }}
+                        </LabelInput>
                         <InputText
                             id="name"
                             type="text"

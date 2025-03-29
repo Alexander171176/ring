@@ -148,7 +148,7 @@ const submitForm = () => {
                     </div>
 
                     <div class="mb-3 flex flex-col items-start">
-                        <LabelInput for="meta_desc" :value="t('svg')"/>
+                        <LabelInput for="icon" :value="t('svg')"/>
                         <MetaDescTextarea v-model="form.icon" class="w-full"/>
                         <InputError class="mt-2" :message="form.errors.icon"/>
                     </div>

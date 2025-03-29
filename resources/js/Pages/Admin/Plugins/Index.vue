@@ -129,7 +129,7 @@ const totalPages = computed(() => Math.ceil(filteredSettings.value.length / item
                         {{ t('registerModule') }}
                     </DefaultButton>
                 </div>
-                <SearchInput v-model="searchQuery" :placeholder="t('searchByName')"/>
+                <SearchInput v-if="pluginsCount" v-model="searchQuery" :placeholder="t('searchByName')"/>
                 <span class="mb-4 py-1 px-3
                         w-full
                         flex items-center justify-center
@@ -137,13 +137,13 @@ const totalPages = computed(() => Math.ceil(filteredSettings.value.length / item
                         bg-amber-50 opacity-80 border border-rose-200">
                     {{ t('componentParametersWarning') }}
                 </span>
-                <CountTable> {{ pluginsCount }}</CountTable>
+                <CountTable v-if="pluginsCount"> {{ pluginsCount }}</CountTable>
                 <PluginTable
                     :plugins="paginatedSettings"
                     @toggle-activity="toggleActivity"
                     @delete="confirmDelete"
                 />
-                <div class="flex justify-between items-center flex-col md:flex-row my-1">
+                <div class="flex justify-between items-center flex-col md:flex-row my-1" v-if="pluginsCount">
                     <ItemsPerPageSelect :items-per-page="itemsPerPage" @update:itemsPerPage="itemsPerPage = $event"/>
                     <Pagination :current-page="currentPage"
                                 :items-per-page="itemsPerPage"

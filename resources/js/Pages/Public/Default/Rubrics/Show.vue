@@ -5,10 +5,11 @@ import PublicLayout from '@/Layouts/PublicLayout.vue';
 import MainSlider from "@/Components/Public/Default/Article/MainSlider.vue";
 import LeftColumn from "@/Components/Public/Default/Partials/LeftColumn.vue";
 import SectionArticlesPagination from "@/Components/Public/Default/Article/SectionArticlesPagination.vue";
+import BannerImageSlider from "@/Components/Public/Default/Banner/BannerImageSlider.vue";
 
 const {t} = useI18n();
 
-const {rubric, sections, activeArticlesCount} = usePage().props;
+const { rubric, sections, activeArticlesCount } = usePage().props;
 </script>
 
 <template>
@@ -84,6 +85,37 @@ const {rubric, sections, activeArticlesCount} = usePage().props;
 
                         <!-- Список статей с Компонент пагинацией -->
                         <SectionArticlesPagination :articles="section.articles" :items-per-page="3" />
+
+                        <!-- Если у секции есть баннеры, отображаем их -->
+                        <div v-if="section.banners && section.banners.length" class="mt-4">
+                            <div class="flex justify-center items-center flex-wrap">
+                                <div v-for="banner in section.banners" :key="banner.id"
+                                     class="w-1/2 flex flex-col justify-center items-center space-x-4">
+
+                                    <h3 class="mb-3 text-2xl font-semibold text-slate-500 dark:text-slate-200">
+                                        {{ banner.title }}
+                                    </h3>
+
+                                    <!-- Изображение баннера -->
+                                    <div v-if="banner.images && banner.images.length > 0"
+                                         class="h-60 overflow-hidden">
+                                        <BannerImageSlider
+                                            :images="banner.images"
+                                            :alt="t('defaultImageAlt')"
+                                            :title="t('postImage')"
+                                        />
+                                    </div>
+                                    <div v-else
+                                          class="h-60 flex items-center justify-center bg-gray-200 dark:bg-gray-400">
+                                        <span class="text-gray-500 dark:text-gray-700">{{ t('noCurrentImage') }}</span>
+                                    </div>
+
+                                    <p class="mt-3 text-md font-semibold text-slate-600 dark:text-slate-300">
+                                        {{ banner.short }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
 
                     </div>
 

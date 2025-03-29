@@ -3,11 +3,13 @@
 namespace App\Http\Middleware;
 
 use App\Http\Resources\Admin\Article\ArticleSharedResource;
+use App\Http\Resources\Admin\Banner\BannerSharedResource;
 use App\Http\Resources\Admin\Plugin\PluginSharedResource;
 use App\Http\Resources\Admin\Rubric\RubricSharedResource;
 use App\Http\Resources\Admin\Setting\SettingSharedResource;
 use App\Http\Resources\Admin\User\UserSharedResource;
 use App\Models\Admin\Article\Article;
+use App\Models\Admin\Banner\Banner;
 use App\Models\Admin\Plugin\Plugin;
 use App\Models\Admin\Rubric\Rubric;
 use App\Models\Admin\Setting\Setting; // Убедитесь, что импортируете правильную модель Setting
@@ -45,11 +47,13 @@ class HandleInertiaRequests extends Middleware
         $plugins = Plugin::all(); // Получение всех плагинов из базы данных
         $rubrics = Rubric::all(); // Получение всех рубрик из базы данных
         $articles = Article::all(); // Получение всех статей из базы данных
+        $banners = Banner::all(); // Получение всех статей из базы данных
 
         return [
             ...parent::share($request),
             'rubrics' => fn () => RubricSharedResource::collection($rubrics)->toArray($request),
             'articles' => fn () => ArticleSharedResource::collection($articles)->toArray($request),
+            'banners' => fn () => BannerSharedResource::collection($banners)->toArray($request),
             'plugins' => fn () => PluginSharedResource::collection($plugins)->toArray($request),
             'settings' => fn () => SettingSharedResource::collection($settings)->toArray($request),
             'user' => fn () => $user ? (new UserSharedResource($user))->toArray($request) : null,

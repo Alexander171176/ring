@@ -19,6 +19,7 @@ const mainLinks = ref(JSON.parse(localStorage.getItem('mainLinks')) || [
     'articles',
     'tags',
     'comments',
+    'banners',
     'reports',
     'charts',
     'users',
