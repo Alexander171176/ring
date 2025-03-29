@@ -20,15 +20,20 @@ class ArticleController extends Controller
         // Получаем текущую локаль из настроек
         $locale = Setting::where('option', 'locale')->value('value');
 
-        // Загружаем статью с изображениями, тегами и рекомендованными статьями,
-        // при этом для связанных статей задаём фильтр по активности и локали
+        // Загружаем статью с изображениями (сортировка по order), тегами и рекомендованными статьями,
+        // при этом для связанных статей задаём фильтр по активности и локали, а изображения сортируем по order
         $article = Article::with([
-            'images',
+            'images' => function ($query) {
+                $query->orderBy('order', 'asc');
+            },
             'tags',
             'relatedArticles' => function ($query) use ($locale) {
-                $query->where('activity', 1)->where('locale', $locale);
+                $query->where('activity', 1)
+                    ->where('locale', $locale);
             },
-            'relatedArticles.images' // добавляем вложенную загрузку изображений для связанных статей
+            'relatedArticles.images' => function ($query) {
+                $query->orderBy('order', 'asc');
+            }
         ])
             ->where('activity', 1)
             ->where('locale', $locale)
@@ -38,27 +43,37 @@ class ArticleController extends Controller
         // Увеличиваем количество просмотров
         $article->increment('views');
 
-        // Отдельно выбираем статьи для правого сайдбара:
+        // Отдельно выбираем статьи для левого сайдбара с сортировкой изображений по order
         $leftArticles = Article::where('activity', 1)
             ->where('locale', $locale)
             ->where('left', true)
             ->orderBy('sort', 'desc')
-            ->with(['images', 'tags'])
+            ->with([
+                'images' => function ($query) {
+                    $query->orderBy('order', 'asc');
+                },
+                'tags'
+            ])
             ->get();
 
-        // Отдельно выбираем статьи для правого сайдбара:
+        // Отдельно выбираем статьи для правого сайдбара с сортировкой изображений по order
         $rightArticles = Article::where('activity', 1)
             ->where('locale', $locale)
             ->where('right', true)
             ->orderBy('sort', 'desc')
-            ->with(['images', 'tags'])
+            ->with([
+                'images' => function ($query) {
+                    $query->orderBy('order', 'asc');
+                },
+                'tags'
+            ])
             ->get();
 
         return Inertia::render('Public/Default/Articles/Show', [
-            'article'              => new ArticleResource($article),
-            'leftArticles'         => ArticleResource::collection($leftArticles),
-            'rightArticles'        => ArticleResource::collection($rightArticles),
-            'recommendedArticles'  => ArticleResource::collection($article->relatedArticles),
+            'article'             => new ArticleResource($article),
+            'leftArticles'        => ArticleResource::collection($leftArticles),
+            'rightArticles'       => ArticleResource::collection($rightArticles),
+            'recommendedArticles' => ArticleResource::collection($article->relatedArticles),
         ]);
     }
 
@@ -77,5 +92,4 @@ class ArticleController extends Controller
             'likes'   => $article->likes,
         ]);
     }
-
 }

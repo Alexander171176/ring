@@ -62,7 +62,13 @@ class RubricController extends Controller
                         $query->where('activity', 1)
                             ->where('locale', $locale)
                             ->orderBy('sort', 'desc')
-                            ->with(['images', 'tags']);
+                            ->with([
+                                // Добавляем сортировку изображений по полю order
+                                'images' => function ($query) {
+                                    $query->orderBy('order', 'asc');
+                                },
+                                'tags'
+                            ]);
                     }]);
             }
         ])->where('url', $url)->firstOrFail();
@@ -72,31 +78,41 @@ class RubricController extends Controller
             return $carry + ($section->articles ? $section->articles->count() : 0);
         }, 0);
 
-        // Отдельно выбираем статьи для правого сайдбара:
-        // Только активные статьи с locale, равной локали рубрики, и sidebar = true.
+        // Отдельно выбираем статьи для левого, главного и правого сайдбаров с сортировкой изображений
         $leftArticles = Article::where('activity', 1)
             ->where('locale', $locale)
             ->where('left', true)
             ->orderBy('sort', 'desc')
-            ->with(['images', 'tags'])
+            ->with([
+                'images' => function ($query) {
+                    $query->orderBy('order', 'asc');
+                },
+                'tags'
+            ])
             ->get();
 
-        // Отдельно выбираем статьи для главных новостей:
-        // Только активные статьи с locale, равной локали рубрики, и main = true.
         $mainArticles = Article::where('activity', 1)
             ->where('locale', $locale)
             ->where('main', true)
             ->orderBy('sort', 'desc')
-            ->with(['images', 'tags'])
+            ->with([
+                'images' => function ($query) {
+                    $query->orderBy('order', 'asc');
+                },
+                'tags'
+            ])
             ->get();
 
-        // Отдельно выбираем статьи для правого сайдбара:
-        // Только активные статьи с locale, равной локали рубрики, и sidebar = true.
         $rightArticles = Article::where('activity', 1)
             ->where('locale', $locale)
             ->where('right', true)
             ->orderBy('sort', 'desc')
-            ->with(['images', 'tags'])
+            ->with([
+                'images' => function ($query) {
+                    $query->orderBy('order', 'asc');
+                },
+                'tags'
+            ])
             ->get();
 
         return Inertia::render('Public/Default/Rubrics/Show', [
@@ -104,9 +120,9 @@ class RubricController extends Controller
             'sections'            => SectionResource::collection($rubric->sections),
             'sectionsCount'       => $rubric->sections->count(),
             'activeArticlesCount' => $activeArticlesCount,
-            'leftArticles'     => ArticleResource::collection($leftArticles),
+            'leftArticles'        => ArticleResource::collection($leftArticles),
             'mainArticles'        => ArticleResource::collection($mainArticles),
-            'rightArticles'     => ArticleResource::collection($rightArticles),
+            'rightArticles'       => ArticleResource::collection($rightArticles),
         ]);
     }
 

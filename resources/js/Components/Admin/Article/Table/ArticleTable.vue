@@ -44,6 +44,15 @@ const toggleAll = (event) => {
         }
     });
 };
+
+// Функция для выбора изображения с наименьшим значением order
+const getPrimaryImage = (article) => {
+    if (article.images && article.images.length) {
+        // Создаем копию массива и сортируем по возрастанию order
+        return [...article.images].sort((a, b) => a.order - b.order)[0];
+    }
+    return null;
+};
 </script>
 
 <template>
@@ -111,15 +120,21 @@ const toggleAll = (event) => {
                             </td>
                             <td class="first:pl-5 last:pr-5 py-1">
                                 <div class="flex justify-center">
-                                    <img v-if="article.images && article.images.length"
-                                         :src="article.images[0].webp_url || article.images[0].url"
-                                         :alt="article.images[0].alt || t('defaultImageAlt')"
-                                         :title="article.images[0].caption || t('postImage')"
-                                         class="h-8 w-8 object-cover rounded-full">
-                                    <img v-else
-                                         src="/storage/article_images/default-image.png"
-                                         :alt="t('defaultImageTitle')"
-                                         class="h-8 w-8 object-cover rounded-full">
+                                    <template v-if="article.images && article.images.length">
+                                        <img
+                                            :src="getPrimaryImage(article).webp_url || getPrimaryImage(article).url"
+                                            :alt="getPrimaryImage(article).alt || t('defaultImageAlt')"
+                                            :title="getPrimaryImage(article).caption || t('postImage')"
+                                            class="h-8 w-8 object-cover rounded-full"
+                                        >
+                                    </template>
+                                    <template v-else>
+                                        <img
+                                            src="/storage/article_images/default-image.png"
+                                            :alt="t('defaultImageTitle')"
+                                            class="h-8 w-8 object-cover rounded-full"
+                                        >
+                                    </template>
                                 </div>
                             </td>
                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
