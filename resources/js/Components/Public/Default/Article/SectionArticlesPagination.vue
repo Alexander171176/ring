@@ -1,7 +1,7 @@
 <!-- SectionArticlesPagination.vue -->
 <script setup>
-import { ref, computed } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import {ref, computed} from 'vue';
+import {Link} from '@inertiajs/vue3';
 import {useI18n} from 'vue-i18n';
 import ArticleImageSlider from "@/Components/Public/Default/Article/ArticleImageSlider.vue";
 
@@ -56,7 +56,8 @@ const prevPage = () => {
             <div
                 v-for="article in paginatedArticles"
                 :key="article.id"
-                class="px-1 py-1 col-span-full sm:col-span-6 md:col-span-4 lg:col-span-12 xl:col-span-6 2xl:col-span-4
+                class="px-1 py-1
+                       col-span-full sm:col-span-6 md:col-span-4 lg:col-span-12 xl:col-span-6 2xl:col-span-4
                        overflow-hidden transition-all duration-300
                        hover:bg-slate-50 hover:dark:bg-slate-800
                        hover:scale-101 shadow-none border-0 rounded-sm
@@ -66,14 +67,17 @@ const prevPage = () => {
                 <div class="flex flex-col h-full">
 
                     <!-- Изображение статьи -->
-                    <div v-if="article.images && article.images.length > 0" class="h-40 overflow-hidden">
+                    <div v-if="article.images && article.images.length > 0" class="h-auto overflow-hidden">
                         <ArticleImageSlider
                             :images="article.images"
-                            :link="`/articles/${article.url}`" />
+                            :link="`/articles/${article.url}`"/>
                     </div>
                     <Link v-else :href="`/articles/${article.url}`"
-                          class="h-40 flex items-center justify-center bg-gray-200 dark:bg-gray-400">
-                        <span class="text-gray-500 dark:text-gray-700">{{ t('noCurrentImage') }}</span>
+                          class="h-1/2 flex items-center justify-center p-4 border border-slate-400">
+                        <span class="w-full h-full flex items-center justify-center p-2
+                                     bg-gray-200 dark:bg-gray-400 text-center text-gray-700">
+                            {{ t('noCurrentImage') }}
+                        </span>
                     </Link>
 
                     <!-- Ссылка и дата статьи -->
@@ -163,7 +167,7 @@ const prevPage = () => {
         </div>
 
         <!-- Элементы навигации пагинации -->
-        <div class="flex justify-center items-center mt-4">
+        <div v-if="totalPages > 1" class="flex justify-center items-center mt-4">
             <button @click="prevPage" :disabled="currentPage === 1" :title="t('previous')"
                     class="px-3 py-1 rounded-l disabled:opacity-50
                            hover:bg-gray-100 dark:hover:bg-gray-900

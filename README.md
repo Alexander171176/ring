@@ -166,7 +166,17 @@
 25) Create revoke controllers Section and Article <br>
     `docker exec ring-php-app php artisan make:controller Admin/Invokable/RemoveArticleFromSectionController --invokable` <br>
 
-26) creating business logic app Comment <br>
+26) creating business logic app Image Article <br>
+    `docker exec ring-php-app php artisan make:model Admin/Article/ArticleImage -mf` <br>
+    `docker exec ring-php-app php artisan make:migration create_article_has_images_table --create=article_has_images` <br>
+    `docker exec ring-php-app php artisan migrate` <br>
+    `docker exec ring-php-app php artisan make:seeder ArticleImageSeeder` <br>
+    `docker exec ring-php-app php artisan db:seed --class=ArticleImageSeeder` <br>
+    `docker exec ring-php-app php artisan make:resource Admin/Article/ArticleImageResource` <br>
+    `docker exec ring-php-app php artisan make:migration create_article_related_table --create=article_related` <br>
+    `docker exec ring-php-app php artisan migrate` <br>
+
+27) creating business logic app Comment <br>
     `docker exec ring-php-app php artisan make:model Admin/Comment/Comment -m`
     `docker exec ring-php-app php artisan migrate` <br>
     `docker exec ring-php-app php artisan make:factory Admin/Comment/CommentFactory --model=Comment` <br>
@@ -176,20 +186,10 @@
     `docker exec ring-php-app php artisan make:controller Admin/Comment/CommentController --resource` <br>
     `docker exec ring-php-app php artisan make:controller Public/CommentController --resource` <br>
 
-27) creating business logic app Like <br>
+28) creating business logic app Like <br>
     `docker exec ring-php-app php artisan make:migration create_article_likes_table --create=article_likes` <br>
     `docker exec ring-php-app php artisan migrate` <br>
     `docker exec ring-php-app php artisan make:model User/Like/ArticleLike` <br>
-
-28) creating business logic app Image Article <br>
-    `docker exec ring-php-app php artisan make:model Admin/Article/ArticleImage -mf` <br>
-    `docker exec ring-php-app php artisan make:migration create_article_has_images_table --create=article_has_images` <br>
-    `docker exec ring-php-app php artisan migrate` <br>
-    `docker exec ring-php-app php artisan make:seeder ArticleImageSeeder` <br>
-    `docker exec ring-php-app php artisan db:seed --class=ArticleImageSeeder` <br>
-    `docker exec ring-php-app php artisan make:resource Admin/Article/ArticleImageResource` <br>
-    `docker exec ring-php-app php artisan make:migration create_article_related_table --create=article_related` <br>
-    `docker exec ring-php-app php artisan migrate` <br>
 
 29) creating business logic app Tag <br>
     `docker exec ring-php-app php artisan make:model Admin/Tag/Tag -mf` <br>
@@ -201,6 +201,7 @@
     `docker exec ring-php-app php artisan make:request Admin/Tag/TagRequest` <br>
     `docker exec ring-php-app php artisan make:controller Admin/Tag/TagController --resource` <br>
     `docker exec ring-php-app php artisan make:controller Admin/Invokable/RemoveArticleFromTagController --invokable` <br>
+    `docker exec ring-php-app php artisan make:controller Public/Default/TagController` <br>
 
 30) creating business logic app Report <br>
     `docker exec ring-php-app php artisan make:controller Admin/Report/ReportController --resource` <br>

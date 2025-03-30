@@ -32,7 +32,8 @@ class ArticleController extends Controller
         });
 
         // Кэшируем статью
-        $article = Cache::store('redis')->remember("article.{$url}.{$locale}", $cacheTime, function () use ($url, $locale) {
+        $article = Cache::store('redis')
+            ->remember("article.{$url}.{$locale}", $cacheTime, function () use ($url, $locale) {
             return Article::with([
                 'images' => function ($query) {
                     $query->orderBy('order', 'asc');
@@ -56,7 +57,8 @@ class ArticleController extends Controller
         $article->increment('views');
 
         // Кэшируем статьи для левого сайдбара
-        $leftArticles = Cache::store('redis')->remember("articles.left.{$locale}", $cacheTime, function () use ($locale) {
+        $leftArticles = Cache::store('redis')
+            ->remember("articles.left.{$locale}", $cacheTime, function () use ($locale) {
             return Article::where('activity', 1)
                 ->where('locale', $locale)
                 ->where('left', true)
@@ -71,7 +73,8 @@ class ArticleController extends Controller
         });
 
         // Кэшируем статьи для правого сайдбара
-        $rightArticles = Cache::store('redis')->remember("articles.right.{$locale}", $cacheTime, function () use ($locale) {
+        $rightArticles = Cache::store('redis')
+            ->remember("articles.right.{$locale}", $cacheTime, function () use ($locale) {
             return Article::where('activity', 1)
                 ->where('locale', $locale)
                 ->where('right', true)
@@ -86,7 +89,8 @@ class ArticleController extends Controller
         });
 
         // Кэшируем баннеры для левой колонки
-        $leftBanners = Cache::store('redis')->remember("banners.left.{$locale}", $cacheTime, function () use ($locale) {
+        $leftBanners = Cache::store('redis')
+            ->remember("banners.left.{$locale}", $cacheTime, function () use ($locale) {
             return Banner::where('activity', 1)
                 ->where('left', true)
                 ->orderBy('sort', 'desc')
@@ -99,7 +103,8 @@ class ArticleController extends Controller
         });
 
         // Кэшируем баннеры для правой колонки
-        $rightBanners = Cache::store('redis')->remember("banners.right.{$locale}", $cacheTime, function () use ($locale) {
+        $rightBanners = Cache::store('redis')
+            ->remember("banners.right.{$locale}", $cacheTime, function () use ($locale) {
             return Banner::where('activity', 1)
                 ->where('right', true)
                 ->orderBy('sort', 'desc')

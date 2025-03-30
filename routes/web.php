@@ -28,10 +28,16 @@ Route::post('/admin/cache/clear', [App\Http\Controllers\Admin\System\SystemContr
 Route::get('/', fn() => Inertia::render('Welcome'));
 
 // Отображение конкретной рубрики
-Route::get('/rubrics/{url}', [\App\Http\Controllers\Public\Default\RubricController::class, 'show'])->where('url', '.*');
+Route::get('/rubrics/{url}', [\App\Http\Controllers\Public\Default\RubricController::class, 'show'])
+    ->where('url', '.*');
 
 // Отображение конкретной статьи
-Route::get('/articles/{url}', [\App\Http\Controllers\Public\Default\ArticleController::class, 'show'])->where('url', '.*');
+Route::get('/articles/{url}', [\App\Http\Controllers\Public\Default\ArticleController::class, 'show'])
+    ->where('url', '.*');
+
+// Отображение конкретной рубрики
+Route::get('/tags/{url}', [\App\Http\Controllers\Public\Default\TagController::class, 'show'])
+    ->where('url', '.*');
 
 // Лайк статьи
 Route::post('/articles/{article}/like', [\App\Http\Controllers\Public\Default\ArticleController::class, 'like'])

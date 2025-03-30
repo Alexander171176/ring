@@ -3,6 +3,7 @@ import {Head, Link, usePage} from '@inertiajs/vue3';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import {useI18n} from 'vue-i18n';
 import LikeButton from "@/Components/Public/Default/Article/LikeButton.vue";
+import ArticleImageMain from "@/Components/Public/Default/Article/ArticleImageMain.vue";
 
 const {t} = useI18n();
 
@@ -70,7 +71,8 @@ const {article, recommendedArticles} = usePage().props;
                 </time>
             </header>
 
-            <div class="flex items-center justify-center my-3">
+            <div v-if="article.short"
+                 class="flex items-center justify-center my-3">
                 <!-- Краткое описание -->
                 <p itemprop="description"
                    class="text-center text-xl text-teal-700 dark:text-teal-200 mr-2">
@@ -80,21 +82,15 @@ const {article, recommendedArticles} = usePage().props;
                 <LikeButton/>
             </div>
 
-            <!-- Изображение статьи -->
+            <!-- Изображение статьи с плавной сменой (если их больше одного) -->
             <div v-if="article.images && article.images.length > 0"
                  class="flex flex-col justify-center items-center"
                  itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
-                <img
-                    :src="article.images[0].webp_url || article.images[0].url"
-                    :alt="article.images[0].alt"
-                    class="w-full max-w-4xl h-auto object-cover
-                           border-4 border-sky-600 shadow-lg shadow-gray-400 dark:shadow-gray-600"
-                    itemprop="url"
-                />
-                <!-- Дополнительные метатеги для изображения -->
+                <!-- Используем ArticleImageSlider -->
+                <ArticleImageMain :images="article.images" :link="`/articles/${article.url}`" />
                 <meta itemprop="width" content="800"/>
                 <meta itemprop="height" content="600"/>
-                <!-- Блок для caption -->
+                <!-- Можно отобразить caption для первого изображения, либо для текущего слайдера -->
                 <div v-if="article.images[0].caption"
                      class="mt-2 text-center text-sm text-gray-600 dark:text-gray-300 italic underline decoration-double"
                      itemprop="caption">
@@ -103,12 +99,14 @@ const {article, recommendedArticles} = usePage().props;
             </div>
 
             <!-- Полное описание -->
-            <div class="w-full max-w-4xl mx-auto my-4 p-2 text-center text-xl text-gray-700 dark:text-gray-200
+            <div v-if="article.description"
+                 class="w-full max-w-4xl mx-auto my-4 p-2 text-center text-xl text-gray-700 dark:text-gray-200
                         border border-dashed border-slate-400 dark:border-slate-200"
                  v-html="article.description" itemprop="articleBody"></div>
 
             <!-- Теги -->
-            <div class="flex justify-center items-center mb-3 font-semibold text-violet-600 dark:text-violet-300">
+            <div v-if="article.tags"
+                 class="flex justify-center items-center mb-3 font-semibold text-violet-600 dark:text-violet-300">
                 <span v-for="(tag, index) in article.tags" :key="tag.id">
                   <Link :href="`/tags/${tag.slug}`" itemprop="keywords"
                         class="hover:text-rose-400 hover:dark:text-rose-300">{{ tag.name }}</Link>
@@ -118,7 +116,8 @@ const {article, recommendedArticles} = usePage().props;
 
             <div class="flex justify-center items-center">
                 <!-- Автор -->
-                <div class="font-semibold text-sky-600 dark:text-sky-300"
+                <div v-if="article.author"
+                     class="font-semibold text-sky-600 dark:text-sky-300"
                      itemprop="author">
                     <span class="mr-2">{{ article.author }}</span>
                 </div>
@@ -127,9 +126,8 @@ const {article, recommendedArticles} = usePage().props;
             </div>
 
             <!-- Блок рекомендованных статей -->
-            <div class="mt-4">
-                <h2 v-if="recommendedArticles && recommendedArticles.length > 0"
-                    class="mb-4 tracking-wide text-center font-semibold text-xl
+            <div v-if="recommendedArticles && recommendedArticles.length > 0" class="mt-4">
+                <h2 class="mb-4 tracking-wide text-center font-semibold text-xl
                            text-orange-400 dark:text-orange-300">
                     {{ t('relatedArticles') }}:
                 </h2>

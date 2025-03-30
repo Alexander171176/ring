@@ -1,16 +1,41 @@
 <script setup>
-import {Head, Link, usePage} from '@inertiajs/vue3';
-import {useI18n} from 'vue-i18n';
+import { Head, usePage } from '@inertiajs/vue3';
+import { ref, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import MainSlider from "@/Components/Public/Default/Article/MainSlider.vue";
 import LeftColumn from "@/Components/Public/Default/Partials/LeftColumn.vue";
 import SectionArticlesPagination from "@/Components/Public/Default/Article/SectionArticlesPagination.vue";
 import BannerImageSlider from "@/Components/Public/Default/Banner/BannerImageSlider.vue";
 
-const {t} = useI18n();
+const { t } = useI18n();
 
 const { rubric, sections, activeArticlesCount } = usePage().props;
+
+// Реактивная переменная для поискового запроса
+const searchQuery = ref('');
+
+// Вычисляемое свойство, которое фильтрует секции по статьям, название которых содержит запрос
+const filteredSections = computed(() => {
+    if (!searchQuery.value.trim()) {
+        return sections;
+    }
+    const query = searchQuery.value.toLowerCase();
+    // Для каждой секции оставляем только те статьи, в названии которых есть запрос
+    return sections
+        .map(section => {
+            return {
+                ...section,
+                articles: section.articles.filter(article =>
+                    article.title.toLowerCase().includes(query)
+                )
+            };
+        })
+        .filter(section => section.articles.length > 0); // Отбрасываем секции без результатов
+});
+
 </script>
+
 
 <template>
     <PublicLayout :title="rubric.title" :can-login="$page.props.canLogin" :can-register="$page.props.canRegister">
@@ -38,9 +63,8 @@ const { rubric, sections, activeArticlesCount } = usePage().props;
             <meta name="DC.language" :content="rubric.locale || 'ru'"/>
         </Head>
 
-        <div class="flex-1 p-4
-                         bg-white dark:bg-slate-800
-                         selection:bg-red-400 selection:text-white">
+        <div class="flex-1 p-4 bg-white dark:bg-slate-800
+                    selection:bg-red-400 selection:text-white">
 
             <div class="flex justify-center flex-col md:flex-row md:space-x-4">
                 <MainSlider/>
@@ -49,30 +73,41 @@ const { rubric, sections, activeArticlesCount } = usePage().props;
 
             <!-- Заголовок рубрики -->
             <h1 class="flex items-center justify-center my-4
-                           text-center font-bolder text-3xl
-                           text-gray-900 dark:text-slate-100">
+                       text-center font-bolder text-3xl
+                       text-gray-900 dark:text-slate-100">
 
                 <span v-if="rubric.icon" class="flex justify-center" v-html="rubric.icon"/>
 
                 {{ rubric.title }}
 
                 <span class="ml-2 px-1 py-0
-                                 text-xs font-semibold text-white
-                                 bg-emerald-500 rounded-sm">
+                             text-xs font-semibold text-white
+                             bg-emerald-500 rounded-sm">
                     {{ activeArticlesCount }}
                 </span>
 
             </h1>
 
-            <p class="flex items-center justify-center mb-4
+            <p v-if="rubric.short"
+               class="flex items-center justify-center mb-4
                       tracking-wide text-center text-xl text-gray-700 dark:text-gray-300">
                 {{ rubric.short }}
             </p>
 
-            <!-- Блок секций -->
-            <div v-if="sections.length" class="space-y-8">
+            <!-- Строка поиска -->
+            <div class="mb-2 max-w-3xl mx-auto">
+                <input v-model="searchQuery" type="text" :placeholder="t('searchByName')"
+                    class="w-full px-3 py-1.5 bg-white dark:bg-gray-700
+                           font-semibold text-md text-slate-600 dark:text-slate-100
+                           border border-slate-500 dark:border-slate-400 rounded-sm
+                           focus:outline-none focus:ring focus:border-blue-300"
+                />
+            </div>
 
-                <div v-for="section in sections" :key="section.id"
+            <!-- Блок секций -->
+            <div v-if="filteredSections.length" class="space-y-8">
+
+                <div v-for="section in filteredSections" :key="section.id"
                      class="bg-white dark:bg-gray-800 shadow-lg rounded-sm overflow-hidden">
 
                     <div class="p-6">
@@ -103,7 +138,8 @@ const { rubric, sections, activeArticlesCount } = usePage().props;
                                         <BannerImageSlider :images="banner.images" />
                                     </div>
 
-                                    <p class="max-w-xl w-full mt-3 text-center p-1
+                                    <p v-if="banner.short"
+                                       class="max-w-xl w-full mt-3 text-center p-1
                                               tracking-wider text-lg font-semibold text-slate-600 dark:text-slate-300">
                                         {{ banner.short }}
                                     </p>

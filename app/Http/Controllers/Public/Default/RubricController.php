@@ -62,7 +62,8 @@ class RubricController extends Controller
         });
 
         // Загружаем рубрику с секциями, статьями и баннерами секций через кэш
-        $rubric = Cache::store('redis')->remember("rubric.{$url}.{$locale}", $cacheTime, function () use ($url, $locale) {
+        $rubric = Cache::store('redis')
+            ->remember("rubric.{$url}.{$locale}", $cacheTime, function () use ($url, $locale) {
             return Rubric::with([
                 'sections' => function ($query) use ($locale) {
                     $query->where('activity', 1)
@@ -103,7 +104,8 @@ class RubricController extends Controller
         }, 0);
 
         // Кэшируем статьи для левой колонки
-        $leftArticles = Cache::store('redis')->remember("articles.left.{$locale}", $cacheTime, function () use ($locale) {
+        $leftArticles = Cache::store('redis')
+            ->remember("articles.left.{$locale}", $cacheTime, function () use ($locale) {
             return Article::where('activity', 1)
                 ->where('locale', $locale)
                 ->where('left', true)
@@ -118,7 +120,8 @@ class RubricController extends Controller
         });
 
         // Кэшируем статьи для главной колонки
-        $mainArticles = Cache::store('redis')->remember("articles.main.{$locale}", $cacheTime, function () use ($locale) {
+        $mainArticles = Cache::store('redis')
+            ->remember("articles.main.{$locale}", $cacheTime, function () use ($locale) {
             return Article::where('activity', 1)
                 ->where('locale', $locale)
                 ->where('main', true)
@@ -133,7 +136,8 @@ class RubricController extends Controller
         });
 
         // Кэшируем статьи для правой колонки
-        $rightArticles = Cache::store('redis')->remember("articles.right.{$locale}", $cacheTime, function () use ($locale) {
+        $rightArticles = Cache::store('redis')
+            ->remember("articles.right.{$locale}", $cacheTime, function () use ($locale) {
             return Article::where('activity', 1)
                 ->where('locale', $locale)
                 ->where('right', true)
@@ -148,7 +152,8 @@ class RubricController extends Controller
         });
 
         // Кэшируем баннеры для левой колонки
-        $leftBanners = Cache::store('redis')->remember("banners.left.{$locale}", $cacheTime, function () use ($locale) {
+        $leftBanners = Cache::store('redis')
+            ->remember("banners.left.{$locale}", $cacheTime, function () use ($locale) {
             return Banner::where('activity', 1)
                 ->where('left', true)
                 ->orderBy('sort', 'desc')
@@ -161,7 +166,8 @@ class RubricController extends Controller
         });
 
         // Кэшируем баннеры для правой колонки
-        $rightBanners = Cache::store('redis')->remember("banners.right.{$locale}", $cacheTime, function () use ($locale) {
+        $rightBanners = Cache::store('redis')
+            ->remember("banners.right.{$locale}", $cacheTime, function () use ($locale) {
             return Banner::where('activity', 1)
                 ->where('right', true)
                 ->orderBy('sort', 'desc')
@@ -198,7 +204,8 @@ class RubricController extends Controller
             return Setting::where('option', 'locale')->value('value');
         });
 
-        $rubrics = Cache::store('redis')->remember("rubrics.menu.{$locale}", $cacheTime, function () use ($locale) {
+        $rubrics = Cache::store('redis')
+            ->remember("rubrics.menu.{$locale}", $cacheTime, function () use ($locale) {
             return Rubric::where('activity', 1)
                 ->where('locale', $locale)
                 ->orderBy('sort')
