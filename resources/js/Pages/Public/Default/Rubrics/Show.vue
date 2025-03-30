@@ -39,7 +39,7 @@ const { rubric, sections, activeArticlesCount } = usePage().props;
         </Head>
 
         <div class="flex-1 p-4
-                         bg-slate-100 dark:bg-slate-800
+                         bg-white dark:bg-slate-800
                          selection:bg-red-400 selection:text-white">
 
             <div class="flex justify-center flex-col md:flex-row md:space-x-4">
@@ -65,7 +65,7 @@ const { rubric, sections, activeArticlesCount } = usePage().props;
             </h1>
 
             <p class="flex items-center justify-center mb-4
-                          text-center text-xl text-gray-500 dark:text-gray-400">
+                      tracking-wide text-center text-xl text-gray-700 dark:text-gray-300">
                 {{ rubric.short }}
             </p>
 
@@ -78,7 +78,7 @@ const { rubric, sections, activeArticlesCount } = usePage().props;
                     <div class="p-6">
 
                         <!-- Заголовок секции -->
-                        <h2 class="mb-2 text-2xl font-semibold text-red-500 dark:text-red-200"
+                        <h2 class="mb-2 text-2xl font-semibold text-amber-500 dark:text-red-200"
                             :title="section.short">
                             {{ section.title }}
                         </h2>
@@ -90,27 +90,21 @@ const { rubric, sections, activeArticlesCount } = usePage().props;
                         <div v-if="section.banners && section.banners.length" class="mt-4">
                             <div class="flex justify-center items-center flex-wrap">
                                 <div v-for="banner in section.banners" :key="banner.id"
-                                     class="w-1/2 flex flex-col justify-center items-center space-x-4">
+                                     class="w-full flex flex-col justify-center items-center">
 
-                                    <h3 class="mb-3 text-2xl font-semibold text-slate-500 dark:text-slate-200">
+                                    <h3 class="mb-3 tracking-wide text-2xl
+                                               font-semibold text-slate-500 dark:text-slate-200">
                                         {{ banner.title }}
                                     </h3>
 
                                     <!-- Изображение баннера -->
                                     <div v-if="banner.images && banner.images.length > 0"
-                                         class="h-60 overflow-hidden">
-                                        <BannerImageSlider
-                                            :images="banner.images"
-                                            :alt="t('defaultImageAlt')"
-                                            :title="t('postImage')"
-                                        />
-                                    </div>
-                                    <div v-else
-                                          class="h-60 flex items-center justify-center bg-gray-200 dark:bg-gray-400">
-                                        <span class="text-gray-500 dark:text-gray-700">{{ t('noCurrentImage') }}</span>
+                                         class="overflow-hidden">
+                                        <BannerImageSlider :images="banner.images" />
                                     </div>
 
-                                    <p class="mt-3 text-md font-semibold text-slate-600 dark:text-slate-300">
+                                    <p class="max-w-xl w-full mt-3 text-center p-1
+                                              tracking-wider text-lg font-semibold text-slate-600 dark:text-slate-300">
                                         {{ banner.short }}
                                     </p>
                                 </div>

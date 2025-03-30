@@ -4,76 +4,120 @@ namespace App\Http\Controllers\Public\Default;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Admin\Article\ArticleResource;
+use App\Http\Resources\Admin\Banner\BannerResource;
 use App\Models\Admin\Article\Article;
+use App\Models\Admin\Banner\Banner;
 use App\Models\Admin\Setting\Setting;
+use App\Traits\CacheTimeTrait;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class ArticleController extends Controller
 {
+
+    use CacheTimeTrait;
+
     /**
      * Страница показа конкретной статьи.
      */
     public function show(string $url): Response
     {
-        // Получаем текущую локаль из настроек
-        $locale = Setting::where('option', 'locale')->value('value');
+        $cacheTime = $this->getCacheTime();
 
-        // Загружаем статью с изображениями (сортировка по order), тегами и рекомендованными статьями,
-        // при этом для связанных статей задаём фильтр по активности и локали, а изображения сортируем по order
-        $article = Article::with([
-            'images' => function ($query) {
-                $query->orderBy('order', 'asc');
-            },
-            'tags',
-            'relatedArticles' => function ($query) use ($locale) {
-                $query->where('activity', 1)
-                    ->where('locale', $locale);
-            },
-            'relatedArticles.images' => function ($query) {
-                $query->orderBy('order', 'asc');
-            }
-        ])
-            ->where('activity', 1)
-            ->where('locale', $locale)
-            ->where('url', $url)
-            ->firstOrFail();
+        // Кэшируем локаль
+        $locale = Cache::store('redis')->remember('setting.locale', $cacheTime, function () {
+            return Setting::where('option', 'locale')->value('value');
+        });
 
-        // Увеличиваем количество просмотров
+        // Кэшируем статью
+        $article = Cache::store('redis')->remember("article.{$url}.{$locale}", $cacheTime, function () use ($url, $locale) {
+            return Article::with([
+                'images' => function ($query) {
+                    $query->orderBy('order', 'asc');
+                },
+                'tags',
+                'relatedArticles' => function ($query) use ($locale) {
+                    $query->where('activity', 1)
+                        ->where('locale', $locale);
+                },
+                'relatedArticles.images' => function ($query) {
+                    $query->orderBy('order', 'asc');
+                }
+            ])
+                ->where('activity', 1)
+                ->where('locale', $locale)
+                ->where('url', $url)
+                ->firstOrFail();
+        });
+
+        // Обновляем количество просмотров (не кэшируем обновления)
         $article->increment('views');
 
-        // Отдельно выбираем статьи для левого сайдбара с сортировкой изображений по order
-        $leftArticles = Article::where('activity', 1)
-            ->where('locale', $locale)
-            ->where('left', true)
-            ->orderBy('sort', 'desc')
-            ->with([
-                'images' => function ($query) {
-                    $query->orderBy('order', 'asc');
-                },
-                'tags'
-            ])
-            ->get();
+        // Кэшируем статьи для левого сайдбара
+        $leftArticles = Cache::store('redis')->remember("articles.left.{$locale}", $cacheTime, function () use ($locale) {
+            return Article::where('activity', 1)
+                ->where('locale', $locale)
+                ->where('left', true)
+                ->orderBy('sort', 'desc')
+                ->with([
+                    'images' => function ($query) {
+                        $query->orderBy('order', 'asc');
+                    },
+                    'tags'
+                ])
+                ->get();
+        });
 
-        // Отдельно выбираем статьи для правого сайдбара с сортировкой изображений по order
-        $rightArticles = Article::where('activity', 1)
-            ->where('locale', $locale)
-            ->where('right', true)
-            ->orderBy('sort', 'desc')
-            ->with([
-                'images' => function ($query) {
-                    $query->orderBy('order', 'asc');
-                },
-                'tags'
-            ])
-            ->get();
+        // Кэшируем статьи для правого сайдбара
+        $rightArticles = Cache::store('redis')->remember("articles.right.{$locale}", $cacheTime, function () use ($locale) {
+            return Article::where('activity', 1)
+                ->where('locale', $locale)
+                ->where('right', true)
+                ->orderBy('sort', 'desc')
+                ->with([
+                    'images' => function ($query) {
+                        $query->orderBy('order', 'asc');
+                    },
+                    'tags'
+                ])
+                ->get();
+        });
+
+        // Кэшируем баннеры для левой колонки
+        $leftBanners = Cache::store('redis')->remember("banners.left.{$locale}", $cacheTime, function () use ($locale) {
+            return Banner::where('activity', 1)
+                ->where('left', true)
+                ->orderBy('sort', 'desc')
+                ->with([
+                    'images' => function ($query) {
+                        $query->orderBy('order', 'asc');
+                    }
+                ])
+                ->get();
+        });
+
+        // Кэшируем баннеры для правой колонки
+        $rightBanners = Cache::store('redis')->remember("banners.right.{$locale}", $cacheTime, function () use ($locale) {
+            return Banner::where('activity', 1)
+                ->where('right', true)
+                ->orderBy('sort', 'desc')
+                ->with([
+                    'images' => function ($query) {
+                        $query->orderBy('order', 'asc');
+                    }
+                ])
+                ->get();
+        });
 
         return Inertia::render('Public/Default/Articles/Show', [
             'article'             => new ArticleResource($article),
             'leftArticles'        => ArticleResource::collection($leftArticles),
             'rightArticles'       => ArticleResource::collection($rightArticles),
             'recommendedArticles' => ArticleResource::collection($article->relatedArticles),
+            'leftBanners'         => BannerResource::collection($leftBanners),
+            'rightBanners'        => BannerResource::collection($rightBanners),
         ]);
     }
 

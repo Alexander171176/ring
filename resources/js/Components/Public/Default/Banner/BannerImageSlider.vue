@@ -42,12 +42,14 @@ const currentImage = computed(() => {
 </script>
 
 <template>
-    <div class="h-full border-3 border-sky-600 rounded">
+    <div class="h-full p-4 border border-slate-400">
         <img
             :src="currentImage.webp_url || currentImage.url"
             :alt="alt || currentImage.alt"
             :title="title || currentImage.caption"
-            class="w-full h-full object-cover"
+            class="w-full h-full object-cover shadow-md shadow-gray-600
+                   transition-transform duration-300 hover:scale-105"
         />
     </div>
 </template>
+

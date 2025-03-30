@@ -69,10 +69,7 @@ const prevPage = () => {
                     <div v-if="article.images && article.images.length > 0" class="h-40 overflow-hidden">
                         <ArticleImageSlider
                             :images="article.images"
-                            :link="`/articles/${article.url}`"
-                            :alt="t('defaultImageAlt')"
-                            :title="t('postImage')"
-                        />
+                            :link="`/articles/${article.url}`" />
                     </div>
                     <Link v-else :href="`/articles/${article.url}`"
                           class="h-40 flex items-center justify-center bg-gray-200 dark:bg-gray-400">
@@ -81,10 +78,10 @@ const prevPage = () => {
 
                     <!-- Ссылка и дата статьи -->
                     <div class="px-3 my-1">
-                        <div class="text-xs font-semibold text-orange-500 dark:text-orange-400 mb-1">
+                        <div class="text-center text-xs font-semibold text-orange-500 dark:text-orange-400">
                             {{ article.created_at.substring(0, 10) }}
                         </div>
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                        <h3 class="text-md font-semibold text-blue-900 dark:text-white">
                             <Link :href="`/articles/${article.url}`"
                                   class="hover:text-blue-600 dark:hover:text-blue-400">
                                 {{ article.title }}
@@ -93,9 +90,9 @@ const prevPage = () => {
                     </div>
 
                     <!-- Краткое описание статьи -->
-                    <div class="flex flex-wrap items-center pl-1
+                    <div class="flex flex-wrap items-center p-2
                                 border border-dashed border-slate-400 dark:border-slate-200">
-                        <p class="italic text-sm font-semibold text-slate-600 dark:text-slate-300">
+                        <p class="italic text-sm font-semibold text-slate-800 dark:text-slate-200">
                             {{ article.short }}
                         </p>
                     </div>
@@ -103,7 +100,7 @@ const prevPage = () => {
                     <!-- Автор, просмотры, лайки, теги статьи -->
                     <ul class="text-sm space-y-2 my-1 px-1">
                         <li class="h-4 flex items-center justify-between">
-                            <div class="font-semibold text-amber-500 dark:text-amber-300">
+                            <div class="font-semibold text-teal-600 dark:text-teal-300">
                                 {{ article.author }}
                             </div>
                             <svg class="w-4 h-4 fill-current text-slate-400 shrink-0 ml-3"
@@ -117,10 +114,10 @@ const prevPage = () => {
                                 Просмотры:
                             </div>
                             <div class="flex items-center justify-between">
-                                                            <span v-if="article.views !== 0"
-                                                                  class="font-semibold text-gray-700 dark:text-gray-300">
-                                                              {{ article.views }}
-                                                            </span>
+                                <span v-if="article.views !== 0"
+                                      class="font-semibold text-gray-700 dark:text-gray-300">
+                                  {{ article.views }}
+                                </span>
                                 <svg
                                     class="w-4 h-4 fill-current text-slate-400 shrink-0 ml-3"
                                     viewBox="0 0 16 16">
@@ -134,10 +131,10 @@ const prevPage = () => {
                                 Лайки:
                             </div>
                             <div class="flex items-center justify-between">
-                                                            <span v-if="article.likes !== 0"
-                                                                  class="font-semibold text-gray-700 dark:text-gray-300">
-                                                                {{ article.likes }}
-                                                            </span>
+                                <span v-if="article.likes !== 0"
+                                      class="font-semibold text-gray-700 dark:text-gray-300">
+                                    {{ article.likes }}
+                                </span>
                                 <svg
                                     class="w-4 h-4 fill-current text-slate-400 shrink-0 ml-3"
                                     viewBox="0 0 512 512">
@@ -148,10 +145,11 @@ const prevPage = () => {
                         </li>
                         <li class="h-fit flex items-center justify-between">
                             <div class="font-semibold text-violet-600 dark:text-violet-300">
-                                                            <span v-for="(tag, index) in article.tags" :key="tag.id">
-                                                              <Link :href="`/tags/${tag.slug}`">{{ tag.name }}</Link>
-                                                              <span v-if="index < article.tags.length - 1">, </span>
-                                                            </span>
+                                <span v-for="(tag, index) in article.tags" :key="tag.id">
+                                  <Link :href="`/tags/${tag.slug}`"
+                                        class="hover:text-rose-400 hover:dark:text-rose-300">{{ tag.name }}</Link>
+                                  <span v-if="index < article.tags.length - 1">, </span>
+                                </span>
                             </div>
                             <svg class="w-4 h-4 fill-current text-slate-400 shrink-0 ml-3"
                                  viewBox="0 0 16 16">

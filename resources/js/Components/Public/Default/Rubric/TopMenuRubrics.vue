@@ -37,7 +37,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <nav class="flex flex-wrap justify-center gap-4 p-2 bg-cyan-700 dark:bg-blue-950">
+    <nav class="flex flex-wrap justify-center gap-4 p-2 dark:bg-cyan-800 bg-sky-800">
         <ul v-if="rubrics.length" class="flex flex-wrap gap-4">
             <li v-for="rubric in rubrics" :key="rubric.id">
                 <Link

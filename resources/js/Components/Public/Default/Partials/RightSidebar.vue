@@ -1,13 +1,13 @@
 <script setup>
-import { ref, computed } from 'vue';
-import { usePage, Link } from '@inertiajs/vue3';
-import { useI18n } from 'vue-i18n';
+import {ref, computed} from 'vue';
+import {usePage, Link} from '@inertiajs/vue3';
+import {useI18n} from 'vue-i18n';
 import ArticleImageSlider from "@/Components/Public/Default/Article/ArticleImageSlider.vue";
 import BannerImageSlider from "@/Components/Public/Default/Banner/BannerImageSlider.vue";
 
-const { t } = useI18n();
+const {t} = useI18n();
 // Получаем данные из страницы, включая новый пропс rightArticles
-const { rightArticles, rightBanners } = usePage().props;
+const {rightArticles, rightBanners} = usePage().props;
 
 // Используем prop rightArticles вместо вычисления через секции
 const articles = computed(() => rightArticles || []);
@@ -23,7 +23,7 @@ const sidebarClasses = computed(() => {
         'transition-all',
         'duration-300',
         'p-2',
-        'bg-slate-100',
+        'bg-white',
         'dark:bg-slate-800',
         'w-full', // на маленьких экранах всегда full width
         isCollapsed.value ? 'lg:w-8' : 'lg:w-80'
@@ -33,7 +33,7 @@ const sidebarClasses = computed(() => {
 
 <template>
     <aside v-if="articles.length > 0" :class="sidebarClasses">
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-center">
             <h2 v-if="!isCollapsed"
                 class="w-full text-center text-xl font-semibold text-gray-900 dark:text-slate-100">
                 {{ t('latestNews') }}
@@ -41,90 +41,81 @@ const sidebarClasses = computed(() => {
             <button @click="toggleSidebar" class="focus:outline-none" :title="t('toggleSidebar')">
                 <svg v-if="isCollapsed"
                      class="w-6 h-6 text-rose-500 dark:text-rose-400" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M16 5v14l-11-7z" />
+                    <path d="M16 5v14l-11-7z"/>
                 </svg>
                 <svg v-else
                      class="w-6 h-6 text-rose-500 dark:text-rose-400" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M8 5v14l11-7z" />
+                    <path d="M8 5v14l11-7z"/>
                 </svg>
             </button>
         </div>
 
         <!-- Содержимое сайдбара показывается, когда он развернут -->
         <div v-show="!isCollapsed" class="mt-4">
-            <ul>
-                <li v-for="banner in banners" :key="banner.id"
-                    class="mb-2 pb-2 border-b border-slate-500 dark:border-slate-300">
+            <div class="flex flex-col items-center justify-center">
+                <ul class="max-w-xl">
+                    <li v-for="banner in banners" :key="banner.id"
+                        class="mb-2 pb-2">
 
-                    <!-- Название баннера -->
-                    <div class="px-3 my-1">
-                        <h3 class="text-center text-lg font-semibold text-teal-600 dark:text-yellow-200">
-                            {{ banner.title }}
-                        </h3>
-                    </div>
+                        <!-- Название баннера -->
+                        <!--                    <div class="px-3 my-1">-->
+                        <!--                        <h3 class="text-center text-lg font-semibold text-teal-600 dark:text-yellow-200">-->
+                        <!--                            {{ banner.title }}-->
+                        <!--                        </h3>-->
+                        <!--                    </div>-->
 
-                    <!-- Изображение баннера -->
-                    <div v-if="banner.images && banner.images.length > 0"
-                         class="h-40 overflow-hidden">
-                        <BannerImageSlider
-                            :images="banner.images"
-                            :alt="t('defaultImageAlt')"
-                            :title="t('postImage')"
-                        />
-                    </div>
-                    <div v-else
-                         class="h-40 flex items-center justify-center bg-gray-200 dark:bg-gray-400">
-                        <span class="text-gray-500 dark:text-gray-700">{{ t('noCurrentImage') }}</span>
-                    </div>
-
-                    <!-- Краткое описание статьи -->
-                    <p class="mt-2 text-center text-sm font-semibold text-slate-600 dark:text-slate-300">
-                        {{ banner.short }}
-                    </p>
-
-                </li>
-                <li v-for="article in articles" :key="article.id"
-                    class="mb-2 pb-2 border-b border-slate-500 dark:border-slate-300">
-
-                    <!-- Изображение статьи -->
-                    <Link v-if="article.images && article.images.length > 0"
-                          :href="`/articles/${article.url}`"
-                          class="h-40 overflow-hidden">
-                        <ArticleImageSlider
-                            :images="article.images"
-                            :link="`/articles/${article.url}`"
-                            :alt="article.images[0].alt || t('noCurrentImage')"
-                            :title="article.images[0].caption || t('postImage')"
-                        />
-                    </Link>
-                    <Link v-else :href="`/articles/${article.url}`"
-                          class="h-40 flex items-center justify-center bg-gray-200 dark:bg-gray-400">
-                        <span class="text-gray-500 dark:text-gray-700">{{ t('noCurrentImage') }}</span>
-                    </Link>
-
-                    <!-- Ссылка и дата статьи -->
-                    <div class="px-3 my-1">
-                        <div class="text-xs font-semibold text-orange-500 dark:text-orange-400 mb-1">
-                            {{ article.created_at.substring(0, 10) }}
+                        <!-- Изображение баннера -->
+                        <div v-if="banner.images && banner.images.length > 0" :title="banner.title"
+                             class="h-auto overflow-hidden">
+                            <BannerImageSlider :images="banner.images"/>
                         </div>
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                            <Link :href="`/articles/${article.url}`"
-                                  class="hover:text-blue-600 dark:hover:text-blue-400">
-                                {{ article.title }}
-                            </Link>
-                        </h3>
-                    </div>
 
-                    <!-- Краткое описание статьи -->
-                    <div class="flex flex-wrap items-center pl-1
+                        <!-- Краткое описание статьи -->
+                        <!--                    <p class="mt-2 text-center text-sm font-semibold text-slate-600 dark:text-slate-300">-->
+                        <!--                        {{ banner.short }}-->
+                        <!--                    </p>-->
+
+                    </li>
+                    <li v-for="article in articles" :key="article.id"
+                        class="mb-2 pb-2">
+
+                        <!-- Изображение статьи -->
+                        <Link v-if="article.images && article.images.length > 0"
+                              :href="`/articles/${article.url}`"
+                              class="h-auto overflow-hidden">
+                            <ArticleImageSlider
+                                :images="article.images"
+                                :link="`/articles/${article.url}`"/>
+                        </Link>
+                        <Link v-else :href="`/articles/${article.url}`"
+                              class="h-auto flex items-center justify-center bg-gray-200 dark:bg-gray-400">
+                            <span class="text-gray-500 dark:text-gray-700">{{ t('noCurrentImage') }}</span>
+                        </Link>
+
+                        <!-- Ссылка и дата статьи -->
+                        <div class="px-3 my-1">
+                            <div class="text-center text-xs font-semibold text-orange-500 dark:text-orange-400">
+                                {{ article.created_at.substring(0, 10) }}
+                            </div>
+                            <h3 class="text-md font-semibold text-blue-900 dark:text-white">
+                                <Link :href="`/articles/${article.url}`"
+                                      class="hover:text-blue-600 dark:hover:text-blue-400">
+                                    {{ article.title }}
+                                </Link>
+                            </h3>
+                        </div>
+
+                        <!-- Краткое описание статьи -->
+                        <div class="flex flex-wrap items-center p-2
                                 border border-dashed border-slate-400 dark:border-slate-200">
-                        <p class="italic text-sm font-semibold text-slate-600 dark:text-slate-300">
-                            {{ article.short }}
-                        </p>
-                    </div>
+                            <p class="italic text-sm font-semibold text-slate-800 dark:text-slate-200">
+                                {{ article.short }}
+                            </p>
+                        </div>
 
-                </li>
-            </ul>
+                    </li>
+                </ul>
+            </div>
         </div>
 
     </aside>

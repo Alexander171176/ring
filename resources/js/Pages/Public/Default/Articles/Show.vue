@@ -45,10 +45,10 @@ const {article, recommendedArticles} = usePage().props;
 
         <!-- Обернём основное содержимое в блок с микроданными для BlogPosting -->
         <article itemscope itemtype="https://schema.org/BlogPosting"
-                 class="flex-1 p-4 bg-slate-100 dark:bg-slate-800 selection:bg-red-400 selection:text-white">
+                 class="flex-1 p-4 bg-white dark:bg-slate-800 selection:bg-red-400 selection:text-white">
             <!-- Микроданные для заголовка -->
             <header>
-                <div class="flex items-center justify-center my-4">
+                <div class="flex items-center justify-center my-1">
                     <h1 itemprop="headline"
                         class="text-center font-bolder text-3xl text-gray-900 dark:text-slate-100">
                         {{ article.title }}
@@ -64,12 +64,13 @@ const {article, recommendedArticles} = usePage().props;
                 </div>
                 <!-- Дата публикации, форматируем по необходимости -->
                 <time itemprop="datePublished" datetime="{{ article.created_at.substring(0, 10) }}"
-                      class="flex items-center justify-center text-sm text-orange-500 dark:text-orange-400 mb-2">
+                      class="flex items-center justify-center
+                             font-semibold text-sm text-orange-500 dark:text-orange-400">
                     {{ article.created_at.substring(0, 10) }}
                 </time>
             </header>
 
-            <div class="flex items-center justify-center my-4">
+            <div class="flex items-center justify-center my-3">
                 <!-- Краткое описание -->
                 <p itemprop="description"
                    class="text-center text-xl text-teal-700 dark:text-teal-200 mr-2">
@@ -102,14 +103,15 @@ const {article, recommendedArticles} = usePage().props;
             </div>
 
             <!-- Полное описание -->
-            <div class="w-full max-w-4xl mx-auto my-4 text-center text-xl text-gray-700 dark:text-gray-200
+            <div class="w-full max-w-4xl mx-auto my-4 p-2 text-center text-xl text-gray-700 dark:text-gray-200
                         border border-dashed border-slate-400 dark:border-slate-200"
                  v-html="article.description" itemprop="articleBody"></div>
 
             <!-- Теги -->
             <div class="flex justify-center items-center mb-3 font-semibold text-violet-600 dark:text-violet-300">
                 <span v-for="(tag, index) in article.tags" :key="tag.id">
-                  <Link :href="`/tags/${tag.slug}`" itemprop="keywords">{{ tag.name }}</Link>
+                  <Link :href="`/tags/${tag.slug}`" itemprop="keywords"
+                        class="hover:text-rose-400 hover:dark:text-rose-300">{{ tag.name }}</Link>
                   <span v-if="index < article.tags.length - 1">, </span>
                 </span>
             </div>
@@ -127,7 +129,8 @@ const {article, recommendedArticles} = usePage().props;
             <!-- Блок рекомендованных статей -->
             <div class="mt-4">
                 <h2 v-if="recommendedArticles && recommendedArticles.length > 0"
-                    class="text-orange-400 dark:text-orange-300 text-center text-2xl font-semibold mb-4">
+                    class="mb-4 tracking-wide text-center font-semibold text-xl
+                           text-orange-400 dark:text-orange-300">
                     {{ t('relatedArticles') }}:
                 </h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3 gap-4">

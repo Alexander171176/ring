@@ -11,12 +11,15 @@ use App\Models\Admin\Article\Article;
 use App\Models\Admin\Banner\Banner;
 use App\Models\Admin\Rubric\Rubric;
 use App\Models\Admin\Setting\Setting;
+use App\Traits\CacheTimeTrait;
 use Illuminate\Http\JsonResponse;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Support\Facades\Cache;
 
 class RubricController extends Controller
 {
+    use CacheTimeTrait;
 
     /**
      * Возвращает список активных рубрик в зависимости от выбранного языка.
@@ -25,143 +28,150 @@ class RubricController extends Controller
      */
     public function index(): Response
     {
-        // Получаем текущую локаль
-        $locale = Setting::where('option', 'locale')->value('value');
+        $cacheTime = $this->getCacheTime();
 
-        // Логирование для проверки текущей локали
-        //Log::info("Текущая локаль для фильтрации: " . $locale);
+        // Кэшируем локаль
+        $locale = Cache::store('redis')->remember('setting.locale', $cacheTime, function () {
+            return Setting::where('option', 'locale')->value('value');
+        });
 
-        // Получаем рубрики с фильтрацией по активности и локали
-        $rubrics = Rubric::where('activity', 1)
-            ->where('locale', $locale)
-            ->orderBy('sort')
-            ->get(['id', 'title', 'url', 'locale']);
-
-        // Логирование результата перед отправкой
-        //Log::info("Найденные рубрики: ", $rubrics->toArray());
+        // Кэшируем рубрики
+        $rubrics = Cache::store('redis')->remember("rubrics.index.{$locale}", $cacheTime, function () use ($locale) {
+            return Rubric::where('activity', 1)
+                ->where('locale', $locale)
+                ->orderBy('sort')
+                ->get(['id', 'title', 'url', 'locale']);
+        });
 
         return Inertia::render('Public/Default/Rubrics/Index', [
-            'rubrics' => $rubrics,
-            'rubricsCount' => $rubrics->count()
+            'rubrics'      => $rubrics,
+            'rubricsCount' => $rubrics->count(),
         ]);
     }
 
-    /*
+    /**
      * Страница показа рубрики
      */
     public function show(string $url): Response
     {
-        // Получаем текущую локаль из настроек
-        $locale = Setting::where('option', 'locale')->value('value');
+        $cacheTime = $this->getCacheTime();
 
-        // Загружаем рубрику с секциями, статьями и баннерами секций
-        $rubric = Rubric::with([
-            'sections' => function ($query) use ($locale) {
-                $query->where('activity', 1)
-                    ->where('locale', $locale)
-                    ->orderBy('sort', 'asc')
-                    ->with([
-                        'articles' => function ($query) use ($locale) {
-                            $query->where('activity', 1)
-                                ->where('locale', $locale)
-                                ->orderBy('sort', 'desc')
-                                ->with([
-                                    'images' => function ($query) {
-                                        $query->orderBy('order', 'asc');
-                                    },
-                                    'tags'
-                                ]);
-                        },
-                        // Загружаем баннеры, привязанные к секции
-                        'banners' => function ($query) {
-                            $query->where('activity', 1)
-                                ->orderBy('sort', 'desc')
-                                ->with([
-                                    'images' => function ($query) {
-                                        $query->orderBy('order', 'asc');
-                                    }
-                                ]);
-                        }
-                    ]);
-            }
-        ])->where('url', $url)->firstOrFail();
+        // Получаем локаль через кэш
+        $locale = Cache::store('redis')->remember('setting.locale', $cacheTime, function () {
+            return Setting::where('option', 'locale')->value('value');
+        });
+
+        // Загружаем рубрику с секциями, статьями и баннерами секций через кэш
+        $rubric = Cache::store('redis')->remember("rubric.{$url}.{$locale}", $cacheTime, function () use ($url, $locale) {
+            return Rubric::with([
+                'sections' => function ($query) use ($locale) {
+                    $query->where('activity', 1)
+                        ->where('locale', $locale)
+                        ->orderBy('sort', 'asc')
+                        ->with([
+                            'articles' => function ($query) use ($locale) {
+                                $query->where('activity', 1)
+                                    ->where('locale', $locale)
+                                    ->orderBy('sort', 'desc')
+                                    ->with([
+                                        'images' => function ($query) {
+                                            $query->orderBy('order', 'asc');
+                                        },
+                                        'tags'
+                                    ]);
+                            },
+                            // Загружаем баннеры, привязанные к секции
+                            'banners' => function ($query) {
+                                $query->where('activity', 1)
+                                    ->orderBy('sort', 'desc')
+                                    ->with([
+                                        'images' => function ($query) {
+                                            $query->orderBy('order', 'asc');
+                                        }
+                                    ]);
+                            }
+                        ]);
+                }
+            ])
+                ->where('url', $url)
+                ->firstOrFail();
+        });
 
         // Подсчет общего количества активных статей во всех секциях рубрики
         $activeArticlesCount = $rubric->sections->reduce(function ($carry, $section) {
             return $carry + ($section->articles ? $section->articles->count() : 0);
         }, 0);
 
-        // Отдельно выбираем статьи для левой, главной и правой колонки с сортировкой изображений
-        $leftArticles = Article::where('activity', 1)
-            ->where('locale', $locale)
-            ->where('left', true)
-            ->orderBy('sort', 'desc')
-            ->with([
-                'images' => function ($query) {
-                    $query->orderBy('order', 'asc');
-                },
-                'tags'
-            ])
-            ->get();
+        // Кэшируем статьи для левой колонки
+        $leftArticles = Cache::store('redis')->remember("articles.left.{$locale}", $cacheTime, function () use ($locale) {
+            return Article::where('activity', 1)
+                ->where('locale', $locale)
+                ->where('left', true)
+                ->orderBy('sort', 'desc')
+                ->with([
+                    'images' => function ($query) {
+                        $query->orderBy('order', 'asc');
+                    },
+                    'tags'
+                ])
+                ->get();
+        });
 
-        $mainArticles = Article::where('activity', 1)
-            ->where('locale', $locale)
-            ->where('main', true)
-            ->orderBy('sort', 'desc')
-            ->with([
-                'images' => function ($query) {
-                    $query->orderBy('order', 'asc');
-                },
-                'tags'
-            ])
-            ->get();
+        // Кэшируем статьи для главной колонки
+        $mainArticles = Cache::store('redis')->remember("articles.main.{$locale}", $cacheTime, function () use ($locale) {
+            return Article::where('activity', 1)
+                ->where('locale', $locale)
+                ->where('main', true)
+                ->orderBy('sort', 'desc')
+                ->with([
+                    'images' => function ($query) {
+                        $query->orderBy('order', 'asc');
+                    },
+                    'tags'
+                ])
+                ->get();
+        });
 
-        $rightArticles = Article::where('activity', 1)
-            ->where('locale', $locale)
-            ->where('right', true)
-            ->orderBy('sort', 'desc')
-            ->with([
-                'images' => function ($query) {
-                    $query->orderBy('order', 'asc');
-                },
-                'tags'
-            ])
-            ->get();
+        // Кэшируем статьи для правой колонки
+        $rightArticles = Cache::store('redis')->remember("articles.right.{$locale}", $cacheTime, function () use ($locale) {
+            return Article::where('activity', 1)
+                ->where('locale', $locale)
+                ->where('right', true)
+                ->orderBy('sort', 'desc')
+                ->with([
+                    'images' => function ($query) {
+                        $query->orderBy('order', 'asc');
+                    },
+                    'tags'
+                ])
+                ->get();
+        });
 
-        // Выбираем активные баннеры, связанные с секциями, у которых активность = 1
-        $sectionBanners = Banner::where('activity', 1)
-            ->whereHas('sections', function ($query) use ($locale) {
-                $query->where('activity', 1)
-                    ->where('locale', $locale);
-            })
-            ->orderBy('sort', 'desc')
-            ->with([
-                'images' => function ($query) {
-                    $query->orderBy('order', 'asc');
-                }
-            ])
-            ->get();
+        // Кэшируем баннеры для левой колонки
+        $leftBanners = Cache::store('redis')->remember("banners.left.{$locale}", $cacheTime, function () use ($locale) {
+            return Banner::where('activity', 1)
+                ->where('left', true)
+                ->orderBy('sort', 'desc')
+                ->with([
+                    'images' => function ($query) {
+                        $query->orderBy('order', 'asc');
+                    }
+                ])
+                ->get();
+        });
 
-        // Отдельно выбираем баннеры для левой и правой колонки с сортировкой изображений
-        $leftBanners = Banner::where('activity', 1)
-            ->where('left', true)
-            ->orderBy('sort', 'desc')
-            ->with([
-                'images' => function ($query) {
-                    $query->orderBy('order', 'asc');
-                }
-            ])
-            ->get();
-
-        $rightBanners = Banner::where('activity', 1)
-            ->where('right', true)
-            ->orderBy('sort', 'desc')
-            ->with([
-                'images' => function ($query) {
-                    $query->orderBy('order', 'asc');
-                }
-            ])
-            ->get();
+        // Кэшируем баннеры для правой колонки
+        $rightBanners = Cache::store('redis')->remember("banners.right.{$locale}", $cacheTime, function () use ($locale) {
+            return Banner::where('activity', 1)
+                ->where('right', true)
+                ->orderBy('sort', 'desc')
+                ->with([
+                    'images' => function ($query) {
+                        $query->orderBy('order', 'asc');
+                    }
+                ])
+                ->get();
+        });
 
         return Inertia::render('Public/Default/Rubrics/Show', [
             'rubric'              => new RubricResource($rubric),
@@ -183,25 +193,21 @@ class RubricController extends Controller
      */
     public function menuRubrics(): JsonResponse
     {
-        // Получаем текущую локаль
-        $locale = Setting::where('option', 'locale')->value('value');
+        $cacheTime = $this->getCacheTime();
+        $locale = Cache::store('redis')->remember('setting.locale', $cacheTime, function () {
+            return Setting::where('option', 'locale')->value('value');
+        });
 
-        // Логирование для проверки текущей локали
-        //Log::info("Текущая локаль для фильтрации: " . $locale);
-
-        // Получаем рубрики с фильтрацией по активности и локали
-        $rubrics = Rubric::where('activity', 1)
-            ->where('locale', $locale)
-            ->orderBy('sort')
-            ->get(['id', 'title', 'url', 'locale']);
-
-        // Логирование результата перед отправкой
-        //Log::info("Найденные рубрики: ", $rubrics->toArray());
+        $rubrics = Cache::store('redis')->remember("rubrics.menu.{$locale}", $cacheTime, function () use ($locale) {
+            return Rubric::where('activity', 1)
+                ->where('locale', $locale)
+                ->orderBy('sort')
+                ->get(['id', 'title', 'url', 'locale']);
+        });
 
         return response()->json([
-            'rubrics' => $rubrics,
+            'rubrics'      => $rubrics,
             'rubricsCount' => $rubrics->count()
         ]);
     }
-
 }
