@@ -79,7 +79,7 @@ class RoleController extends Controller
         $role = Role::findById($id);
         $role->delete();
 
-        Log::info('Role deleted:', $role->toArray());
+        // Log::info('Role deleted:', $role->toArray());
 
         return back();
     }

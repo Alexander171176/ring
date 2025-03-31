@@ -21,6 +21,12 @@ class TagRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'locale' => [
+                'required',
+                'string',
+                'size:2',
+                Rule::in(['ru', 'en', 'kz']),
+            ],
             'name' => [
                 'required',
                 'string',
@@ -33,12 +39,12 @@ class TagRequest extends FormRequest
                 'max:255',
                 Rule::unique('tags', 'slug')->ignore($this->route('tag')),
             ],
-            'locale' => [
-                'required',
-                'string',
-                'size:2',
-                Rule::in(['ru', 'en', 'kz']),
-            ],
+            'short' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+
+            'meta_title' => 'nullable|string|max:255',
+            'meta_keywords' => 'nullable|string|max:255',
+            'meta_desc' => 'nullable|string|max:255',
         ];
     }
 
@@ -48,6 +54,11 @@ class TagRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'locale.required' => 'Язык тега обязателен.',
+            'locale.string' => 'Язык должен быть строкой.',
+            'locale.size' => 'Код языка должен состоять из 2 символов (например, "ru", "en", "kz").',
+            'locale.in' => 'Допустимые языки: ru, en, kz.',
+
             'name.required' => 'Название тега обязательно.',
             'name.string' => 'Название тега должно быть строкой.',
             'name.max' => 'Название тега не должно превышать 255 символов.',
@@ -58,10 +69,14 @@ class TagRequest extends FormRequest
             'slug.max' => 'Slug тега не должен превышать 255 символов.',
             'slug.unique' => 'Тег с таким slug уже существует.',
 
-            'locale.required' => 'Язык тега обязателен.',
-            'locale.string' => 'Язык должен быть строкой.',
-            'locale.size' => 'Код языка должен состоять из 2 символов (например, "ru", "en", "kz").',
-            'locale.in' => 'Допустимые языки: ru, en, kz.',
+            'short.string' => 'Краткое описание должно быть строкой.',
+            'short.max' => 'Краткое описание не должно превышать 255 символов.',
+
+            'description.string' => 'Описание должно быть строкой.',
+
+            'meta_title.max' => 'Meta заголовок не должен превышать 255 символов.',
+            'meta_keywords.max' => 'Meta ключевые слова не должны превышать 255 символов.',
+            'meta_desc.max' => 'Meta описание не должно превышать 255 символов.',
         ];
     }
 }

@@ -24,9 +24,13 @@ class RubricController extends Controller
         $rubrics = Rubric::all();
         $rubricsCount = DB::table('rubrics')->count();
 
+        // Получаем значение параметра из конфигурации (оно загружается через AppServiceProvider)
+        $adminCountRubrics = config('site_settings.AdminCountRubrics', 10);
+
         return Inertia::render('Admin/Rubrics/Index', [
             'rubrics' => RubricResource::collection($rubrics),
             'rubricsCount' => $rubricsCount,
+            'adminCountRubrics' => (int)$adminCountRubrics,
         ]);
     }
 
@@ -46,7 +50,7 @@ class RubricController extends Controller
         $data = $request->validated();
         $rubric = Rubric::create($data);
 
-        Log::info('Рубрика успешно создана: ', $rubric->toArray());
+        // Log::info('Рубрика успешно создана: ', $rubric->toArray());
 
         return redirect()->route('rubrics.index')->with('success', 'Рубрика успешно создана');
     }
@@ -72,7 +76,7 @@ class RubricController extends Controller
         $data = $request->validated();
         $rubric->update($data);
 
-        Log::info('Рубрика обновлена: ', $rubric->toArray());
+        // Log::info('Рубрика обновлена: ', $rubric->toArray());
 
         return redirect()->route('rubrics.index')->with('success', 'Рубрика успешно обновлена');
     }
@@ -85,7 +89,7 @@ class RubricController extends Controller
         $rubric = Rubric::findOrFail($id);
         $rubric->delete();
 
-        Log::info('Рубрика удалена: ', $rubric->toArray());
+        // Log::info('Рубрика удалена: ', $rubric->toArray());
 
         return back();
     }
@@ -106,7 +110,7 @@ class RubricController extends Controller
             $rubric->delete();
         });
 
-        Log::info('Рубрики удалены: ', $rubricIds);
+        // Log::info('Рубрики удалены: ', $rubricIds);
 
         return response()->json(['success' => true, 'reload' => true]);
     }
@@ -124,7 +128,7 @@ class RubricController extends Controller
         $rubric->activity = $validated['activity'];
         $rubric->save();
 
-        Log::info("Обновлено activity рубрики с ID: $id с данными: ", $validated);
+        // Log::info("Обновлено activity рубрики с ID: $id с данными: ", $validated);
 
         return response()->json(['success' => true, 'reload' => true]);
     }
@@ -142,7 +146,7 @@ class RubricController extends Controller
         $rubric->sort = $validated['sort'];
         $rubric->save();
 
-        Log::info("Обновлено sort рубрики с ID: $id с данными: ", $validated);
+        // Log::info("Обновлено sort рубрики с ID: $id с данными: ", $validated);
 
         return response()->json(['success' => true]);
     }
@@ -164,13 +168,12 @@ class RubricController extends Controller
             $clonedRubric->save();
 
             DB::commit();
-
-            Log::info('Рубрика успешно клонирована: ', $clonedRubric->toArray());
-
+            // Log::info('Рубрика успешно клонирована: ', $clonedRubric->toArray());
             return response()->json(['success' => true, 'reload' => true]);
+
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Ошибка при клонировании рубрики: ', ['error' => $e->getMessage()]);
+            // Log::error('Ошибка при клонировании рубрики: ', ['error' => $e->getMessage()]);
             return response()->json(['success' => false, 'message' => 'Ошибка клонирования рубрики'], 500);
         }
     }

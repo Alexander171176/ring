@@ -15,9 +15,14 @@ class Tag extends Model
     protected $table = 'tags';
 
     protected $fillable = [
+        'locale', // Язык (ru, en, kz)
         'name', // Название тега
         'slug', // URL-совместимое имя
-        'locale'
+        'short', // Краткое Описание
+        'description', // Описание
+        'meta_title', // meta title
+        'meta_keywords', // meta keywords
+        'meta_desc', // meta description
     ];
 
     // Отношение многие ко многим с моделью Article

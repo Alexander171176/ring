@@ -23,7 +23,7 @@ const updateSort = (event) => {
             {{ t('sort') }}
         </label>
         <select id="sortParam" :value="sortParam" @change="updateSort"
-                class="w-56 px-3 py-0.5 form-select bg-white dark:bg-gray-200
+                class="w-50 px-3 py-0.5 form-select bg-white dark:bg-gray-200
                        text-gray-600 dark:text-gray-900
                        border border-slate-400 dark:border-slate-600
                        rounded-sm shadow-sm">

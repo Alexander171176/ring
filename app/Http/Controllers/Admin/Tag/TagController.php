@@ -47,7 +47,7 @@ class TagController extends Controller
         // Создание разрешения
         $tag = Tag::create($data);
 
-        Log::info('Тег создан: ', $tag->toArray());
+        // Log::info('Тег создан: ', $tag->toArray());
 
         return redirect()->route('tags.index')->with('success', 'Тег успешно создан');
     }
@@ -75,7 +75,7 @@ class TagController extends Controller
 
         $tag->update($data);
 
-        Log::info('Тег обновлен: ', $tag->toArray());
+        // Log::info('Тег обновлен: ', $tag->toArray());
 
         return redirect()->route('tags.index')->with('success', 'Тег успешно обновлен');
     }
@@ -88,7 +88,7 @@ class TagController extends Controller
         $tag = Tag::findOrFail($id);
         $tag->delete();
 
-        Log::info('Разрешение удалено: ', $tag->toArray());
+        // Log::info('Разрешение удалено: ', $tag->toArray());
 
         return back();
     }
@@ -109,7 +109,7 @@ class TagController extends Controller
             $tag->delete();
         });
 
-        Log::info('Теги удалены: ', $tagIds);
+        // Log::info('Теги удалены: ', $tagIds);
 
         return response()->json(['success' => true, 'reload' => true]);
     }

@@ -173,7 +173,7 @@ class BannerController extends Controller
 
         $banner->delete();
 
-        Log::info('Баннер удален с ID: ' . $id);
+        // Log::info('Баннер удален с ID: ' . $id);
 
         return back()->with('success', 'Баннер и связанные изображения удалены.');
     }
@@ -197,7 +197,7 @@ class BannerController extends Controller
             $banner->delete();
         });
 
-        Log::info('Баннеры удалены: ', $bannerIds);
+        // Log::info('Баннеры удалены: ', $bannerIds);
 
         return response()->json(['success' => true, 'reload' => true]);
     }
@@ -219,7 +219,7 @@ class BannerController extends Controller
         $banner->left = $validated['left'];
         $banner->save();
 
-        Log::info("Обновлено включение баннера в левом сайдбаре с ID: $id с данными: ", $validated);
+        // Log::info("Обновлено включение баннера в левом сайдбаре с ID: $id с данными: ", $validated);
 
         return response()->json(['success' => true, 'reload' => true]);
     }
@@ -242,7 +242,7 @@ class BannerController extends Controller
         $banner->right = $validated['right'];
         $banner->save();
 
-        Log::info("Обновлено включение баннера в правом сайдбаре с ID: $id с данными: ", $validated);
+        // Log::info("Обновлено включение баннера в правом сайдбаре с ID: $id с данными: ", $validated);
 
         return response()->json(['success' => true, 'reload' => true]);
     }
@@ -264,7 +264,7 @@ class BannerController extends Controller
         $banner->activity = $validated['activity'];
         $banner->save();
 
-        Log::info("Обновлена активность баннера с ID: $id с данными: ", $validated);
+        // Log::info("Обновлена активность баннера с ID: $id с данными: ", $validated);
 
         return response()->json(['success' => true, 'reload' => true]);
     }
@@ -286,7 +286,7 @@ class BannerController extends Controller
         $banner->sort = $validated['sort'];
         $banner->save();
 
-        Log::info("Обновлена сортировка банера с ID: $id с данными: ", $validated);
+        // Log::info("Обновлена сортировка банера с ID: $id с данными: ", $validated);
 
         return response()->json(['success' => true]);
     }
@@ -306,7 +306,7 @@ class BannerController extends Controller
             $image->delete();
         }
 
-        Log::info('Удалены изображения: ', ['image_ids' => $imageIds]);
+        // Log::info('Удалены изображения: ', ['image_ids' => $imageIds]);
     }
 
 }

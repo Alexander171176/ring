@@ -33,7 +33,7 @@ class PluginController extends Controller
         $data = $request->validated();
         $plugin = Plugin::create($data);
 
-        Log::info('Созданный плагин: ', $plugin->toArray());
+        // Log::info('Созданный плагин: ', $plugin->toArray());
 
         return redirect()->route('plugins.index')->with('success', 'Плагин успешно создан.');
     }
@@ -64,7 +64,7 @@ class PluginController extends Controller
         $data = $request->validated();
         $plugin->update($data);
 
-        Log::info('Обновлен плагин: ', $plugin->toArray());
+        // Log::info('Обновлен плагин: ', $plugin->toArray());
 
         return redirect()->route('plugins.index')->with('success', 'Плагин успешно обновлен.');
     }
@@ -74,7 +74,7 @@ class PluginController extends Controller
         $plugin = Plugin::findOrFail($id);
         $plugin->delete();
 
-        Log::info('Plugin deleted: ', $plugin->toArray());
+        // Log::info('Plugin deleted: ', $plugin->toArray());
 
         return back();
     }

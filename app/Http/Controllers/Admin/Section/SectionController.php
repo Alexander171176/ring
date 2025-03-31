@@ -25,9 +25,13 @@ class SectionController extends Controller
         $sections = Section::with(['rubrics'])->get();
         $sectionsCount = Section::count();
 
+        // Получаем значение параметра из конфигурации (оно загружается через AppServiceProvider)
+        $adminCountSections = config('site_settings.AdminCountSections', 10);
+
         return Inertia::render('Admin/Sections/Index', [
             'sections' => SectionResource::collection($sections),
             'sectionsCount' => $sectionsCount,
+            'adminCountSections' => (int)$adminCountSections,
         ]);
     }
 
@@ -111,7 +115,7 @@ class SectionController extends Controller
         $section = Section::findOrFail($id);
         $section->delete();
 
-        Log::info('Секция удалена: ', $section->toArray());
+        // Log::info('Секция удалена: ', $section->toArray());
 
         return back()->with('success', 'Секция удалена.');
     }
@@ -135,7 +139,7 @@ class SectionController extends Controller
             $section->delete();
         });
 
-        Log::info('Секции удалены: ', $sectionIds);
+        // Log::info('Секции удалены: ', $sectionIds);
 
         return response()->json(['success' => true, 'reload' => true]);
     }
@@ -157,7 +161,7 @@ class SectionController extends Controller
         $section->activity = $validated['activity'];
         $section->save();
 
-        Log::info("Обновлена активность секции с ID: $id с данными: ", $validated);
+        // Log::info("Обновлена активность секции с ID: $id с данными: ", $validated);
 
         return response()->json(['success' => true, 'reload' => true]);
     }
@@ -179,7 +183,7 @@ class SectionController extends Controller
         $section->sort = $validated['sort'];
         $section->save();
 
-        Log::info("Обновлена сортировка секции с ID: $id с данными: ", $validated);
+        // Log::info("Обновлена сортировка секции с ID: $id с данными: ", $validated);
 
         return response()->json(['success' => true]);
     }
@@ -206,7 +210,7 @@ class SectionController extends Controller
             $clonedSection->rubrics()->sync($rubricIds);
         }
 
-        Log::info('Секция клонирована: ', $clonedSection->toArray());
+        // Log::info('Секция клонирована: ', $clonedSection->toArray());
 
         return response()->json(['success' => true, 'reload' => true]);
     }

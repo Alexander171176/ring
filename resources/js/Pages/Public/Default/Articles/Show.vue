@@ -87,7 +87,9 @@ const {article, recommendedArticles} = usePage().props;
                  class="flex flex-col justify-center items-center"
                  itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
                 <!-- Используем ArticleImageSlider -->
-                <ArticleImageMain :images="article.images" :link="`/articles/${article.url}`" />
+                <ArticleImageMain :images="article.images"
+                                  :link="`/articles/${article.url}`"
+                                  class=" max-w-4xl" />
                 <meta itemprop="width" content="800"/>
                 <meta itemprop="height" content="600"/>
                 <!-- Можно отобразить caption для первого изображения, либо для текущего слайдера -->

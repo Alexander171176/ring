@@ -27,15 +27,23 @@ class AppServiceProvider extends ServiceProvider
     {
         JsonResource::withoutWrapping();
 
-        // Принудительно установим локаль из настроек базы данных, если таблица существует
         if (Schema::hasTable('settings')) {
-            $localeSetting = Setting::where('option', 'locale')->first();
-            $locale = $localeSetting ? $localeSetting->value : config('app.locale');
+            // Загружаем все настройки в виде массива: ключ - название опции, значение - значение настройки
+            $settings = Setting::pluck('value', 'option')->toArray();
 
-            App::setLocale($locale);
+            // Если в настройках присутствует значение 'locale', устанавливаем его
+            if (isset($settings['locale'])) {
+                App::setLocale($settings['locale']);
+            } else {
+                App::setLocale(config('app.locale'));
+            }
 
-            // Передача глобальных данных во все Inertia-компоненты
+            // Сохраняем настройки в конфигурации приложения, чтобы они были доступны глобально
+            config(['site_settings' => $settings]);
+
+            // Если требуется, делимся настройками со всеми Inertia-компонентами
             Inertia::share([
+                'siteSettings' => $settings,
                 'locale' => App::getLocale(),
                 'canLogin' => fn () => Route::has('login'),
                 'canRegister' => fn () => Route::has('register'),

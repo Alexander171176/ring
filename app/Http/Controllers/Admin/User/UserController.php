@@ -82,7 +82,7 @@ class UserController extends Controller
 
         $user->load(['roles', 'permissions']);
 
-        Log::info('Пользователь создан:', $user->toArray());
+        // Log::info('Пользователь создан:', $user->toArray());
 
         return redirect()->route('users.index')->with('success', 'Пользователь успешно создан');
     }
@@ -130,7 +130,7 @@ class UserController extends Controller
 
         $user->load(['roles', 'permissions']);
 
-        Log::info('Пользователь обновлён:', $user->toArray());
+        // Log::info('Пользователь обновлён:', $user->toArray());
 
         return redirect()->route('users.index')->with('success', 'Пользователь успешно обновлён');
     }
@@ -142,7 +142,7 @@ class UserController extends Controller
     {
         $user->delete();
 
-        Log::info('Пользователь удалён:', $user->toArray());
+        // Log::info('Пользователь удалён:', $user->toArray());
 
         return redirect()->route('users.index')->with('success', 'Пользователь успешно удалён');
     }

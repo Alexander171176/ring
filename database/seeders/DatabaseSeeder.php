@@ -21,7 +21,7 @@ class DatabaseSeeder extends Seeder
             TagSeeder::class,
             ArticleImageSeeder::class,
             PluginsSeeder::class,
-//            CommentsSeeder::class,
+            CommentsSeeder::class,
             // Добавьте сюда другие сидеры по мере необходимости
         ]);
     }

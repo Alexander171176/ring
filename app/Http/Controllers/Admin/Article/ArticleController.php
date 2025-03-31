@@ -31,9 +31,13 @@ class ArticleController extends Controller
         $articles = Article::with(['sections', 'tags', 'images'])->get();
         $articlesCount = Article::count();
 
+        // Получаем значение параметра из конфигурации (оно загружается через AppServiceProvider)
+        $adminCountArticles = config('site_settings.AdminCountArticles', 10);
+
         return Inertia::render('Admin/Articles/Index', [
             'articles' => ArticleResource::collection($articles),
             'articlesCount' => $articlesCount,
+            'adminCountArticles' => (int)$adminCountArticles,
         ]);
     }
 
@@ -232,7 +236,7 @@ class ArticleController extends Controller
 
         $article->delete();
 
-        Log::info('Статья удалена с ID: ' . $id);
+        //Log::info('Статья удалена с ID: ' . $id);
 
         return back()->with('success', 'Статья и связанные изображения удалены.');
     }
@@ -256,7 +260,7 @@ class ArticleController extends Controller
             $article->delete();
         });
 
-        Log::info('Статьи удалены: ', $articleIds);
+        //Log::info('Статьи удалены: ', $articleIds);
 
         return response()->json(['success' => true, 'reload' => true]);
     }
@@ -278,7 +282,7 @@ class ArticleController extends Controller
         $article->left = $validated['left'];
         $article->save();
 
-        Log::info("Обновлено включение статьи в левом сайдбаре с ID: $id с данными: ", $validated);
+        //Log::info("Обновлено включение статьи в левом сайдбаре с ID: $id с данными: ", $validated);
 
         return response()->json(['success' => true, 'reload' => true]);
     }
@@ -300,7 +304,7 @@ class ArticleController extends Controller
         $article->main = $validated['main'];
         $article->save();
 
-        Log::info("Обновлено включение основной статьи с ID: $id с данными: ", $validated);
+        //Log::info("Обновлено включение основной статьи с ID: $id с данными: ", $validated);
 
         return response()->json(['success' => true, 'reload' => true]);
     }
@@ -322,7 +326,7 @@ class ArticleController extends Controller
         $article->right = $validated['right'];
         $article->save();
 
-        Log::info("Обновлено включение статьи в правом сайдбаре с ID: $id с данными: ", $validated);
+        //Log::info("Обновлено включение статьи в правом сайдбаре с ID: $id с данными: ", $validated);
 
         return response()->json(['success' => true, 'reload' => true]);
     }
@@ -344,7 +348,7 @@ class ArticleController extends Controller
         $article->activity = $validated['activity'];
         $article->save();
 
-        Log::info("Обновлена активность статьи с ID: $id с данными: ", $validated);
+        //Log::info("Обновлена активность статьи с ID: $id с данными: ", $validated);
 
         return response()->json(['success' => true, 'reload' => true]);
     }
@@ -366,7 +370,7 @@ class ArticleController extends Controller
         $article->sort = $validated['sort'];
         $article->save();
 
-        Log::info("Обновлена сортировка статьи с ID: $id с данными: ", $validated);
+        //Log::info("Обновлена сортировка статьи с ID: $id с данными: ", $validated);
 
         return response()->json(['success' => true]);
     }
@@ -401,7 +405,7 @@ class ArticleController extends Controller
             $clonedArticle->images()->attach($clonedImage->id);
         }
 
-        Log::info('Статья клонирована: ', $clonedArticle->toArray());
+        //Log::info('Статья клонирована: ', $clonedArticle->toArray());
 
         return response()->json(['success' => true, 'reload' => true]);
     }
@@ -421,7 +425,7 @@ class ArticleController extends Controller
             $image->delete();
         }
 
-        Log::info('Удалены изображения: ', ['image_ids' => $imageIds]);
+        //Log::info('Удалены изображения: ', ['image_ids' => $imageIds]);
     }
 
 }

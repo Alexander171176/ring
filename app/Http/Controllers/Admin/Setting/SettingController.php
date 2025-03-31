@@ -8,6 +8,7 @@ use App\Models\Admin\Setting\Setting;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
@@ -83,10 +84,10 @@ class SettingController extends Controller
             'opacity' => 'required|numeric',
         ]);
 
-        Log::info('Полученные данные для обновления:', [
-            'color' => $validated['color'],
-            'opacity' => $validated['opacity']
-        ]);
+//        Log::info('Полученные данные для обновления:', [
+//            'color' => $validated['color'],
+//            'opacity' => $validated['opacity']
+//        ]);
 
         Setting::updateOrCreate(
             ['option' => 'widgetHexColor'],
@@ -110,7 +111,7 @@ class SettingController extends Controller
             ]
         );
 
-        Log::info('Настройки цвета и прозрачности панелей успешно обновлены.');
+        // Log::info('Настройки цвета и прозрачности панелей успешно обновлены.');
 
         return back()->with('success', 'Настройки цвета и прозрачности панелей успешно обновлены.');
     }
@@ -135,24 +136,92 @@ class SettingController extends Controller
             'locale' => 'required|string|in:en,ru,kz',
         ]);
 
-        Log::info('Полученный язык для обновления:', ['locale' => $validated['locale']]);
-
         Setting::updateOrCreate(
             ['option' => 'locale'],
             [
-                'value' => $validated['locale'],
-                'type' => 'string',
+                'value'    => $validated['locale'],
+                'type'     => 'string',
                 'constant' => 'LOCALE',
-                'category' => 'general',
-                'activity' => true
+                'category' => 'system',
+                'activity' => true,
             ]
         );
 
-        // Очищаем кэш локали, если он использовался отдельно
-        Cache::forget('app_locale');
+        // Обновляем локаль для текущего запроса
+        App::setLocale($validated['locale']);
+        config(['app.locale' => $validated['locale']]);
+        config(['site_settings.locale' => $validated['locale']]);
 
-        Log::info('Язык интерфейса успешно обновлен.');
+        // Если использовался отдельный кэш для локали, его можно сбросить
+        Cache::forget('app_locale');
 
         return back()->with('success', 'Язык интерфейса успешно обновлен.');
     }
+
+    /**
+     * Обновляем количество рубрик в таблице на странице
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function updateAdminCountRubrics(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'value' => 'required|string', // меняем правило валидации на строку
+        ]);
+
+        $setting = Setting::where('option', 'AdminCountRubrics')->firstOrFail();
+        $setting->value = $validated['value']; // если нужно, можно принудительно привести к строке: (string)$validated['value']
+        $setting->save();
+
+        // Обновляем конфигурацию, если нужно
+        config(['site_settings.AdminCountRubrics' => $setting->value]);
+
+        return response()->json(['success' => true, 'value' => $setting->value]);
+    }
+
+    /**
+     * Обновляем количество секций в таблице на странице
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function updateAdminCountSections(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'value' => 'required|string', // меняем правило валидации на строку
+        ]);
+
+        $setting = Setting::where('option', 'AdminCountSections')->firstOrFail();
+        $setting->value = $validated['value']; // если нужно, можно принудительно привести к строке: (string)$validated['value']
+        $setting->save();
+
+        // Обновляем конфигурацию, если нужно
+        config(['site_settings.AdminCountSections' => $setting->value]);
+
+        return response()->json(['success' => true, 'value' => $setting->value]);
+    }
+
+    /**
+     * Обновляем количество постов в таблице на странице
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function updateAdminCountArticles(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'value' => 'required|string', // меняем правило валидации на строку
+        ]);
+
+        $setting = Setting::where('option', 'AdminCountArticles')->firstOrFail();
+        $setting->value = $validated['value']; // если нужно, можно принудительно привести к строке: (string)$validated['value']
+        $setting->save();
+
+        // Обновляем конфигурацию, если нужно
+        config(['site_settings.AdminCountArticles' => $setting->value]);
+
+        return response()->json(['success' => true, 'value' => $setting->value]);
+    }
+
 }

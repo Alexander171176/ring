@@ -53,7 +53,7 @@ class ParameterController extends Controller
         $data = $request->validated();
         $setting = Setting::create($data);
 
-        Log::info('Параметр системы создан: ', $setting->toArray());
+        // Log::info('Параметр системы создан: ', $setting->toArray());
 
         $this->clearCache(['settings.all', 'settings.count']);
 
@@ -85,7 +85,7 @@ class ParameterController extends Controller
         $data = $request->validated();
         $setting->update($data);
 
-        Log::info('Параметр системы обновлен: ', $setting->toArray());
+        // Log::info('Параметр системы обновлен: ', $setting->toArray());
 
         $this->clearCache(['settings.all', 'settings.count', "setting.$id"]);
 
@@ -100,7 +100,7 @@ class ParameterController extends Controller
         $setting = Setting::findOrFail($id);
         $setting->delete();
 
-        Log::info('Параметр системы удален: ', $setting->toArray());
+        // Log::info('Параметр системы удален: ', $setting->toArray());
 
         $this->clearCache(['settings.all', 'settings.count']);
 
@@ -120,7 +120,7 @@ class ParameterController extends Controller
         $setting->activity = $validated['activity'];
         $setting->save();
 
-        Log::info("Обновлено activity параметра системы с ID: $id с данными: ", $validated);
+        // Log::info("Обновлено activity параметра системы с ID: $id с данными: ", $validated);
 
         $this->clearCache(['settings.all', 'settings.count', "setting.$id"]);
 

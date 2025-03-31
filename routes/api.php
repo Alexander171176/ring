@@ -14,24 +14,30 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+// Получаем значениz параметров системы, по умолчанию
+$localePrefix = config('site_settings.locale', 'ru');
+$siteLayout = config('site_settings.siteLayout', 'Default');
+
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
 // Рубрики для меню (API маршрут)
-Route::get('/menu-rubrics', [\App\Http\Controllers\Public\Default\RubricController::class, 'menuRubrics'])->name('api.rubrics.menu');
+$publicRubricController = "App\\Http\\Controllers\\Public\\{$siteLayout}\\RubricController";
+Route::get('/menu-rubrics', [$publicRubricController, 'menuRubrics'])->name('api.rubrics.menu');
 
 // Просмотр всех комментариев доступных для статьи
-Route::get('comments/{article}', [\App\Http\Controllers\Public\CommentController::class, 'index'])->name('api.comments.index');
-// Создание нового комментария
-Route::post('comments', [\App\Http\Controllers\Public\CommentController::class, 'store'])->name('api.comments.store');
-// Просмотр конкретного комментария
-Route::get('comments/{comment}', [\App\Http\Controllers\Public\CommentController::class, 'show'])->name('api.comments.show');
-// Редактирование комментария
-Route::put('comments/{comment}', [\App\Http\Controllers\Public\CommentController::class, 'update'])->name('api.comments.update');
+$publicCommentController = "App\\Http\\Controllers\\Public\\{$siteLayout}\\CommentController";
 
+Route::get('comments/{article}', [$publicCommentController, 'index'])->name('api.comments.index');
+// Создание нового комментария
+Route::post('comments', [$publicCommentController, 'store'])->name('api.comments.store');
+// Просмотр конкретного комментария
+Route::get('comments/{comment}', [$publicCommentController, 'show'])->name('api.comments.show');
+// Редактирование комментария
+Route::put('comments/{comment}', [$publicCommentController, 'update'])->name('api.comments.update');
 // Удаление комментария
-Route::delete('comments/{comment}', [\App\Http\Controllers\Public\CommentController::class, 'destroy'])->name('api.comments.destroy');
+Route::delete('comments/{comment}', [$publicCommentController, 'destroy'])->name('api.comments.destroy');
 
 // получение настройки выключения сайта на тех.работы
 Route::get('/settings/downtimeSite',

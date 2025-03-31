@@ -2,6 +2,7 @@
 
 use App\Models\Admin\Setting\Setting;
 use Illuminate\Foundation\Application;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -21,37 +22,62 @@ use Inertia\Inertia;
 Route::get('/settings/locale', [\App\Http\Controllers\Admin\Setting\SettingController::class, 'getLocaleSetting']);
 Route::post('/settings/locale', [\App\Http\Controllers\Admin\Setting\SettingController::class, 'updateLocaleSetting']);
 
+// Получаем значениz параметров системы, по умолчанию
+$localePrefix = config('site_settings.locale', 'ru');
+$siteLayout = config('site_settings.siteLayout', 'Default');
+
 // Маршрут очищает весь кэш
 Route::post('/admin/cache/clear', [App\Http\Controllers\Admin\System\SystemController::class, 'clearCache'])->name('cache.clear');
 
+Route::fallback(function (Request $request) {
+    if (config('site_settings.downtimeSite', 'false') === 'true') {
+        return Inertia::render('Maintenance');
+    }
+    // Возвращаем компонент NotFound.vue с HTTP-статусом 404
+    return Inertia::render('NotFound')->toResponse($request)->setStatusCode(404);
+});
+
+Route::middleware([\App\Http\Middleware\CheckDowntime::class])->group(function () use ($siteLayout) {
+
 // Главная страница
-Route::get('/', fn() => Inertia::render('Welcome'));
+    Route::get('/', fn() => Inertia::render('Welcome'));
+
 
 // Отображение конкретной рубрики
-Route::get('/rubrics/{url}', [\App\Http\Controllers\Public\Default\RubricController::class, 'show'])
-    ->where('url', '.*');
+    $publicRubricController = "App\\Http\\Controllers\\Public\\{$siteLayout}\\RubricController";
+    Route::get('/rubrics/{url}', [$publicRubricController, 'show'])
+        ->where('url', '.*');
 
 // Отображение конкретной статьи
-Route::get('/articles/{url}', [\App\Http\Controllers\Public\Default\ArticleController::class, 'show'])
-    ->where('url', '.*');
-
-// Отображение конкретной рубрики
-Route::get('/tags/{url}', [\App\Http\Controllers\Public\Default\TagController::class, 'show'])
-    ->where('url', '.*');
+    $publicArticleController = "App\\Http\\Controllers\\Public\\{$siteLayout}\\ArticleController";
+    Route::get('/articles/{url}', [$publicArticleController, 'show'])
+        ->where('url', '.*');
 
 // Лайк статьи
-Route::post('/articles/{article}/like', [\App\Http\Controllers\Public\Default\ArticleController::class, 'like'])
-    ->name('articles.like');
+    Route::post('/articles/{article}/like', [$publicArticleController, 'like'])
+        ->name('articles.like');
+
+// Отображение конкретного тега
+    $publicTagController = "App\\Http\\Controllers\\Public\\{$siteLayout}\\TagController";
+    Route::get('/tags/{url}', [$publicTagController, 'show'])
+        ->where('url', '.*');
+
+});
 
 // Профиль Пользователя
 Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',])->group(function () {
-    Route::get('/dashboard', function () {return Inertia::render('Dashboard');})
+    Route::get('/dashboard', function () {
+        return Inertia::render('Dashboard');
+    })
         ->name('dashboard');
 });
 
+
 // Главная Панели Администратора
 Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',])->group(function () {
-    Route::get('/admin', function () {return Inertia::render('Admin');})
+    Route::get('/admin', function () {
+        return Inertia::render('Admin');
+    })
         ->name('admin');
 });
 
@@ -60,7 +86,22 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
     ->prefix('admin')
     ->group(function () {
 
-        Route::resource('/settings', \App\Http\Controllers\Admin\Setting\SettingController::class);
+        // количество сущностей на странице Index
+        // Определяем кастомный маршрут для обновления AdminCountRubrics перед ресурсным маршрутом
+        Route::put('/settings/update-admin-count-rubrics',
+            [\App\Http\Controllers\Admin\Setting\SettingController::class, 'updateAdminCountRubrics'])
+            ->name('settings.updateAdminCountRubrics');
+        Route::put('/settings/update-admin-count-sections',
+            [\App\Http\Controllers\Admin\Setting\SettingController::class, 'updateAdminCountSections'])
+            ->name('settings.updateAdminCountSections');
+        Route::put('/settings/update-admin-count-articles',
+            [\App\Http\Controllers\Admin\Setting\SettingController::class, 'updateAdminCountArticles'])
+            ->name('settings.updateAdminCountArticles');
+
+        // Ресурсный маршрут для настроек – ограничиваем параметр id только числами без конфликтов
+        Route::resource('/settings', \App\Http\Controllers\Admin\Setting\SettingController::class)
+            ->where(['setting' => '[0-9]+']);
+
         Route::put('/admin/settings/{id}', [\App\Http\Controllers\Admin\Setting\SettingController::class, 'update'])
             ->name('settings.update');
 

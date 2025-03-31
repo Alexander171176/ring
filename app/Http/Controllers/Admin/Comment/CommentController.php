@@ -37,7 +37,7 @@ class CommentController extends Controller
     {
         $comment->delete();
 
-        Log::info('Комментарий удален: ', $comment->toArray());
+        // Log::info('Комментарий удален: ', $comment->toArray());
 
         return back();
     }
@@ -58,7 +58,7 @@ class CommentController extends Controller
             $comment->delete();
         });
 
-        Log::info('Комментарии удалены: ', $commentIds);
+        // Log::info('Комментарии удалены: ', $commentIds);
 
         return response()->json(['success' => true, 'reload' => true]);
     }
@@ -77,7 +77,7 @@ class CommentController extends Controller
         $comment->activity = $validated['activity'];
         $comment->save();
 
-        Log::info("Обновлено activity комментария с ID: $id с данными: ", $validated);
+        // Log::info("Обновлено activity комментария с ID: $id с данными: ", $validated);
 
         return response()->json(['success' => true, 'reload' => true]);
     }

@@ -45,7 +45,7 @@ class PermissionController extends Controller
         // Создание разрешения
         $permission = Permission::create(['name' => $data['name']]);
 
-        Log::info('Разрешение создано: ', $permission->toArray());
+        // Log::info('Разрешение создано: ', $permission->toArray());
 
         return redirect()->route('permissions.index')->with('success', 'Разрешение успешно создано');
     }
@@ -73,7 +73,7 @@ class PermissionController extends Controller
 
         $permission->update(['name' => $data['name']]);
 
-        Log::info('Разрешение обновлено: ', $permission->toArray());
+        // Log::info('Разрешение обновлено: ', $permission->toArray());
 
         return redirect()->route('permissions.index')->with('success', 'Разрешение успешно обновлено');
     }
@@ -86,7 +86,7 @@ class PermissionController extends Controller
         $permission = Permission::findOrFail($id);
         $permission->delete();
 
-        Log::info('Разрешение удалено: ', $permission->toArray());
+        // Log::info('Разрешение удалено: ', $permission->toArray());
 
         return back();
     }
