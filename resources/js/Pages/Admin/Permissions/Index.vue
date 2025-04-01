@@ -1,5 +1,5 @@
 <script setup>
-import {defineProps, ref, computed} from 'vue';
+import {defineProps, ref, computed, watch} from 'vue';
 import {useForm} from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
@@ -10,12 +10,25 @@ import Pagination from '@/Components/Admin/Pagination/Pagination.vue';
 import SearchInput from '@/Components/Admin/Search/SearchInput.vue';
 import PermissionTable from '@/Components/Admin/Permission/Table/PermissionTable.vue';
 import CountTable from '@/Components/Admin/Count/CountTable.vue';
+import ItemsPerPageSelect from "@/Components/Admin/Select/ItemsPerPageSelect.vue";
 
 const { t } = useI18n();
-
-const props = defineProps(['permissions', 'permissionsCount']);
-
+const props = defineProps(['permissions', 'permissionsCount', 'adminCountPermissions']);
 const form = useForm({});
+
+// Используем значение из props для начального количества элементов на странице
+const itemsPerPage = ref(props.adminCountPermissions)
+
+// чтобы при изменении itemsPerPage автоматически обновлялся параметр в базе,
+watch(itemsPerPage, (newVal) => {
+    axios.put(route('settings.updateAdminCountPermissions'), { value: newVal.toString() })
+        .then(response => {
+            // console.log('Количество элементов на странице обновлено:', response.data.value)
+        })
+        .catch(error => {
+            console.error('Ошибка обновления настройки:', error.response.data)
+        })
+})
 
 // Модальное окно удаления
 const showConfirmDeleteModal = ref(false);
@@ -39,7 +52,6 @@ const deletePermission = () => {
 
 // Пагинация
 const currentPage = ref(1);
-const itemsPerPage = ref(10); // Количество элементов на странице
 
 // Строка поиска
 const searchQuery = ref('');
@@ -111,6 +123,7 @@ const totalPages = computed(() => Math.ceil(filteredPermissions.value.length / i
                     @delete="confirmDelete"
                 />
                 <div class="flex justify-between items-center flex-col md:flex-row my-1"  v-if="permissionsCount">
+                    <ItemsPerPageSelect :items-per-page="itemsPerPage" @update:itemsPerPage="itemsPerPage = $event" />
                     <Pagination :current-page="currentPage"
                                 :items-per-page="itemsPerPage"
                                 :total-items="filteredPermissions.length"

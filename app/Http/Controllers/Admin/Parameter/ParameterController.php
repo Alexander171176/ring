@@ -6,41 +6,39 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Setting\SettingRequest;
 use App\Http\Resources\Admin\Setting\SettingResource;
 use App\Models\Admin\Setting\Setting;
-use App\Traits\CacheTimeTrait;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class ParameterController extends Controller
 {
-    use CacheTimeTrait;
 
     /**
      * Display a listing of the resource.
      */
-    public function index(): \Inertia\Response
+    public function index(): Response
     {
-        $cacheTime = $this->getCacheTime();
 
-        $settings = Cache::store('redis')->remember('settings.all', $cacheTime, function () {
-            return Setting::all();
-        });
+        $settings = Setting::all();
+        $settingsCount = Setting::count();
 
-        $settingsCount = Cache::store('redis')->remember('settings.count', $cacheTime, function () {
-            return Setting::count();
-        });
+        // Получаем значение параметра из конфигурации (оно загружается через AppServiceProvider)
+        $adminCountSettings = config('site_settings.AdminCountSettings', 10);
 
         return Inertia::render('Admin/Parameters/Index', [
             'settings' => SettingResource::collection($settings),
             'settingsCount' => $settingsCount,
+            'adminCountSettings' => (int)$adminCountSettings,
         ]);
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create(): \Inertia\Response
+    public function create(): Response
     {
         return Inertia::render('Admin/Parameters/Create');
     }
@@ -48,14 +46,12 @@ class ParameterController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(SettingRequest $request): \Illuminate\Http\RedirectResponse
+    public function store(SettingRequest $request): RedirectResponse
     {
         $data = $request->validated();
         $setting = Setting::create($data);
 
         // Log::info('Параметр системы создан: ', $setting->toArray());
-
-        $this->clearCache(['settings.all', 'settings.count']);
 
         return redirect()->route('parameters.index')->with('success', 'Параметр системы успешно создан');
     }
@@ -63,13 +59,10 @@ class ParameterController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id): \Inertia\Response
+    public function edit(string $id): Response
     {
-        $cacheTime = $this->getCacheTime();
 
-        $setting = Cache::store('redis')->remember("setting.$id", $cacheTime, function () use ($id) {
-            return Setting::findOrFail($id);
-        });
+        $setting = Setting::findOrFail($id);
 
         return Inertia::render('Admin/Parameters/Edit', [
             'setting' => new SettingResource($setting),
@@ -79,7 +72,7 @@ class ParameterController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(SettingRequest $request, string $id): \Illuminate\Http\RedirectResponse
+    public function update(SettingRequest $request, string $id): RedirectResponse
     {
         $setting = Setting::findOrFail($id);
         $data = $request->validated();
@@ -87,22 +80,18 @@ class ParameterController extends Controller
 
         // Log::info('Параметр системы обновлен: ', $setting->toArray());
 
-        $this->clearCache(['settings.all', 'settings.count', "setting.$id"]);
-
         return redirect()->route('parameters.index')->with('success', 'Параметр системы успешно обновлен');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id): \Illuminate\Http\RedirectResponse
+    public function destroy(string $id): RedirectResponse
     {
         $setting = Setting::findOrFail($id);
         $setting->delete();
 
         // Log::info('Параметр системы удален: ', $setting->toArray());
-
-        $this->clearCache(['settings.all', 'settings.count']);
 
         return back();
     }
@@ -110,7 +99,7 @@ class ParameterController extends Controller
     /**
      * Обновление активности.
      */
-    public function updateActivity(Request $request, $id): \Illuminate\Http\JsonResponse
+    public function updateActivity(Request $request, $id): JsonResponse
     {
         $validated = $request->validate([
             'activity' => 'boolean',
@@ -121,8 +110,6 @@ class ParameterController extends Controller
         $setting->save();
 
         // Log::info("Обновлено activity параметра системы с ID: $id с данными: ", $validated);
-
-        $this->clearCache(['settings.all', 'settings.count', "setting.$id"]);
 
         return response()->json(['success' => true, 'reload' => true]);
     }

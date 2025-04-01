@@ -28,7 +28,7 @@ const logout = () => {
 <template>
     <header class="w-full h-fit shadow z-10 font-sans">
         <nav class="dark:bg-cyan-800 bg-sky-800 border-b-2 border-gray-600">
-            <div class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="max-w-12xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex items-center justify-between h-16">
 
                     <!-- Логотип -->

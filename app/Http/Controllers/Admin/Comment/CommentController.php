@@ -24,9 +24,13 @@ class CommentController extends Controller
         $comments = Comment::with(['user', 'article', 'section'])->get();
         $commentsCount = DB::table('comments')->count();
 
+        // Получаем значение параметра из конфигурации (оно загружается через AppServiceProvider)
+        $adminCountComments = config('site_settings.AdminCountComments', 10);
+
         return Inertia::render('Admin/Comments/Index', [
             'comments'      => CommentResource::collection($comments),
             'commentsCount' => $commentsCount,
+            'adminCountComments' => (int)$adminCountComments,
         ]);
     }
 

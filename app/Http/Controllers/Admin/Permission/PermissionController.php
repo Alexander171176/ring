@@ -21,9 +21,13 @@ class PermissionController extends Controller
         $permissions = Permission::all();
         $permissionsCount = Permission::count();
 
+        // Получаем значение параметра из конфигурации (оно загружается через AppServiceProvider)
+        $adminCountPermissions = config('site_settings.AdminCountPermissions', 10);
+
         return Inertia::render('Admin/Permissions/Index', [
             'permissions' => PermissionResource::collection($permissions),
             'permissionsCount' => $permissionsCount,
+            'adminCountPermissions' => (int)$adminCountPermissions,
         ]);
     }
 

@@ -32,9 +32,13 @@ class UserController extends Controller
         $users = User::with(['roles', 'permissions'])->get();
         $usersCount = User::count();
 
+        // Получаем значение параметра из конфигурации (оно загружается через AppServiceProvider)
+        $adminCountUsers = config('site_settings.AdminCountUsers', 10);
+
         return Inertia::render('Admin/Users/Index', [
             'users' => UserResource::collection($users),
             'usersCount' => $usersCount,
+            'adminCountUsers' => (int)$adminCountUsers,
         ]);
     }
 

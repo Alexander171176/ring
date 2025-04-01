@@ -10,11 +10,25 @@ import SearchInput from '@/Components/Admin/Search/SearchInput.vue';
 import UserTable from '@/Components/Admin/User/Table/UserTable.vue';
 import CountTable from '@/Components/Admin/Count/CountTable.vue';
 import DefaultButton from "@/Components/Admin/Buttons/DefaultButton.vue";
+import ItemsPerPageSelect from "@/Components/Admin/Select/ItemsPerPageSelect.vue";
 
 const { t } = useI18n();
-
-const props = defineProps(['users', 'usersCount', 'roles', 'permissions']);
+const props = defineProps(['users', 'usersCount', 'adminCountUsers', 'roles', 'permissions']);
 const form = useForm({});
+
+// Используем значение из props для начального количества элементов на странице
+const itemsPerPage = ref(props.adminCountUsers)
+
+// чтобы при изменении itemsPerPage автоматически обновлялся параметр в базе,
+watch(itemsPerPage, (newVal) => {
+    axios.put(route('settings.updateAdminCountUsers'), { value: newVal.toString() })
+        .then(response => {
+            // console.log('Количество элементов на странице обновлено:', response.data.value)
+        })
+        .catch(error => {
+            console.error('Ошибка обновления настройки:', error.response.data)
+        })
+})
 
 const showConfirmDeleteModal = ref(false);
 const userToDeleteId = ref(null);
@@ -37,7 +51,6 @@ const deleteUser = () => {
 };
 
 const currentPage = ref(1);
-const itemsPerPage = ref(10);
 const searchQuery = ref('');
 const sortParam = ref('id');
 
@@ -104,6 +117,7 @@ const totalPages = computed(() => Math.ceil(filteredUsers.value.length / itemsPe
                     @delete="confirmDelete"
                 />
                 <div class="flex justify-between items-center flex-col md:flex-row my-1" v-if="usersCount">
+                    <ItemsPerPageSelect :items-per-page="itemsPerPage" @update:itemsPerPage="itemsPerPage = $event" />
                     <Pagination
                         :current-page="currentPage"
                         :items-per-page="itemsPerPage"

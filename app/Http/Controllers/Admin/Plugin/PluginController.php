@@ -6,29 +6,36 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Plugin\PluginRequest;
 use App\Http\Resources\Admin\Plugin\PluginResource;
 use App\Models\Admin\Plugin\Plugin;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class PluginController extends Controller
 {
-    public function index(): \Inertia\Response
+    public function index(): Response
     {
         $plugins = Plugin::all();
         $pluginCount = Plugin::count();
 
+        // Получаем значение параметра из конфигурации (оно загружается через AppServiceProvider)
+        $adminCountPlugins = config('site_settings.AdminCountPlugins', 10);
+
         return Inertia::render('Admin/Plugins/Index', [
             'plugins' => PluginResource::collection($plugins),
             'pluginsCount' => $pluginCount,
+            'adminCountPlugins' => (int)$adminCountPlugins,
         ]);
     }
 
-    public function create(): \Inertia\Response
+    public function create(): Response
     {
         return Inertia::render('Admin/Plugins/Create');
     }
 
-    public function store(PluginRequest $request): \Illuminate\Http\RedirectResponse
+    public function store(PluginRequest $request): RedirectResponse
     {
         $data = $request->validated();
         $plugin = Plugin::create($data);
@@ -38,7 +45,7 @@ class PluginController extends Controller
         return redirect()->route('plugins.index')->with('success', 'Плагин успешно создан.');
     }
 
-    public function show(string $id): \Inertia\Response
+    public function show(string $id): Response
     {
         $plugin = Plugin::findOrFail($id);
         $pluginName = ucfirst($plugin->name);
@@ -49,7 +56,7 @@ class PluginController extends Controller
         ]);
     }
 
-    public function edit(string $id): \Inertia\Response
+    public function edit(string $id): Response
     {
         $plugin = Plugin::findOrFail($id);
 
@@ -58,7 +65,7 @@ class PluginController extends Controller
         ]);
     }
 
-    public function update(PluginRequest $request, string $id): \Illuminate\Http\RedirectResponse
+    public function update(PluginRequest $request, string $id): RedirectResponse
     {
         $plugin = Plugin::findOrFail($id);
         $data = $request->validated();
@@ -69,7 +76,7 @@ class PluginController extends Controller
         return redirect()->route('plugins.index')->with('success', 'Плагин успешно обновлен.');
     }
 
-    public function destroy(string $id): \Illuminate\Http\RedirectResponse
+    public function destroy(string $id): RedirectResponse
     {
         $plugin = Plugin::findOrFail($id);
         $plugin->delete();
@@ -79,7 +86,7 @@ class PluginController extends Controller
         return back();
     }
 
-    public function updateActivity(Request $request, $id): \Illuminate\Http\JsonResponse
+    public function updateActivity(Request $request, $id): JsonResponse
     {
         $validated = $request->validate(['activity' => 'boolean']);
         $plugin = Plugin::findOrFail($id);
@@ -89,7 +96,7 @@ class PluginController extends Controller
         return response()->json(['success' => true, 'reload' => true]);
     }
 
-    public function updateSort(Request $request, $id): \Illuminate\Http\JsonResponse
+    public function updateSort(Request $request, $id): JsonResponse
     {
         $validated = $request->validate(['sort' => 'required|integer']);
         $plugin = Plugin::findOrFail($id);

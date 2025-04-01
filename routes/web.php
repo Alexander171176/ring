@@ -97,6 +97,30 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::put('/settings/update-admin-count-articles',
             [\App\Http\Controllers\Admin\Setting\SettingController::class, 'updateAdminCountArticles'])
             ->name('settings.updateAdminCountArticles');
+        Route::put('/settings/update-admin-count-tags',
+            [\App\Http\Controllers\Admin\Setting\SettingController::class, 'updateAdminCountTags'])
+            ->name('settings.updateAdminCountTags');
+        Route::put('/settings/update-admin-count-tags',
+            [\App\Http\Controllers\Admin\Setting\SettingController::class, 'updateAdminCountComments'])
+            ->name('settings.updateAdminCountComments');
+        Route::put('/settings/update-admin-count-banners',
+            [\App\Http\Controllers\Admin\Setting\SettingController::class, 'updateAdminCountBanners'])
+            ->name('settings.updateAdminCountBanners');
+        Route::put('/settings/update-admin-count-users',
+            [\App\Http\Controllers\Admin\Setting\SettingController::class, 'updateAdminCountUsers'])
+            ->name('settings.updateAdminCountUsers');
+        Route::put('/settings/update-admin-count-roles',
+            [\App\Http\Controllers\Admin\Setting\SettingController::class, 'updateAdminCountRoles'])
+            ->name('settings.updateAdminCountRoles');
+        Route::put('/settings/update-admin-count-permissions',
+            [\App\Http\Controllers\Admin\Setting\SettingController::class, 'updateAdminCountPermissions'])
+            ->name('settings.updateAdminCountPermissions');
+        Route::put('/settings/update-admin-count-settings',
+            [\App\Http\Controllers\Admin\Setting\SettingController::class, 'updateAdminCountSettings'])
+            ->name('settings.updateAdminCountSettings');
+        Route::put('/settings/update-admin-count-plugins',
+            [\App\Http\Controllers\Admin\Setting\SettingController::class, 'updateAdminCountPlugins'])
+            ->name('settings.updateAdminCountPlugins');
 
         // Ресурсный маршрут для настроек – ограничиваем параметр id только числами без конфликтов
         Route::resource('/settings', \App\Http\Controllers\Admin\Setting\SettingController::class)

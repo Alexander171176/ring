@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -34,6 +33,10 @@ class RoleSeeder extends Seeder
         $permission_create_rubrics = Permission::create(['name' => 'create rubrics']);
         $permission_edit_rubrics = Permission::create(['name' => 'edit rubrics']);
         $permission_delete_rubrics = Permission::create(['name' => 'delete rubrics']);
+        $permission_show_sections = Permission::create(['name' => 'show sections']);
+        $permission_create_sections = Permission::create(['name' => 'create sections']);
+        $permission_edit_sections = Permission::create(['name' => 'edit sections']);
+        $permission_delete_sections = Permission::create(['name' => 'delete sections']);
         $permission_show_articles = Permission::create(['name' => 'show articles']);
         $permission_create_articles = Permission::create(['name' => 'create articles']);
         $permission_edit_articles = Permission::create(['name' => 'edit articles']);
@@ -56,6 +59,10 @@ class RoleSeeder extends Seeder
             $permission_create_rubrics,
             $permission_edit_rubrics,
             $permission_delete_rubrics,
+            $permission_show_sections,
+            $permission_create_sections,
+            $permission_edit_sections,
+            $permission_delete_sections,
             $permission_show_articles,
             $permission_create_articles,
             $permission_edit_articles,
@@ -68,6 +75,10 @@ class RoleSeeder extends Seeder
             $permission_create_rubrics,
             $permission_edit_rubrics,
             $permission_delete_rubrics,
+            $permission_show_sections,
+            $permission_create_sections,
+            $permission_edit_sections,
+            $permission_delete_sections,
             $permission_show_articles,
             $permission_create_articles,
             $permission_edit_articles,

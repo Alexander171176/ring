@@ -21,9 +21,13 @@ class RoleController extends Controller
         $roles = Role::with('permissions')->get();
         $rolesCount = Role::count();
 
+        // Получаем значение параметра из конфигурации (оно загружается через AppServiceProvider)
+        $adminCountRoles = config('site_settings.AdminCountRoles', 10);
+
         return Inertia::render('Admin/Roles/Index', [
             'roles' => RoleResource::collection($roles),
             'rolesCount' => $rolesCount,
+            'adminCountRoles' => (int)$adminCountRoles,
         ]);
     }
 

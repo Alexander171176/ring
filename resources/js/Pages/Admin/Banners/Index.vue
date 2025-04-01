@@ -1,5 +1,5 @@
 <script setup>
-import { defineProps, ref, computed } from 'vue';
+import {defineProps, ref, computed, watch} from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
@@ -16,10 +16,22 @@ import BulkActionSelect from '@/Components/Admin/Banner/Select/BulkActionSelect.
 import axios from 'axios';
 
 const { t } = useI18n();
-
-const props = defineProps(['banners', 'bannersCount']);
-
+const props = defineProps(['banners', 'bannersCount', 'adminCountBanners']);
 const form = useForm({});
+
+// Используем значение из props для начального количества элементов на странице
+const itemsPerPage = ref(props.adminCountBanners)
+
+// чтобы при изменении itemsPerPage автоматически обновлялся параметр в базе,
+watch(itemsPerPage, (newVal) => {
+    axios.put(route('settings.updateAdminCountBanners'), { value: newVal.toString() })
+        .then(response => {
+            // console.log('Количество элементов на странице обновлено:', response.data.value)
+        })
+        .catch(error => {
+            console.error('Ошибка обновления настройки:', error.response.data)
+        })
+})
 
 // Модальное окно удаления
 const showConfirmDeleteModal = ref(false);
@@ -88,7 +100,6 @@ const toggleActivity = (banner) => {
 
 // Пагинация
 const currentPage = ref(1);
-const itemsPerPage = ref(10); // Количество элементов на странице
 
 // Строка поиска
 const searchQuery = ref('');
