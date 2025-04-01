@@ -22,8 +22,10 @@ const emit = defineEmits(['update:modelValue']);
 
 <template>
     <div class="flex flex-row items-center gap-2 w-auto">
-        <div class="h-8 flex items-center">
-            <LabelInput for="locale" :value="t('localization')" class="text-sm"/>
+        <div class="h-8 flex items-center justify-between w-full">
+            <LabelInput for="locale">
+                <span class="text-sm text-red-500 dark:text-red-300 font-semibold">*</span> {{ t('localization') }}
+            </LabelInput>
         </div>
         <select
             id="locale"

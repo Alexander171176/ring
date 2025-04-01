@@ -330,10 +330,10 @@ const submitForm = () => {
                         <div class="flex justify-between w-full">
                             <LabelInput for="meta_title" :value="t('metaTitle')" />
                             <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
-                                {{ form.meta_title.length }} / 255 {{ t('characters') }}
+                                {{ form.meta_title.length }} / 160 {{ t('characters') }}
                             </div>
                         </div>
-                        <InputText id="meta_title" type="text" v-model="form.meta_title" maxlength="255" autocomplete="url" />
+                        <InputText id="meta_title" type="text" v-model="form.meta_title" maxlength="160" autocomplete="url" />
                         <InputError class="mt-2" :message="form.errors.meta_title" />
                     </div>
 
@@ -344,7 +344,11 @@ const submitForm = () => {
                                 {{ form.meta_keywords.length }} / 255 {{ t('characters') }}
                             </div>
                         </div>
-                        <InputText id="meta_keywords" type="text" v-model="form.meta_keywords" maxlength="255" autocomplete="url" />
+                        <InputText id="meta_keywords"
+                                   type="text"
+                                   v-model="form.meta_keywords"
+                                   maxlength="255"
+                                   autocomplete="url" />
                         <InputError class="mt-2" :message="form.errors.meta_keywords" />
                     </div>
 
@@ -352,10 +356,10 @@ const submitForm = () => {
                         <div class="flex justify-between w-full">
                             <LabelInput for="meta_desc" :value="t('metaDescription')" />
                             <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
-                                {{ form.meta_desc.length }} / 255 {{ t('characters') }}
+                                {{ form.meta_desc.length }} / 200 {{ t('characters') }}
                             </div>
                         </div>
-                        <MetaDescTextarea v-model="form.meta_desc" class="w-full" />
+                        <MetaDescTextarea v-model="form.meta_desc" maxlength="200" class="w-full" />
                         <InputError class="mt-2" :message="form.errors.meta_desc" />
                     </div>
 

@@ -16,7 +16,7 @@ import BulkActionSelect from '@/Components/Admin/Banner/Select/BulkActionSelect.
 import axios from 'axios';
 
 const { t } = useI18n();
-const props = defineProps(['banners', 'bannersCount', 'adminCountBanners']);
+const props = defineProps(['banners', 'bannersCount', 'adminCountBanners', 'adminSortBanners']);
 const form = useForm({});
 
 // Используем значение из props для начального количества элементов на странице
@@ -30,6 +30,18 @@ watch(itemsPerPage, (newVal) => {
         })
         .catch(error => {
             console.error('Ошибка обновления настройки:', error.response.data)
+        })
+})
+
+// параметр сортировки по умолчанию, устанавливаем из props
+const sortParam = ref(props.adminSortBanners)
+watch(sortParam, (newVal) => {
+    axios.put(route('settings.updateAdminSortBanners'), { value: newVal })
+        .then(response => {
+            // console.log('Сортировка обновлена:', response.data.value)
+        })
+        .catch(error => {
+            console.error('Ошибка обновления сортировки:', error.response.data)
         })
 })
 
@@ -104,12 +116,15 @@ const currentPage = ref(1);
 // Строка поиска
 const searchQuery = ref('');
 
-// Параметр сортировки
-const sortParam = ref('idDesc');
-
 // Функция сортировки
 const sortBanners = (banners) => {
-    // Фильтры для отдельных состояний остаются прежними:
+    // Добавляем сортировку по id в двух направлениях:
+    if (sortParam.value === 'idAsc') {
+        return banners.slice().sort((a, b) => a.id - b.id);
+    }
+    if (sortParam.value === 'idDesc') {
+        return banners.slice().sort((a, b) => b.id - a.id);
+    }
     if (sortParam.value === 'activity') {
         return banners.filter(banner => banner.activity);
     }

@@ -29,11 +29,13 @@ class BannerController extends Controller
 
         // Получаем значение параметра из конфигурации (оно загружается через AppServiceProvider)
         $adminCountBanners = config('site_settings.AdminCountBanners', 10);
+        $adminSortBanners  = config('site_settings.AdminSortBanners', 'idDesc');
 
         return Inertia::render('Admin/Banners/Index', [
             'banners' => BannerResource::collection($banners),
             'bannersCount' => $bannersCount,
             'adminCountBanners' => (int)$adminCountBanners,
+            'adminSortBanners' => $adminSortBanners,
         ]);
     }
 

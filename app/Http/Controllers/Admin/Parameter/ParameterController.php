@@ -27,11 +27,13 @@ class ParameterController extends Controller
 
         // Получаем значение параметра из конфигурации (оно загружается через AppServiceProvider)
         $adminCountSettings = config('site_settings.AdminCountSettings', 10);
+        $adminSortSettings  = config('site_settings.AdminSortSettings', 'idDesc');
 
         return Inertia::render('Admin/Parameters/Index', [
             'settings' => SettingResource::collection($settings),
             'settingsCount' => $settingsCount,
             'adminCountSettings' => (int)$adminCountSettings,
+            'adminSortSettings' => $adminSortSettings,
         ]);
     }
 

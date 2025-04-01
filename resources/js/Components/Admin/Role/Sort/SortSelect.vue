@@ -1,8 +1,8 @@
 <script setup>
-import { defineProps, defineEmits } from 'vue';
-import { useI18n } from 'vue-i18n';
+import {defineProps, defineEmits} from 'vue';
+import {useI18n} from 'vue-i18n';
 
-const { t } = useI18n();
+const {t} = useI18n();
 
 const props = defineProps({
     sortParam: String
@@ -31,11 +31,8 @@ const updateSort = (event) => {
             <option value="idDesc">{{ t('idDesc') }}</option>
             <option value="idAsc">{{ t('idAsc') }}</option>
             <!-- Остальные варианты сортировки -->
-            <option value="category">{{ t('category') }}</option>
-            <option value="type">{{ t('type') }}</option>
-            <option value="option">{{ t('parameter') }}</option>
-            <option value="activity">{{ t('active') }}</option>
-            <option value="inactive">{{ t('inactive') }}</option>
+            <option value="sort">{{ t('sortNumber') }}</option>
+            <option value="name">{{ t('name') }}</option>
         </select>
     </div>
 </template>

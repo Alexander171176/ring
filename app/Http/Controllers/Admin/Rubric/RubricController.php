@@ -26,11 +26,13 @@ class RubricController extends Controller
 
         // Получаем значение параметра из конфигурации (оно загружается через AppServiceProvider)
         $adminCountRubrics = config('site_settings.AdminCountRubrics', 10);
+        $adminSortRubrics  = config('site_settings.AdminSortRubrics', 'idDesc');
 
         return Inertia::render('Admin/Rubrics/Index', [
             'rubrics' => RubricResource::collection($rubrics),
             'rubricsCount' => $rubricsCount,
             'adminCountRubrics' => (int)$adminCountRubrics,
+            'adminSortRubrics' => $adminSortRubrics,
         ]);
     }
 

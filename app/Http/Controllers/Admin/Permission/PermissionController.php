@@ -23,11 +23,13 @@ class PermissionController extends Controller
 
         // Получаем значение параметра из конфигурации (оно загружается через AppServiceProvider)
         $adminCountPermissions = config('site_settings.AdminCountPermissions', 10);
+        $adminSortPermissions  = config('site_settings.AdminSortPermissions', 'idDesc');
 
         return Inertia::render('Admin/Permissions/Index', [
             'permissions' => PermissionResource::collection($permissions),
             'permissionsCount' => $permissionsCount,
             'adminCountPermissions' => (int)$adminCountPermissions,
+            'adminSortPermissions' => $adminSortPermissions,
         ]);
     }
 

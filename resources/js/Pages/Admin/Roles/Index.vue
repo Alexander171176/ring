@@ -11,9 +11,10 @@ import RoleTable from '@/Components/Admin/Role/Table/RoleTable.vue';
 import CountTable from '@/Components/Admin/Count/CountTable.vue';
 import DefaultButton from "@/Components/Admin/Buttons/DefaultButton.vue";
 import ItemsPerPageSelect from "@/Components/Admin/Select/ItemsPerPageSelect.vue";
+import SortSelect from "@/Components/Admin/Role/Sort/SortSelect.vue";
 
 const { t } = useI18n();
-const props = defineProps(['roles', 'rolesCount', 'adminCountRoles']);
+const props = defineProps(['roles', 'rolesCount', 'adminCountRoles', 'adminCountRoles']);
 const form = useForm({});
 
 // Используем значение из props для начального количества элементов на странице
@@ -27,6 +28,18 @@ watch(itemsPerPage, (newVal) => {
         })
         .catch(error => {
             console.error('Ошибка обновления настройки:', error.response.data)
+        })
+})
+
+// параметр сортировки по умолчанию, устанавливаем из props
+const sortParam = ref(props.adminSortRoles)
+watch(sortParam, (newVal) => {
+    axios.put(route('settings.updateAdminSortRoles'), { value: newVal })
+        .then(response => {
+            // console.log('Сортировка обновлена:', response.data.value)
+        })
+        .catch(error => {
+            console.error('Ошибка обновления сортировки:', error.response.data)
         })
 })
 
@@ -56,19 +69,20 @@ const currentPage = ref(1);
 // Строка поиска
 const searchQuery = ref('');
 
-// Параметр сортировки
-const sortParam = ref('id');
-
 // Функция сортировки
 const sortRoles = (roles) => {
+    // Добавляем сортировку по id в двух направлениях:
+    if (sortParam.value === 'idAsc') {
+        return roles.slice().sort((a, b) => a.id - b.id);
+    }
+    if (sortParam.value === 'idDesc') {
+        return roles.slice().sort((a, b) => b.id - a.id);
+    }
+    // Для остальных полей — стандартное сравнение:
     return roles.slice().sort((a, b) => {
-        if (a[sortParam.value] < b[sortParam.value]) {
-            return -1;
-        }
-        if (a[sortParam.value] > b[sortParam.value]) {
-            return 1;
-        }
-        return 0;
+        if (a[sortParam.value] < b[sortParam.value]) return -1
+        if (a[sortParam.value] > b[sortParam.value]) return 1
+        return 0
     });
 };
 
@@ -130,6 +144,7 @@ const totalPages = computed(() => Math.ceil(filteredRoles.value.length / itemsPe
                                 :total-items="filteredRoles.length"
                                 @update:currentPage="currentPage = $event"
                                 @update:itemsPerPage="itemsPerPage = $event"/>
+                    <SortSelect :sortParam="sortParam" @update:sortParam="val => sortParam = val"/>
                 </div>
             </div>
         </div>

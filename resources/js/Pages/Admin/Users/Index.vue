@@ -11,9 +11,10 @@ import UserTable from '@/Components/Admin/User/Table/UserTable.vue';
 import CountTable from '@/Components/Admin/Count/CountTable.vue';
 import DefaultButton from "@/Components/Admin/Buttons/DefaultButton.vue";
 import ItemsPerPageSelect from "@/Components/Admin/Select/ItemsPerPageSelect.vue";
+import SortSelect from "@/Components/Admin/User/Sort/SortSelect.vue";
 
 const { t } = useI18n();
-const props = defineProps(['users', 'usersCount', 'adminCountUsers', 'roles', 'permissions']);
+const props = defineProps(['users', 'usersCount', 'adminCountUsers', 'adminSortUsers', 'roles', 'permissions']);
 const form = useForm({});
 
 // Используем значение из props для начального количества элементов на странице
@@ -27,6 +28,18 @@ watch(itemsPerPage, (newVal) => {
         })
         .catch(error => {
             console.error('Ошибка обновления настройки:', error.response.data)
+        })
+})
+
+// параметр сортировки по умолчанию, устанавливаем из props
+const sortParam = ref(props.adminSortUsers)
+watch(sortParam, (newVal) => {
+    axios.put(route('settings.updateAdminSortUsers'), { value: newVal })
+        .then(response => {
+            // console.log('Сортировка обновлена:', response.data.value)
+        })
+        .catch(error => {
+            console.error('Ошибка обновления сортировки:', error.response.data)
         })
 })
 
@@ -52,17 +65,21 @@ const deleteUser = () => {
 
 const currentPage = ref(1);
 const searchQuery = ref('');
-const sortParam = ref('id');
 
+// Функция сортировки
 const sortUsers = (users) => {
+    // Добавляем сортировку по id в двух направлениях:
+    if (sortParam.value === 'idAsc') {
+        return users.slice().sort((a, b) => a.id - b.id);
+    }
+    if (sortParam.value === 'idDesc') {
+        return users.slice().sort((a, b) => b.id - a.id);
+    }
+    // Для остальных полей — стандартное сравнение:
     return users.slice().sort((a, b) => {
-        if (a[sortParam.value] < b[sortParam.value]) {
-            return -1;
-        }
-        if (a[sortParam.value] > b[sortParam.value]) {
-            return 1;
-        }
-        return 0;
+        if (a[sortParam.value] < b[sortParam.value]) return -1
+        if (a[sortParam.value] > b[sortParam.value]) return 1
+        return 0
     });
 };
 
@@ -125,21 +142,7 @@ const totalPages = computed(() => Math.ceil(filteredUsers.value.length / itemsPe
                         @update:currentPage="currentPage = $event"
                         @update:itemsPerPage="itemsPerPage = $event"
                     />
-                    <div class="flex justify-center items-center h-fit sm:mr-4 mt-2 mb-2">
-                        <label for="sortParam"
-                               class="hidden lg:block sm:mr-2 tracking-wider
-                                      text-sm font-semibold text-slate-600 dark:text-slate-100">
-                                            {{ t('sort') }}
-                        </label>
-                        <select id="sortParam" v-model="sortParam"
-                                class="w-20 px-3 py-0.5 form-select bg-white dark:bg-gray-200
-                                       text-gray-600 dark:text-gray-900
-                                       border border-slate-400 dark:border-slate-600
-                                       rounded-sm shadow-sm">
-                            <option value="id">{{ t('id') }}</option>
-                            <option value="name">{{ t('name') }}</option>
-                        </select>
-                    </div>
+                    <SortSelect :sortParam="sortParam" @update:sortParam="val => sortParam = val"/>
                 </div>
             </div>
         </div>

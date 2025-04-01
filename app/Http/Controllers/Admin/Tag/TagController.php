@@ -25,11 +25,13 @@ class TagController extends Controller
 
         // Получаем значение параметра из конфигурации (оно загружается через AppServiceProvider)
         $adminCountTags = config('site_settings.AdminCountTags', 10);
+        $adminSortTags  = config('site_settings.AdminSortTags', 'idAsc');
 
         return Inertia::render('Admin/Tags/Index', [
             'tags' => TagResource::collection($tags),
             'tagsCount' => $tagsCount,
             'adminCountTags' => (int)$adminCountTags,
+            'adminSortTags' => $adminSortTags,
         ]);
     }
 

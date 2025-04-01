@@ -15,7 +15,7 @@ import CountTable from '@/Components/Admin/Count/CountTable.vue';
 import axios from 'axios';
 
 const {t} = useI18n();
-const props = defineProps(['plugins', 'pluginsCount', 'adminCountPlugins']);
+const props = defineProps(['plugins', 'pluginsCount', 'adminCountPlugins', 'adminSortPlugins']);
 const form = useForm({});
 
 // Используем значение из props для начального количества элементов на странице
@@ -29,6 +29,18 @@ watch(itemsPerPage, (newVal) => {
         })
         .catch(error => {
             console.error('Ошибка обновления настройки:', error.response.data)
+        })
+})
+
+// параметр сортировки по умолчанию, устанавливаем из props
+const sortParam = ref(props.adminSortPlugins)
+watch(sortParam, (newVal) => {
+    axios.put(route('settings.updateAdminSortPlugins'), { value: newVal })
+        .then(response => {
+            // console.log('Сортировка обновлена:', response.data.value)
+        })
+        .catch(error => {
+            console.error('Ошибка обновления сортировки:', error.response.data)
         })
 })
 
@@ -74,11 +86,15 @@ const currentPage = ref(1);
 // Строка поиска
 const searchQuery = ref('');
 
-// Параметр сортировки
-const sortParam = ref('id');
-
 // Функция сортировки
 const sortSettings = (plugins) => {
+    // Добавляем сортировку по id в двух направлениях:
+    if (sortParam.value === 'idAsc') {
+        return plugins.slice().sort((a, b) => a.id - b.id);
+    }
+    if (sortParam.value === 'idDesc') {
+        return plugins.slice().sort((a, b) => b.id - a.id);
+    }
     if (sortParam.value === 'activity') {
         return plugins.filter(plugin => plugin.activity);
     }
@@ -86,13 +102,9 @@ const sortSettings = (plugins) => {
         return plugins.filter(plugin => !plugin.activity);
     }
     return plugins.slice().sort((a, b) => {
-        if (a[sortParam.value] < b[sortParam.value]) {
-            return -1;
-        }
-        if (a[sortParam.value] > b[sortParam.value]) {
-            return 1;
-        }
-        return 0;
+        if (a[sortParam.value] < b[sortParam.value]) return -1
+        if (a[sortParam.value] > b[sortParam.value]) return 1
+        return 0
     });
 };
 

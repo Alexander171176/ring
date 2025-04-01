@@ -22,11 +22,13 @@ class PluginController extends Controller
 
         // Получаем значение параметра из конфигурации (оно загружается через AppServiceProvider)
         $adminCountPlugins = config('site_settings.AdminCountPlugins', 10);
+        $adminSortPlugins  = config('site_settings.AdminSortPlugins', 'idDesc');
 
         return Inertia::render('Admin/Plugins/Index', [
             'plugins' => PluginResource::collection($plugins),
             'pluginsCount' => $pluginCount,
             'adminCountPlugins' => (int)$adminCountPlugins,
+            'adminSortPlugins' => $adminSortPlugins,
         ]);
     }
 

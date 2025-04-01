@@ -16,7 +16,7 @@ import CountTable from '@/Components/Admin/Count/CountTable.vue';
 import axios from 'axios';
 
 const { t } = useI18n();
-const props = defineProps(['comments', 'commentsCount', 'adminCountComments']);
+const props = defineProps(['comments', 'commentsCount', 'adminCountComments', 'adminSortComments']);
 const form = useForm({});
 
 // Используем значение из props для начального количества элементов на странице
@@ -30,6 +30,18 @@ watch(itemsPerPage, (newVal) => {
         })
         .catch(error => {
             console.error('Ошибка обновления настройки:', error.response.data)
+        })
+})
+
+// параметр сортировки по умолчанию, устанавливаем из props
+const sortParam = ref(props.adminSortComments)
+watch(sortParam, (newVal) => {
+    axios.put(route('settings.updateAdminSortComments'), { value: newVal })
+        .then(response => {
+            // console.log('Сортировка обновлена:', response.data.value)
+        })
+        .catch(error => {
+            console.error('Ошибка обновления сортировки:', error.response.data)
         })
 })
 
@@ -87,30 +99,39 @@ const currentPage = ref(1);
 // Строка поиска
 const searchQuery = ref('');
 
-// Параметр сортировки
-const sortParam = ref('id');
-
 // Функция сортировки
 const sortComments = (comments) => {
+    // Сортировка по id
+    if (sortParam.value === 'idAsc') {
+        return comments.slice().sort((a, b) => a.id - b.id);
+    }
+    if (sortParam.value === 'idDesc') {
+        return comments.slice().sort((a, b) => b.id - a.id);
+    }
+    // Фильтрация по активности
     if (sortParam.value === 'activity') {
         return comments.filter(comment => comment.activity);
     }
     if (sortParam.value === 'inactive') {
         return comments.filter(comment => !comment.activity);
     }
+    // Фильтрация по статусу (модерация)
     if (sortParam.value === 'status') {
         return comments.filter(comment => comment.status);
     }
     if (sortParam.value === 'instatus') {
         return comments.filter(comment => !comment.status);
     }
+    // Новое условие: сортировка по пользователю (по имени)
+    if (sortParam.value === 'user') {
+        return comments.slice().sort((a, b) => {
+            return a.user.name.localeCompare(b.user.name);
+        });
+    }
+    // Если сортировка по другим полям
     return comments.slice().sort((a, b) => {
-        if (a[sortParam.value] < b[sortParam.value]) {
-            return -1;
-        }
-        if (a[sortParam.value] > b[sortParam.value]) {
-            return 1;
-        }
+        if (a[sortParam.value] < b[sortParam.value]) return -1;
+        if (a[sortParam.value] > b[sortParam.value]) return 1;
         return 0;
     });
 };

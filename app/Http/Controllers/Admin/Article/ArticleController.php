@@ -33,11 +33,13 @@ class ArticleController extends Controller
 
         // Получаем значение параметра из конфигурации (оно загружается через AppServiceProvider)
         $adminCountArticles = config('site_settings.AdminCountArticles', 10);
+        $adminSortArticles  = config('site_settings.AdminSortArticles', 'idDesc');
 
         return Inertia::render('Admin/Articles/Index', [
             'articles' => ArticleResource::collection($articles),
             'articlesCount' => $articlesCount,
             'adminCountArticles' => (int)$adminCountArticles,
+            'adminSortArticles' => $adminSortArticles,
         ]);
     }
 

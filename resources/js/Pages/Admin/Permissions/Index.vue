@@ -11,9 +11,10 @@ import SearchInput from '@/Components/Admin/Search/SearchInput.vue';
 import PermissionTable from '@/Components/Admin/Permission/Table/PermissionTable.vue';
 import CountTable from '@/Components/Admin/Count/CountTable.vue';
 import ItemsPerPageSelect from "@/Components/Admin/Select/ItemsPerPageSelect.vue";
+import SortSelect from "@/Components/Admin/Permission/Sort/SortSelect.vue";
 
 const { t } = useI18n();
-const props = defineProps(['permissions', 'permissionsCount', 'adminCountPermissions']);
+const props = defineProps(['permissions', 'permissionsCount', 'adminCountPermissions', 'adminSortPermissions']);
 const form = useForm({});
 
 // Используем значение из props для начального количества элементов на странице
@@ -27,6 +28,18 @@ watch(itemsPerPage, (newVal) => {
         })
         .catch(error => {
             console.error('Ошибка обновления настройки:', error.response.data)
+        })
+})
+
+// параметр сортировки по умолчанию, устанавливаем из props
+const sortParam = ref(props.adminSortPermissions)
+watch(sortParam, (newVal) => {
+    axios.put(route('settings.updateAdminSortPermissions'), { value: newVal })
+        .then(response => {
+            // console.log('Сортировка обновлена:', response.data.value)
+        })
+        .catch(error => {
+            console.error('Ошибка обновления сортировки:', error.response.data)
         })
 })
 
@@ -56,19 +69,20 @@ const currentPage = ref(1);
 // Строка поиска
 const searchQuery = ref('');
 
-// Параметр сортировки
-const sortParam = ref('id');
-
 // Функция сортировки
 const sortPermissions = (permissions) => {
+    // Добавляем сортировку по id в двух направлениях:
+    if (sortParam.value === 'idAsc') {
+        return permissions.slice().sort((a, b) => a.id - b.id);
+    }
+    if (sortParam.value === 'idDesc') {
+        return permissions.slice().sort((a, b) => b.id - a.id);
+    }
+    // Для остальных полей — стандартное сравнение:
     return permissions.slice().sort((a, b) => {
-        if (a[sortParam.value] < b[sortParam.value]) {
-            return -1;
-        }
-        if (a[sortParam.value] > b[sortParam.value]) {
-            return 1;
-        }
-        return 0;
+        if (a[sortParam.value] < b[sortParam.value]) return -1
+        if (a[sortParam.value] > b[sortParam.value]) return 1
+        return 0
     });
 };
 
@@ -129,6 +143,7 @@ const totalPages = computed(() => Math.ceil(filteredPermissions.value.length / i
                                 :total-items="filteredPermissions.length"
                                 @update:currentPage="currentPage = $event"
                                 @update:itemsPerPage="itemsPerPage = $event"/>
+                    <SortSelect :sortParam="sortParam" @update:sortParam="val => sortParam = val"/>
                 </div>
             </div>
         </div>

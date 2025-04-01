@@ -27,11 +27,13 @@ class SectionController extends Controller
 
         // Получаем значение параметра из конфигурации (оно загружается через AppServiceProvider)
         $adminCountSections = config('site_settings.AdminCountSections', 10);
+        $adminSortSections  = config('site_settings.AdminSortSections', 'idDesc');
 
         return Inertia::render('Admin/Sections/Index', [
             'sections' => SectionResource::collection($sections),
             'sectionsCount' => $sectionsCount,
             'adminCountSections' => (int)$adminCountSections,
+            'adminSortSections' => $adminSortSections,
         ]);
     }
 

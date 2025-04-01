@@ -16,7 +16,7 @@ import BulkActionSelect from '@/Components/Admin/Article/Select/BulkActionSelect
 import axios from 'axios';
 
 const { t } = useI18n();
-const props = defineProps(['articles', 'articlesCount', 'adminCountArticles']);
+const props = defineProps(['articles', 'articlesCount', 'adminCountArticles', 'adminSortArticles']);
 const form = useForm({});
 
 // Используем значение из props для начального количества элементов на странице
@@ -30,6 +30,18 @@ watch(itemsPerPage, (newVal) => {
         })
         .catch(error => {
             console.error('Ошибка обновления настройки:', error.response.data)
+        })
+})
+
+// параметр сортировки по умолчанию, устанавливаем из props
+const sortParam = ref(props.adminSortArticles)
+watch(sortParam, (newVal) => {
+    axios.put(route('settings.updateAdminSortArticles'), { value: newVal })
+        .then(response => {
+            // console.log('Сортировка обновлена:', response.data.value)
+        })
+        .catch(error => {
+            console.error('Ошибка обновления сортировки:', error.response.data)
         })
 })
 
@@ -132,12 +144,15 @@ const currentPage = ref(1);
 // Строка поиска
 const searchQuery = ref('');
 
-// Параметр сортировки
-const sortParam = ref('idDesc');
-
 // Функция сортировки
 const sortArticles = (articles) => {
-    // Фильтры для отдельных состояний остаются прежними:
+    // Добавляем сортировку по id в двух направлениях:
+    if (sortParam.value === 'idAsc') {
+        return articles.slice().sort((a, b) => a.id - b.id);
+    }
+    if (sortParam.value === 'idDesc') {
+        return articles.slice().sort((a, b) => b.id - a.id);
+    }
     if (sortParam.value === 'activity') {
         return articles.filter(article => article.activity);
     }
@@ -162,29 +177,23 @@ const sortArticles = (articles) => {
     if (sortParam.value === 'noRight') {
         return articles.filter(article => !article.right);
     }
-
-    // Добавляем сортировку по id в двух направлениях:
-    if (sortParam.value === 'idAsc') {
-        return articles.slice().sort((a, b) => a.id - b.id);
+    if (sortParam.value === 'locale') {
+        // Сортировка по locale в обратном порядке
+        return sections.slice().sort((a, b) => {
+            if (a.locale < b.locale) return 1;
+            if (a.locale > b.locale) return -1;
+            return 0;
+        });
     }
-    if (sortParam.value === 'idDesc') {
-        return articles.slice().sort((a, b) => b.id - a.id);
-    }
-
     // Для просмотров и лайков сортировка по убыванию:
     if (sortParam.value === 'views' || sortParam.value === 'likes') {
         return articles.slice().sort((a, b) => b[sortParam.value] - a[sortParam.value]);
     }
-
     // Для остальных полей — стандартное сравнение:
     return articles.slice().sort((a, b) => {
-        if (a[sortParam.value] < b[sortParam.value]) {
-            return -1;
-        }
-        if (a[sortParam.value] > b[sortParam.value]) {
-            return 1;
-        }
-        return 0;
+        if (a[sortParam.value] < b[sortParam.value]) return -1
+        if (a[sortParam.value] > b[sortParam.value]) return 1
+        return 0
     });
 };
 

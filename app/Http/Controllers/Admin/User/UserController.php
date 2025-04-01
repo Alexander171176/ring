@@ -34,11 +34,13 @@ class UserController extends Controller
 
         // Получаем значение параметра из конфигурации (оно загружается через AppServiceProvider)
         $adminCountUsers = config('site_settings.AdminCountUsers', 10);
+        $adminSortUsers  = config('site_settings.AdminSortUsers', 'idDesc');
 
         return Inertia::render('Admin/Users/Index', [
             'users' => UserResource::collection($users),
             'usersCount' => $usersCount,
             'adminCountUsers' => (int)$adminCountUsers,
+            'adminSortUsers' => $adminSortUsers,
         ]);
     }
 

@@ -22,7 +22,7 @@ use Inertia\Inertia;
 Route::get('/settings/locale', [\App\Http\Controllers\Admin\Setting\SettingController::class, 'getLocaleSetting']);
 Route::post('/settings/locale', [\App\Http\Controllers\Admin\Setting\SettingController::class, 'updateLocaleSetting']);
 
-// Получаем значениz параметров системы, по умолчанию
+// Получаем значения параметров системы, по умолчанию
 $localePrefix = config('site_settings.locale', 'ru');
 $siteLayout = config('site_settings.siteLayout', 'Default');
 
@@ -87,7 +87,6 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
     ->group(function () {
 
         // количество сущностей на странице Index
-        // Определяем кастомный маршрут для обновления AdminCountRubrics перед ресурсным маршрутом
         Route::put('/settings/update-admin-count-rubrics',
             [\App\Http\Controllers\Admin\Setting\SettingController::class, 'updateAdminCountRubrics'])
             ->name('settings.updateAdminCountRubrics');
@@ -115,12 +114,47 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::put('/settings/update-admin-count-permissions',
             [\App\Http\Controllers\Admin\Setting\SettingController::class, 'updateAdminCountPermissions'])
             ->name('settings.updateAdminCountPermissions');
-        Route::put('/settings/update-admin-count-settings',
-            [\App\Http\Controllers\Admin\Setting\SettingController::class, 'updateAdminCountSettings'])
-            ->name('settings.updateAdminCountSettings');
         Route::put('/settings/update-admin-count-plugins',
             [\App\Http\Controllers\Admin\Setting\SettingController::class, 'updateAdminCountPlugins'])
             ->name('settings.updateAdminCountPlugins');
+        Route::put('/settings/update-admin-count-settings',
+            [\App\Http\Controllers\Admin\Setting\SettingController::class, 'updateAdminCountSettings'])
+            ->name('settings.updateAdminCountSettings');
+
+        // тип сортировки сущностей на странице Index
+        Route::put('/settings/update-admin-sort-rubrics',
+            [\App\Http\Controllers\Admin\Setting\SettingController::class, 'updateAdminSortRubrics'])
+            ->name('settings.updateAdminSortRubrics');
+        Route::put('/settings/update-admin-sort-sections',
+            [\App\Http\Controllers\Admin\Setting\SettingController::class, 'updateAdminSortSections'])
+            ->name('settings.updateAdminSortSections');
+        Route::put('/settings/update-admin-sort-articles',
+            [\App\Http\Controllers\Admin\Setting\SettingController::class, 'updateAdminSortArticles'])
+            ->name('settings.updateAdminSortArticles');
+        Route::put('/settings/update-admin-sort-tags',
+            [\App\Http\Controllers\Admin\Setting\SettingController::class, 'updateAdminSortTags'])
+            ->name('settings.updateAdminSortTags');
+        Route::put('/settings/update-admin-sort-comments',
+            [\App\Http\Controllers\Admin\Setting\SettingController::class, 'updateAdminSortComments'])
+            ->name('settings.updateAdminSortComments');
+        Route::put('/settings/update-admin-sort-banners',
+            [\App\Http\Controllers\Admin\Setting\SettingController::class, 'updateAdminSortBanners'])
+            ->name('settings.updateAdminSortBanners');
+        Route::put('/settings/update-admin-sort-users',
+            [\App\Http\Controllers\Admin\Setting\SettingController::class, 'updateAdminSortUsers'])
+            ->name('settings.updateAdminSortUsers');
+        Route::put('/settings/update-admin-sort-roles',
+            [\App\Http\Controllers\Admin\Setting\SettingController::class, 'updateAdminSortRoles'])
+            ->name('settings.updateAdminSortRoles');
+        Route::put('/settings/update-admin-sort-permissions',
+            [\App\Http\Controllers\Admin\Setting\SettingController::class, 'updateAdminSortPermissions'])
+            ->name('settings.updateAdminSortPermissions');
+        Route::put('/settings/update-admin-sort-plugins',
+            [\App\Http\Controllers\Admin\Setting\SettingController::class, 'updateAdminSortPlugins'])
+            ->name('settings.updateAdminSortPlugins');
+        Route::put('/settings/update-admin-sort-settings',
+            [\App\Http\Controllers\Admin\Setting\SettingController::class, 'updateAdminSortSettings'])
+            ->name('settings.updateAdminSortSettings');
 
         // Ресурсный маршрут для настроек – ограничиваем параметр id только числами без конфликтов
         Route::resource('/settings', \App\Http\Controllers\Admin\Setting\SettingController::class)

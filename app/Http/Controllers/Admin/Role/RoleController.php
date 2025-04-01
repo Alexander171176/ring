@@ -23,11 +23,13 @@ class RoleController extends Controller
 
         // Получаем значение параметра из конфигурации (оно загружается через AppServiceProvider)
         $adminCountRoles = config('site_settings.AdminCountRoles', 10);
+        $adminSortRoles  = config('site_settings.AdminSortRoles', 'idDesc');
 
         return Inertia::render('Admin/Roles/Index', [
             'roles' => RoleResource::collection($roles),
             'rolesCount' => $rolesCount,
             'adminCountRoles' => (int)$adminCountRoles,
+            'adminSortRoles' => $adminSortRoles,
         ]);
     }
 

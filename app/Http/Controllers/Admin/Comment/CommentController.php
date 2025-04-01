@@ -26,11 +26,13 @@ class CommentController extends Controller
 
         // Получаем значение параметра из конфигурации (оно загружается через AppServiceProvider)
         $adminCountComments = config('site_settings.AdminCountComments', 10);
+        $adminSortArticles  = config('site_settings.AdminSortComments', 'idDesc');
 
         return Inertia::render('Admin/Comments/Index', [
             'comments'      => CommentResource::collection($comments),
             'commentsCount' => $commentsCount,
             'adminCountComments' => (int)$adminCountComments,
+            'adminSortComments' => $adminSortArticles,
         ]);
     }
 

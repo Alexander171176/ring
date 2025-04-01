@@ -16,7 +16,7 @@ import DefaultButton from '@/Components/Admin/Buttons/DefaultButton.vue';
 import axios from 'axios';
 
 const { t } = useI18n();
-const props = defineProps(['sections', 'sectionsCount', 'adminCountSections']);
+const props = defineProps(['sections', 'sectionsCount', 'adminCountSections', 'adminSortSections']);
 const form = useForm({});
 
 // Используем значение из props для начального количества элементов на странице
@@ -30,6 +30,18 @@ watch(itemsPerPage, (newVal) => {
         })
         .catch(error => {
             console.error('Ошибка обновления настройки:', error.response.data)
+        })
+})
+
+// параметр сортировки по умолчанию, устанавливаем из props
+const sortParam = ref(props.adminSortSections)
+watch(sortParam, (newVal) => {
+    axios.put(route('settings.updateAdminSortSections'), { value: newVal })
+        .then(response => {
+            // console.log('Сортировка обновлена:', response.data.value)
+        })
+        .catch(error => {
+            console.error('Ошибка обновления сортировки:', error.response.data)
         })
 })
 
@@ -87,16 +99,28 @@ const currentPage = ref(1);
 // Строка поиска
 const searchQuery = ref('');
 
-// Параметр сортировки
-const sortParam = ref('sort');
-
 // Функция сортировки
 const sortSections = (sections) => {
+    // Добавляем сортировку по id в двух направлениях:
+    if (sortParam.value === 'idAsc') {
+        return sections.slice().sort((a, b) => a.id - b.id);
+    }
+    if (sortParam.value === 'idDesc') {
+        return sections.slice().sort((a, b) => b.id - a.id);
+    }
     if (sortParam.value === 'activity') {
         return sections.filter(section => section.activity);
     }
     if (sortParam.value === 'inactive') {
         return sections.filter(section => !section.activity);
+    }
+    if (sortParam.value === 'locale') {
+        // Сортировка по locale в обратном порядке
+        return sections.slice().sort((a, b) => {
+            if (a.locale < b.locale) return 1;
+            if (a.locale > b.locale) return -1;
+            return 0;
+        });
     }
     return sections.slice().sort((a, b) => {
         if (a[sortParam.value] < b[sortParam.value]) return -1
