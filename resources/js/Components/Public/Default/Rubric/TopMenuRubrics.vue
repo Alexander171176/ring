@@ -37,15 +37,15 @@ onMounted(() => {
 </script>
 
 <template>
-    <nav class="flex flex-wrap justify-center gap-4 p-2 dark:bg-cyan-800 bg-sky-800">
-        <ul v-if="rubrics.length" class="flex flex-wrap gap-2">
+    <nav class="flex flex-wrap justify-center p-1">
+        <ul v-if="rubrics.length" class="flex flex-wrap">
             <li v-for="rubric in rubrics" :key="rubric.id">
                 <Link
                     :href="`/rubrics/${rubric.url}`"
-                    class="px-3 py-1 rounded-sm text-sm font-medium transition duration-300
-                           text-white hover:bg-cyan-800 dark:hover:bg-blue-800"
+                    class="mx-2 pb-0.5 text-xs lg:text-sm xl:text-lg font-medium transition duration-300
+                           text-white hover:text-yellow-200"
                     :class="{
-                        'bg-orange-500 dark:bg-orange-400 text-white': currentRoute.includes(`/rubrics/${rubric.url}`)
+                        'border-b-2 border-yellow-200 text-yellow-200': currentRoute.includes(`/rubrics/${rubric.url}`)
                     }"
                 >
                     {{ rubric.title }}

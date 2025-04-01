@@ -13,7 +13,7 @@ const isDark = useDark({
     <div>
         <input type="checkbox" name="light-switch" id="light-switch" v-model="isDark" class="light-switch sr-only"/>
         <label
-            class="flex items-center justify-center cursor-pointer w-8 h-8 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600/80 rounded-full"
+            class="flex items-center justify-center cursor-pointer w-6 h-6 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600/80 rounded-full"
             for="light-switch">
             <svg class="w-4 h-4 dark:hidden" width="16" height="16" xmlns="http://www.w3.org/2000/svg">
                 <path class="fill-current text-slate-400"
