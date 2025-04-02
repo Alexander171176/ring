@@ -9,6 +9,7 @@ import LeftSidebar from "@/Components/Public/Default/Partials/LeftSidebar.vue";
 import RightSidebar from "@/Components/Public/Default/Partials/RightSidebar.vue";
 import Footer from "@/Partials/Public/Footer.vue";
 
+const { siteSettings } = usePage().props;
 const props = defineProps({
     title: String,
     canLogin: Boolean,
@@ -22,6 +23,7 @@ const {HasArticle} = useArticle();
 const {HasBanner} = useBanner();
 
 const {props: pageProps} = usePage();
+
 </script>
 
 <template>
@@ -31,13 +33,13 @@ const {props: pageProps} = usePage();
     <Header :can-login="canLogin" :can-register="canRegister"/>
 
     <main class="min-h-screen flex justify-center flex-col lg:flex-row tracking-wider">
-        <!-- Левый сайдбар -->
-        <LeftSidebar/>
+        <!-- Левый сайдбар: не показываем, если параметр равен "false" -->
+        <LeftSidebar v-if="!siteSettings.ViewLeftColumn || siteSettings.ViewLeftColumn === 'true'" />
 
         <slot/>
 
-        <!-- Правый сайдбар -->
-        <RightSidebar/>
+        <!-- Правый сайдбар: не показываем, если параметр равен "false" -->
+        <RightSidebar v-if="!siteSettings.ViewRightColumn || siteSettings.ViewRightColumn === 'true'" />
     </main>
 
     <Footer :can-login="canLogin" :can-register="canRegister"/>

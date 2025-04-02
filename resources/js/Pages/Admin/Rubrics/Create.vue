@@ -9,6 +9,7 @@ import PrimaryButton from '@/Components/Admin/Buttons/PrimaryButton.vue';
 import MetatagsButton from '@/Components/Admin/Buttons/MetatagsButton.vue';
 import LabelCheckbox from '@/Components/Admin/Checkbox/LabelCheckbox.vue';
 import ActivityCheckbox from '@/Components/Admin/Checkbox/ActivityCheckbox.vue';
+import DescriptionTextarea from "@/Components/Admin/Textarea/DescriptionTextarea.vue";
 import MetaDescTextarea from '@/Components/Admin/Textarea/MetaDescTextarea.vue';
 import InputNumber from '@/Components/Admin/Input/InputNumber.vue';
 import LabelInput from '@/Components/Admin/Input/LabelInput.vue';
@@ -149,7 +150,7 @@ const submitForm = () => {
 
                     <div class="mb-3 flex flex-col items-start">
                         <LabelInput for="icon" :value="t('svg')"/>
-                        <MetaDescTextarea v-model="form.icon" class="w-full"/>
+                        <DescriptionTextarea v-model="form.icon" class="w-full"/>
                         <InputError class="mt-2" :message="form.errors.icon"/>
                     </div>
 

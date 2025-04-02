@@ -1,12 +1,13 @@
 <!-- SectionArticlesPagination.vue -->
 <script setup>
 import { ref, computed } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import {Link, usePage} from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import ArticleImageSlider from "@/Components/Public/Default/Article/ArticleImageSlider.vue";
 
 const { t } = useI18n();
 
+const { siteSettings } = usePage().props;
 const props = defineProps({
     articles: {
         type: Array,
@@ -19,7 +20,7 @@ const props = defineProps({
 });
 
 const currentPage = ref(1);
-const viewMode = ref('horizontal'); // <--- НОВОЕ: Состояние для режима отображения ('grid' или 'horizontal')
+const viewMode = ref(siteSettings.PublicViewArticle || 'horizontal'); // Используем настройку из базы, иначе по умолчанию "horizontal"
 
 const totalPages = computed(() => {
     return Math.ceil(props.articles.length / props.itemsPerPage);

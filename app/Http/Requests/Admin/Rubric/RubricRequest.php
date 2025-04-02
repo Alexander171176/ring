@@ -22,7 +22,7 @@ class RubricRequest extends FormRequest
     {
         return [
             'sort' => 'nullable|integer',
-            'icon' => 'nullable|string|max:255',
+            'icon' => 'nullable|string',
             'activity' => 'required|boolean',
 
             'locale' => [
@@ -56,6 +56,8 @@ class RubricRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'icon.string' => 'svg должно быть строкой.',
+
             'locale.required' => 'Язык рубрики обязателен.',
             'locale.string' => 'Язык должен быть строкой.',
             'locale.size' => 'Код языка должен состоять из 2 символов (например, "ru", "en", "kz").',

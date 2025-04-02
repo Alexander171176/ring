@@ -40,15 +40,16 @@ onMounted(() => {
     <nav class="flex flex-wrap justify-center p-1">
         <ul v-if="rubrics.length" class="flex flex-wrap">
             <li v-for="rubric in rubrics" :key="rubric.id">
-                <Link
-                    :href="`/rubrics/${rubric.url}`"
-                    :class="[
+                <Link :href="`/rubrics/${rubric.url}`"
+                      class="flex items-center"
+                      :class="[
                       'mx-2 pb-0.5 text-xs lg:text-sm xl:text-lg font-medium transition duration-300',
                       currentRoute.includes(`/rubrics/${rubric.url}`)
                         ? 'border-b-2 border-red-400 dark:border-yellow-200 text-red-400 dark:text-yellow-200'
                         : 'text-slate-700 hover:text-red-400 dark:text-white dark:hover:text-yellow-200'
-                    ]">
-                    {{ rubric.title }}
+                      ]">
+                    <span class="w-6 h-6 flex justify-center text-red-500" v-html="rubric.icon"></span>
+                    <span>{{ rubric.title }}</span>
                 </Link>
             </li>
         </ul>

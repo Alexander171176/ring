@@ -8,6 +8,7 @@ import TitlePage from '@/Components/Admin/Headlines/TitlePage.vue';
 import DefaultButton from '@/Components/Admin/Buttons/DefaultButton.vue';
 import MetatagsButton from '@/Components/Admin/Buttons/MetatagsButton.vue';
 import InputError from '@/Components/Admin/Input/InputError.vue';
+import DescriptionTextarea from "@/Components/Admin/Textarea/DescriptionTextarea.vue";
 import MetaDescTextarea from '@/Components/Admin/Textarea/MetaDescTextarea.vue';
 import LabelCheckbox from '@/Components/Admin/Checkbox/LabelCheckbox.vue';
 import PrimaryButton from '@/Components/Admin/Buttons/PrimaryButton.vue';
@@ -150,7 +151,7 @@ const submitForm = async () => {
 
                     <div class="mb-3 flex flex-col items-start">
                         <LabelInput for="icon" :value="t('svg')"/>
-                        <MetaDescTextarea v-model="form.icon" class="w-full"/>
+                        <DescriptionTextarea v-model="form.icon" class="w-full"/>
                         <InputError class="mt-2" :message="form.errors.icon"/>
                     </div>
 

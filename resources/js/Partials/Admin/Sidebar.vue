@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, watch, computed } from 'vue';
 import { defineProps, defineEmits } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import {Link, usePage} from '@inertiajs/vue3';
 import ApplicationMark from '@/Components/ApplicationMark.vue';
 import DraggableSidebarGroupLink from '@/Components/Admin/Links/DraggableSidebarGroupLink.vue';
 import SidebarLinkPlugin from '@/Components/Admin/Links/SidebarLinkPlugin.vue';
@@ -14,49 +14,54 @@ import axios from 'axios';
 library.add(fas);
 
 const { t } = useI18n();
+const { siteSettings } = usePage().props;
 const props = defineProps({
     sidebarOpen: Boolean,
     sidebarTitle: String,
 });
+
+// Реф для хранения состояния темного режима (true, если активен)
+const isDarkMode = ref(false);
+let observer;
+
+// Функция для проверки наличия класса "dark" на <html>
+const checkDarkMode = () => {
+    isDarkMode.value = document.documentElement.classList.contains('dark');
+};
+
+// При монтировании компонента запускаем первоначальную проверку и устанавливаем MutationObserver
+onMounted(() => {
+    checkDarkMode();
+    observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class']
+    });
+});
+
+// При размонтировании отключаем наблюдатель
+onUnmounted(() => {
+    if (observer) observer.disconnect();
+});
+
+// Вычисляемое свойство для получения класса фона из настроек в зависимости от темы
+const bgColorClass = computed(() => {
+    return isDarkMode.value
+        ? (siteSettings.AdminSidebarDarkColor || 'bg-cyan-900')
+        : (siteSettings.AdminSidebarLightColor || 'bg-cyan-900');
+});
+
+const colorTextActive = computed(() => {
+    return isDarkMode.value
+        ? (siteSettings.AdminSidebarDarkActiveText || 'text-yellow-200')
+        : (siteSettings.AdminSidebarLightActiveText || 'text-yellow-200');
+});
+
 const emit = defineEmits(['close-sidebar']);
 const trigger = ref(null);
 const sidebar = ref(null);
 const sidebarExpanded = ref(localStorage.getItem('sidebar-expanded') === 'true'); // Теперь состояние раскрытия загружается из localStorage
-const sidebarHexColor = ref('155e75'); // Цвет сайдбара по умолчанию
-const sidebarOpacity = ref(0.99);
-const sidebarRgbColor = ref('');
 const currentPath = ref(window.location.pathname); // Используем window.location.pathname для текущего пути
-
-const updateSidebarColor = (hex, opacity) => {
-    sidebarHexColor.value = hex;
-    sidebarOpacity.value = opacity;
-    sidebarRgbColor.value = hexToRgb(hex);
-};
-
-const sidebarStyle = computed(() => {
-    const hexColor = `#${sidebarHexColor.value}`;
-    const opacity = sidebarOpacity.value;
-    return {
-        backgroundColor: hexColor,
-        opacity: opacity,
-    };
-});
-
-const hexToRgb = (hex) => {
-    if (hex.length !== 6) return '';
-    const bigint = parseInt(hex, 16);
-    const r = (bigint >> 16) & 255;
-    const g = (bigint >> 8) & 255;
-    const b = bigint & 255;
-    return `${r},${g},${b}`;
-};
-
-// Добавляем функцию rgbToHex для преобразования RGB в HEX
-const rgbToHex = (rgb) => {
-    const rgbArray = rgb.split(',').map(Number);
-    if (rgbArray.length !== 3 || rgbArray.some(isNaN)) return '';
-    return rgbArray.map((num) => num.toString(16).padStart(2, '0')).join('');
-};
 
 const clickHandler = ({ target }) => {
     if (!sidebar.value || !trigger.value) return;
@@ -72,26 +77,12 @@ const keyHandler = ({ keyCode }) => {
 onMounted(async () => {
     document.addEventListener('click', clickHandler);
     document.addEventListener('keydown', keyHandler);
-    await loadWidgetPanelSettings(); // Используем общую функцию для загрузки настроек
 });
 
 onUnmounted(() => {
     document.removeEventListener('click', clickHandler);
     document.removeEventListener('keydown', keyHandler);
 });
-
-const loadWidgetPanelSettings = async () => {
-    try {
-        const response = await axios.get('/api/settings/widget-panel');
-        const { color, opacity } = response.data;
-        if (color && opacity !== undefined) {
-            sidebarHexColor.value = color.startsWith('#') ? color.substring(1) : rgbToHex(color);
-            sidebarOpacity.value = parseFloat(opacity);
-        }
-    } catch (error) {
-        console.error('Ошибка при загрузке настроек сайдбара:', error);
-    }
-};
 
 // Следим за изменением состояния раскрытия сайдбара и сохраняем его в localStorage
 watch(sidebarExpanded, (newVal) => {
@@ -110,9 +101,9 @@ const isActive = (path) => {
             :class="sidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'" aria-hidden="true"></div>
 
         <div id="sidebar" ref="sidebar"
-             :style="sidebarStyle"
-             class="h-screen absolute z-40 w-64 left-0 top-0 pb-16 p-2 flex flex-col bg-cyan-800 dark:bg-gray-700 dark:border-r dark:border-gray-600 md:static md:left-auto md:top-auto md:translate-x-0 md:overflow-y-auto overflow-y-scroll no-scrollbar transition-all duration-200 ease-in-out"
-             :class="{ 'translate-x-0': sidebarOpen, '-translate-x-64': !sidebarOpen, 'hidden md:flex': true, 'md:w-16': !sidebarExpanded, 'md:!w-64 2xl:!w-64': sidebarExpanded }">
+             :class="[bgColorClass, { 'translate-x-0': sidebarOpen, '-translate-x-64': !sidebarOpen, 'hidden md:flex': true, 'md:w-16': !sidebarExpanded, 'md:!w-64 2xl:!w-64': sidebarExpanded }]"
+             class="h-screen absolute z-40 w-64 left-0 top-0 pb-16 p-2 flex flex-col
+            dark:border-r dark:border-gray-600 md:static md:left-auto md:top-auto md:translate-x-0 md:overflow-y-auto overflow-y-scroll no-scrollbar transition-all duration-200 ease-in-out">
 
             <div class="flex justify-around items-center mb-5 pr-3 md:px-0">
                 <button @click.prevent="sidebarExpanded = !sidebarExpanded" title="t('toggleSidebar')">
@@ -135,13 +126,16 @@ const isActive = (path) => {
 
             <div class="space-y-2">
                 <!-- Скрываем span, если sidebarExpanded равно false -->
-                <span class="flex justify-center text-xs uppercase text-yellow-200 font-semibold pl-3" v-if="sidebarExpanded">
+                <span :class="[colorTextActive]"
+                      class="flex justify-center text-xs uppercase font-semibold pl-3"
+                      v-if="sidebarExpanded">
                     {{ t('pages') }}
                 </span>
                 <DraggableSidebarGroupLink :expanded="sidebarExpanded"/>
 
                 <!-- Скрываем span, если sidebarExpanded равно false -->
-                <span class="flex justify-center text-xs uppercase text-yellow-200 font-semibold pl-3 mt-0"
+                <span :class="[colorTextActive]"
+                      class="flex justify-center text-xs uppercase font-semibold pl-3 mt-0"
                       v-if="sidebarExpanded">
                     {{ t('plugins') }}
                 </span>

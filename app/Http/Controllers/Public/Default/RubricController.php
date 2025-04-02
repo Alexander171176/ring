@@ -24,10 +24,8 @@ class RubricController extends Controller
      */
     public function index(): Response
     {
-        // Кэшируем локаль
         $locale = Setting::where('option', 'locale')->value('value');
 
-        // Кэшируем рубрики
         $rubrics = Rubric::where('activity', 1)
             ->where('locale', $locale)
             ->orderBy('sort')

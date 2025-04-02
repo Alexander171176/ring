@@ -160,7 +160,10 @@ const filteredSections = computed(() => {
                         </h2>
 
                         <!-- Список статей с Компонент пагинацией -->
-                        <SectionArticlesPagination :articles="section.articles" :items-per-page="2" />
+                        <SectionArticlesPagination
+                            :articles="section.articles"
+                            :items-per-page="siteSettings.PublicCountArticle ? parseInt(siteSettings.PublicCountArticle) : 2"
+                        />
 
                         <!-- Если у секции есть баннеры, отображаем их -->
                         <div v-if="section.banners && section.banners.length" class="mt-4">

@@ -130,7 +130,10 @@ const filteredArticles = computed(() => {
             <div v-if="filteredArticles.length" class="space-y-8">
                 <div class="overflow-hidden">
                     <div class="p-6">
-                        <SectionArticlesPagination :articles="filteredArticles" :items-per-page="2"/>
+                        <SectionArticlesPagination
+                            :articles="filteredArticles"
+                            :items-per-page="siteSettings.PublicCountArticle ? parseInt(siteSettings.PublicCountArticle) : 2"
+                        />
                     </div>
                 </div>
             </div>
