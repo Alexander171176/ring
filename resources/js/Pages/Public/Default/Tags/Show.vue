@@ -1,5 +1,5 @@
 <script setup>
-import {computed, ref} from "vue";
+import {computed, onMounted, onUnmounted, ref} from "vue";
 import {Head, usePage} from '@inertiajs/vue3';
 import {useI18n} from 'vue-i18n';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
@@ -8,7 +8,48 @@ import LeftColumn from "@/Components/Public/Default/Partials/LeftColumn.vue";
 import SectionArticlesPagination from "@/Components/Public/Default/Article/SectionArticlesPagination.vue";
 
 const {t} = useI18n();
-const {tag, articles, articlesCount} = usePage().props;
+const {tag, articles, articlesCount, siteSettings} = usePage().props;
+
+// Референс для хранения состояния темной темы (true, если активен темный режим)
+const isDarkMode = ref(false);
+
+// Переменная для хранения экземпляра MutationObserver, чтобы можно было отключить наблюдение позже
+let observer;
+
+// Функция для проверки, активирован ли темный режим, путем проверки наличия класса "dark" на элементе <html>
+const checkDarkMode = () => {
+    isDarkMode.value = document.documentElement.classList.contains('dark');
+    // console.log('Dark mode updated to:', isDarkMode.value);
+};
+
+onMounted(() => {
+    // Выполняем первоначальную проверку при монтировании компонента
+    checkDarkMode();
+
+    // Настраиваем MutationObserver для отслеживания изменений в атрибуте class у <html>
+    // Это необходимо для того, чтобы реагировать на динамические изменения темы
+    observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+        attributes: true,           // Следим за изменениями атрибутов
+        attributeFilter: ['class']  // Фильтруем только по изменению класса
+    });
+});
+
+onUnmounted(() => {
+    // При размонтировании компонента отключаем наблюдатель, чтобы избежать утечек памяти
+    if (observer) {
+        observer.disconnect();
+    }
+});
+
+// Вычисляемое свойство, которое возвращает нужный класс для фона в зависимости от текущего режима
+// Если темный режим активен, возвращается значение из настройки для темного режима,
+// иначе - значение из настройки для светлого режима.
+const bgColorClass = computed(() => {
+    return isDarkMode.value
+        ? siteSettings.PublicDarkBackgroundColor
+        : siteSettings.PublicLightBackgroundColor;
+});
 
 // Реактивная переменная для поискового запроса
 const searchQuery = ref('');
@@ -49,7 +90,8 @@ const filteredArticles = computed(() => {
             <meta name="DC.language" :content="tag.locale || 'ru'"/>
         </Head>
 
-        <div class="flex-1 p-4 bg-white dark:bg-slate-800 selection:bg-red-400 selection:text-white">
+        <div :class="[bgColorClass]"
+             class="flex-1 p-4 selection:bg-red-400 selection:text-white">
             <div class="flex justify-center flex-col md:flex-row md:space-x-4">
                 <MainSlider/>
                 <LeftColumn/>
@@ -86,9 +128,9 @@ const filteredArticles = computed(() => {
 
             <!-- Список статей, связанных с тегом -->
             <div v-if="filteredArticles.length" class="space-y-8">
-                <div class="bg-white dark:bg-gray-800 shadow-lg rounded-sm overflow-hidden">
+                <div class="overflow-hidden">
                     <div class="p-6">
-                        <SectionArticlesPagination :articles="filteredArticles" :items-per-page="12"/>
+                        <SectionArticlesPagination :articles="filteredArticles" :items-per-page="2"/>
                     </div>
                 </div>
             </div>

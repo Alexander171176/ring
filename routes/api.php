@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Route::get('/site-settings', [\App\Http\Controllers\Api\Setting\ApiSettingController::class, 'index']);
+
 // Получаем значениz параметров системы, по умолчанию
 $localePrefix = config('site_settings.locale', 'ru');
 $siteLayout = config('site_settings.siteLayout', 'Default');

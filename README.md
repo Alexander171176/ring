@@ -117,6 +117,7 @@
      `docker exec ring-php-app php artisan make:resource Admin/Setting/SettingSharedResource` <br>
      `docker exec ring-php-app php artisan make:controller Admin/System/SystemController` <br>
      `docker exec ring-php-app php artisan make:controller Api/Parameter/ApiParameterController --api` <br>
+     `docker exec ring-php-app php artisan make:controller Api/Setting/ApiSettingController --api` <br>
 
 21) creating business logic app Plugin <br>
     `docker exec ring-php-app php artisan make:model Admin/Plugin/Plugin -mf` <br>

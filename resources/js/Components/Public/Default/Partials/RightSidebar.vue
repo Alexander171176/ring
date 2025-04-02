@@ -1,5 +1,5 @@
 <script setup>
-import {ref, computed} from 'vue';
+import {ref, computed, onMounted, onUnmounted} from 'vue';
 import {usePage, Link} from '@inertiajs/vue3';
 import {useI18n} from 'vue-i18n';
 import ArticleImageSlider from "@/Components/Public/Default/Article/ArticleImageSlider.vue";
@@ -7,7 +7,7 @@ import BannerImageSlider from "@/Components/Public/Default/Banner/BannerImageSli
 
 const {t} = useI18n();
 // Получаем данные из страницы, включая новый пропс rightArticles
-const {rightArticles, rightBanners} = usePage().props;
+const {rightArticles, rightBanners, siteSettings} = usePage().props;
 
 // Используем prop rightArticles вместо вычисления через секции
 const articles = computed(() => rightArticles || []);
@@ -23,16 +23,54 @@ const sidebarClasses = computed(() => {
         'transition-all',
         'duration-300',
         'p-2',
-        'bg-white',
-        'dark:bg-slate-800',
         'w-full', // на маленьких экранах всегда full width
         isCollapsed.value ? 'lg:w-8' : 'lg:w-80'
     ].join(' ');
 });
+// Референс для хранения состояния темной темы (true, если активен темный режим)
+const isDarkMode = ref(false);
+
+// Переменная для хранения экземпляра MutationObserver, чтобы можно было отключить наблюдение позже
+let observer;
+
+// Функция для проверки, активирован ли темный режим, путем проверки наличия класса "dark" на элементе <html>
+const checkDarkMode = () => {
+    isDarkMode.value = document.documentElement.classList.contains('dark');
+    //console.log('Dark mode updated to:', isDarkMode.value);
+};
+
+onMounted(() => {
+    // Выполняем первоначальную проверку при монтировании компонента
+    checkDarkMode();
+
+    // Настраиваем MutationObserver для отслеживания изменений в атрибуте class у <html>
+    // Это необходимо для того, чтобы реагировать на динамические изменения темы
+    observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+        attributes: true,           // Следим за изменениями атрибутов
+        attributeFilter: ['class']  // Фильтруем только по изменению класса
+    });
+});
+
+onUnmounted(() => {
+    // При размонтировании компонента отключаем наблюдатель, чтобы избежать утечек памяти
+    if (observer) {
+        observer.disconnect();
+    }
+});
+
+// Вычисляемое свойство, которое возвращает нужный класс для фона в зависимости от текущего режима
+// Если темный режим активен, возвращается значение из настройки для темного режима,
+// иначе - значение из настройки для светлого режима.
+const bgColorClass = computed(() => {
+    return isDarkMode.value
+        ? siteSettings.PublicDarkBackgroundColor
+        : siteSettings.PublicLightBackgroundColor;
+});
 </script>
 
 <template>
-    <aside v-if="articles.length > 0" :class="sidebarClasses">
+    <aside v-if="articles.length > 0" :class="[sidebarClasses, bgColorClass]">
         <div class="flex items-center justify-center">
             <h2 v-if="!isCollapsed"
                 class="w-full text-center text-xl font-semibold text-gray-900 dark:text-slate-100">

@@ -1,160 +1,175 @@
 <script setup>
-import {ref, onMounted, onUnmounted, computed, nextTick} from "vue"; // Добавили хуки и nextTick
-import {Link, router, usePage} from "@inertiajs/vue3";
+import { ref, onMounted, onUnmounted, computed, nextTick } from "vue";
+import { Link, router, usePage } from "@inertiajs/vue3";
 import TopMenuRubrics from "@/Components/Public/Default/Rubric/TopMenuRubrics.vue";
 import ApplicationMark from "@/Components/ApplicationMark.vue";
 import ThemeToggle from "@/Components/User/ThemeToggle/ThemeToggle.vue";
 import LogoutButton from "@/Components/User/Button/LogoutButton.vue";
 import ResponsiveNavLink from "@/Components/ResponsiveNavLink.vue";
-import {useI18n} from 'vue-i18n';
+import { useI18n } from 'vue-i18n';
 
-const {t} = useI18n();
+const { t } = useI18n();
+const { siteSettings } = usePage().props;
 
-// Оставляем ваши существующие defineProps и defineEmits
+// -------------------------------------------------
+// Dark Mode Detection
+// -------------------------------------------------
+
+// Реф для хранения состояния темного режима (true, если активен)
+const isDarkMode = ref(false);
+let observer;
+
+// Функция для проверки наличия класса "dark" на <html>
+const checkDarkMode = () => {
+    isDarkMode.value = document.documentElement.classList.contains('dark');
+};
+
+// При монтировании компонента запускаем первоначальную проверку и устанавливаем MutationObserver
+onMounted(() => {
+    checkDarkMode();
+    observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class']
+    });
+});
+
+// При размонтировании отключаем наблюдатель
+onUnmounted(() => {
+    if (observer) observer.disconnect();
+});
+
+// Вычисляемое свойство для получения класса фона из настроек в зависимости от темы
+const bgColorClass = computed(() => {
+    return isDarkMode.value
+        ? siteSettings.PublicDarkBackgroundColor
+        : siteSettings.PublicLightBackgroundColor;
+});
+
+// -------------------------------------------------
+// Props, Emits и DOM-Refs
+// -------------------------------------------------
+
 const props = defineProps({
     canLogin: Boolean,
     canRegister: Boolean,
 });
-const emits = defineEmits(['toggleNavigationDropdown']); // Если он используется где-то еще
+const emits = defineEmits(['toggleNavigationDropdown']);
 
-// --- Новые ref для DOM-элементов ---
 const topBarRef = ref(null);
 const mainNavRef = ref(null);
 const navPlaceholderRef = ref(null);
 
-// --- Новые ref для управления состоянием и высотами ---
+// -------------------------------------------------
+// Состояние для навигации
+// -------------------------------------------------
 const isNavFixed = ref(false);
 const topBarHeight = ref(0);
 const navHeight = ref(0);
 
-// --- Ваши существующие ref и логика ---
 const showingNavigationDropdown = ref(false);
-const {auth} = usePage().props;
+const { auth } = usePage().props;
 
 const logout = () => {
     router.post(route('logout'));
 };
 
-// --- Функция для обновления высот ---
-const updateHeights = () => {
-    // Ждем следующего тика, чтобы DOM обновился после возможного снятия фиксации
+// -------------------------------------------------
+// Объединённая функция обновления макета
+// -------------------------------------------------
+
+// recalcLayout объединяет обновление высот (topBar и nav) и обработку фиксированного состояния навигации.
+// Вызывается при скролле и изменении размера окна.
+const recalcLayout = () => {
     nextTick(() => {
+        // Обновляем высоту верхнего блока и навигации
         if (topBarRef.value) {
             topBarHeight.value = topBarRef.value.offsetHeight;
         }
         if (mainNavRef.value) {
             navHeight.value = mainNavRef.value.offsetHeight;
         }
-        // Обновляем высоту плейсхолдера, если навигация зафиксирована
-        if (isNavFixed.value && navPlaceholderRef.value) {
-            navPlaceholderRef.value.style.height = `${navHeight.value}px`;
+
+        // Определяем, нужно ли фиксировать навигацию, сравнивая scrollY с высотой верхнего блока
+        const scrollY = window.scrollY;
+        if (scrollY >= topBarHeight.value) {
+            if (!isNavFixed.value) {
+                isNavFixed.value = true;
+            }
+        } else {
+            if (isNavFixed.value) {
+                isNavFixed.value = false;
+            }
+        }
+
+        // Обновляем высоту плейсхолдера, чтобы избежать скачков страницы при фиксации навигации
+        if (navPlaceholderRef.value) {
+            navPlaceholderRef.value.style.height = isNavFixed.value ? `${navHeight.value}px` : '0px';
         }
     });
 };
 
-
-// --- Основная функция для обработки скролла ---
-const handleScroll = () => {
-    if (!topBarRef.value || !mainNavRef.value || !navPlaceholderRef.value) return; // Защита
-
-    const scrollY = window.scrollY;
-
-    if (scrollY >= topBarHeight.value) {
-        if (!isNavFixed.value) {
-            // Фиксируем
-            isNavFixed.value = true;
-            // Устанавливаем высоту плейсхолдера
-            navPlaceholderRef.value.style.height = `${navHeight.value}px`;
-
-        }
-    } else {
-        if (isNavFixed.value) {
-            // Открепляем
-            isNavFixed.value = false;
-            // Сбрасываем высоту плейсхолдера
-            navPlaceholderRef.value.style.height = '0px';
-        }
-    }
-};
-
-// --- Обработчик Resize с debounce ---
+// -------------------------------------------------
+// Обработчик изменения размера с debounce
+// -------------------------------------------------
 let resizeTimeout;
 const handleResize = () => {
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(() => {
-        // Сначала временно снимаем фиксацию, чтобы получить правильный offsetHeight навигации
-        const wasFixed = isNavFixed.value;
-        if (wasFixed) {
-            isNavFixed.value = false; // Это изменит классы в шаблоне
+        // Если навигация зафиксирована, временно её открепляем, чтобы корректно измерить размеры
+        if (isNavFixed.value && navPlaceholderRef.value) {
+            isNavFixed.value = false;
             navPlaceholderRef.value.style.height = '0px';
         }
-        // Обновляем высоты и сразу же проверяем скролл
-        updateHeights();
-        handleScroll(); // Проверяем, нужно ли снова фиксировать с новыми высотами
-    }, 150); // Немного увеличил задержку
+        recalcLayout();
+    }, 150);
 };
 
-// --- Хуки жизненного цикла ---
+// -------------------------------------------------
+// Инициализация и регистрация слушателей
+// -------------------------------------------------
 onMounted(() => {
-    // Вычисляем начальные высоты после монтирования компонента
-    updateHeights();
-
-    // Добавляем слушатели
-    window.addEventListener('scroll', handleScroll, {passive: true});
+    recalcLayout();
+    window.addEventListener('scroll', recalcLayout, { passive: true });
     window.addEventListener('resize', handleResize);
-
-    // Первоначальный вызов handleScroll на случай, если страница загрузилась уже прокрученной
-    handleScroll();
 });
-
 onUnmounted(() => {
-    // Удаляем слушатели при размонтировании
-    window.removeEventListener('scroll', handleScroll);
+    window.removeEventListener('scroll', recalcLayout);
     window.removeEventListener('resize', handleResize);
-    clearTimeout(resizeTimeout); // Очищаем таймер при уходе со страницы
+    clearTimeout(resizeTimeout);
 });
 
-// Вычисляемое свойство для классов навигации
+// -------------------------------------------------
+// Вычисляемое свойство для header background
+// -------------------------------------------------
+// Используем параметры из базы: PublicHeaderDarkBackgroundColor и PublicHeaderLightBackgroundColor
+const headerBgColorClass = computed(() => {
+    return isDarkMode.value
+        ? siteSettings.PublicHeaderDarkBackgroundColor
+        : siteSettings.PublicHeaderLightBackgroundColor;
+});
+
+// -------------------------------------------------
+// Вычисляемые классы для навигации и плейсхолдера
+// -------------------------------------------------
 const navClasses = computed(() => {
-    // Определяем начальные и конечные цвета для градиента
-    const initialGradientFrom = 'from-blue-700'; // Пример начального (слева)
-    const initialGradientTo = 'to-sky-700';     // Пример начального (справа)
-    const fixedGradientFrom = 'from-blue-800'; // Пример фиксированного (слева)
-    const fixedGradientTo = 'to-sky-800';   // Пример фиксированного (справа)
-
     return {
-        'nav-fixed': isNavFixed.value, // Добавляем класс для JS-логики фиксации
-
-        // --- Классы градиента ---
-        // ИЗМЕНЕНО: Заменяем 'bg-gradient-to-b' на 'bg-gradient-to-r'
-        'bg-gradient-to-r': true, // Всегда горизонтальный градиент (слева направо)
-                                  // Используйте 'bg-gradient-to-l' для градиента справа налево
-
-        // Условное применение ЦВЕТОВ градиента
-        [initialGradientFrom]: !isNavFixed.value,
-        [initialGradientTo]:   !isNavFixed.value,
-        [fixedGradientFrom]:   isNavFixed.value,
-        [fixedGradientTo]:     isNavFixed.value,
-
-        // --- Классы тени ---
-        'shadow-md': !isNavFixed.value, // Начальная тень
-        'shadow-lg': isNavFixed.value  // Тень при фиксации
+        'nav-fixed': isNavFixed.value,
+        'shadow-md': isNavFixed.value,
     };
 });
 
-// Вычисляемое свойство для классов плейсхолдера (если нужно больше логики)
 const placeholderClasses = computed(() => {
     return {
         'header-placeholder': true,
-        'active': isNavFixed.value // Можно использовать для доп. стилей, если нужно
-    }
+        'active': isNavFixed.value,
+    };
 });
-
 </script>
 
 <template>
     <!-- Верхний блок (используем ref) -->
-    <div ref="topBarRef" class="bg-slate-100 dark:bg-blue-950">
+    <div ref="topBarRef" :class="[bgColorClass]">
         <div class="max-w-12xl mx-auto px-4 sm:px-3 md:px-2 xl:px-6 py-2">
             <div class="flex items-center justify-between h-10">
 
@@ -215,8 +230,9 @@ const placeholderClasses = computed(() => {
     <div ref="navPlaceholderRef" :class="placeholderClasses"></div>
 
     <!-- Навигационная панель (используем ref и вычисляемый класс) -->
-    <nav ref="mainNavRef" :class="navClasses"
-         class="py-1 text-white relative z-10 transition-all duration-300 ease-in-out">
+    <nav ref="mainNavRef" :class="[navClasses, headerBgColorClass]"
+         class="py-1 border-t border-b border-dashed border-slate-400 dark:border-slate-100
+                relative z-10 transition-all duration-300 ease-in-out">
         <div class="max-w-12xl mx-auto px-4 sm:px-3 md:px-2 xl:px-6">
             <div class="flex items-center justify-between h-10">
 
@@ -291,6 +307,5 @@ const placeholderClasses = computed(() => {
     height: 0;
     transition: height 0.1s ease-out; /* Можно настроить плавность */
 }
-
 /* Стили могут быть и в <style> секции без scoped, если нужно переопределить Tailwind */
 </style>

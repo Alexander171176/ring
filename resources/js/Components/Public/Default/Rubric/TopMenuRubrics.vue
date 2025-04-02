@@ -42,12 +42,12 @@ onMounted(() => {
             <li v-for="rubric in rubrics" :key="rubric.id">
                 <Link
                     :href="`/rubrics/${rubric.url}`"
-                    class="mx-2 pb-0.5 text-xs lg:text-sm xl:text-lg font-medium transition duration-300
-                           text-white hover:text-yellow-200"
-                    :class="{
-                        'border-b-2 border-yellow-200 text-yellow-200': currentRoute.includes(`/rubrics/${rubric.url}`)
-                    }"
-                >
+                    :class="[
+                      'mx-2 pb-0.5 text-xs lg:text-sm xl:text-lg font-medium transition duration-300',
+                      currentRoute.includes(`/rubrics/${rubric.url}`)
+                        ? 'border-b-2 border-red-400 dark:border-yellow-200 text-red-400 dark:text-yellow-200'
+                        : 'text-slate-700 hover:text-red-400 dark:text-white dark:hover:text-yellow-200'
+                    ]">
                     {{ rubric.title }}
                 </Link>
             </li>

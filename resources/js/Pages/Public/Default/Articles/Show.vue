@@ -4,11 +4,53 @@ import PublicLayout from '@/Layouts/PublicLayout.vue';
 import {useI18n} from 'vue-i18n';
 import LikeButton from "@/Components/Public/Default/Article/LikeButton.vue";
 import ArticleImageMain from "@/Components/Public/Default/Article/ArticleImageMain.vue";
+import {computed, onMounted, onUnmounted, ref} from "vue";
 
 const {t} = useI18n();
 
-const {article, recommendedArticles} = usePage().props;
+// Извлекаем настройки из props, переданных через Inertia
+const {article, recommendedArticles, siteSettings} = usePage().props;
 
+// Референс для хранения состояния темной темы (true, если активен темный режим)
+const isDarkMode = ref(false);
+
+// Переменная для хранения экземпляра MutationObserver, чтобы можно было отключить наблюдение позже
+let observer;
+
+// Функция для проверки, активирован ли темный режим, путем проверки наличия класса "dark" на элементе <html>
+const checkDarkMode = () => {
+    isDarkMode.value = document.documentElement.classList.contains('dark');
+    //console.log('Dark mode updated to:', isDarkMode.value);
+};
+
+onMounted(() => {
+    // Выполняем первоначальную проверку при монтировании компонента
+    checkDarkMode();
+
+    // Настраиваем MutationObserver для отслеживания изменений в атрибуте class у <html>
+    // Это необходимо для того, чтобы реагировать на динамические изменения темы
+    observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+        attributes: true,           // Следим за изменениями атрибутов
+        attributeFilter: ['class']  // Фильтруем только по изменению класса
+    });
+});
+
+onUnmounted(() => {
+    // При размонтировании компонента отключаем наблюдатель, чтобы избежать утечек памяти
+    if (observer) {
+        observer.disconnect();
+    }
+});
+
+// Вычисляемое свойство, которое возвращает нужный класс для фона в зависимости от текущего режима
+// Если темный режим активен, возвращается значение из настройки для темного режима,
+// иначе - значение из настройки для светлого режима.
+const bgColorClass = computed(() => {
+    return isDarkMode.value
+        ? siteSettings.PublicDarkBackgroundColor
+        : siteSettings.PublicLightBackgroundColor;
+});
 </script>
 
 <template>
@@ -44,9 +86,10 @@ const {article, recommendedArticles} = usePage().props;
             <meta itemprop="image" :content="article.images && article.images.length > 0 ? article.images[0].url : ''"/>
         </Head>
 
-        <!-- Обернём основное содержимое в блок с микроданными для BlogPosting -->
+        <!-- Применяем вычисляемый класс к элементу статьи -->
         <article itemscope itemtype="https://schema.org/BlogPosting"
-                 class="flex-1 p-4 bg-white dark:bg-slate-800 selection:bg-red-400 selection:text-white">
+                 :class="['flex-1 p-4 selection:bg-red-400 selection:text-white', bgColorClass]">
+
             <!-- Микроданные для заголовка -->
             <header>
                 <div class="flex items-center justify-center my-1">
