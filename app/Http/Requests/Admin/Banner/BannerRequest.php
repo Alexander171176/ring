@@ -33,6 +33,7 @@ class BannerRequest extends FormRequest
                 'max:255',
                 Rule::unique('banners', 'title')->ignore($this->route('banner')),
             ],
+            'link' => 'nullable|string',
             'short' => 'nullable|string|max:255',
             'comment' => 'nullable|string|max:255',
 
@@ -64,6 +65,8 @@ class BannerRequest extends FormRequest
             'title.string' => 'Название статьи должно быть строкой.',
             'title.max' => 'Название статьи не должно превышать 255 символов.',
             'title.unique' => 'Статья с таким Названием уже существует.',
+
+            'link.string' => 'ссылка должна быть строкой.',
 
             'short.string' => 'Краткое описание должно быть строкой.',
             'short.max' => 'Краткое описание не должно превышать 255 символов.',

@@ -71,6 +71,9 @@ const getPrimaryImage = (banner) => {
                         <div class="font-medium text-left">{{ t('title') }}</div>
                     </th>
                     <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
+                        <div class="font-medium text-left">{{ t('url') }}</div>
+                    </th>
+                    <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
                         <div class="font-medium text-left">{{ t('sections') }}</div>
                     </th>
                     <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
@@ -113,6 +116,9 @@ const getPrimaryImage = (banner) => {
                             </td>
                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
                                 <div class="text-left text-teal-600 dark:text-violet-200">{{ banner.title }}</div>
+                            </td>
+                            <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
+                                <div class="text-left text-teal-600 dark:text-violet-200">{{ banner.link }}</div>
                             </td>
                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
                                 <div class="text-left">

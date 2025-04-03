@@ -390,6 +390,7 @@ export default {
     uploadingComments: 'Uploading comments...',
     uploadNewImages: 'Uploading a new image',
     url: 'URL',
+    urlVerification: 'Please use only Latin characters, numbers, and hyphens.',
     useAuthCode: 'Use an authentication code',
     useRecoveryCode: 'Use a recovery code',
     userCommented: 'The user commented: ',

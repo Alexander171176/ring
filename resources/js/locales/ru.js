@@ -390,6 +390,7 @@ export default {
     uploadingComments: 'Загрузка комментариев...',
     uploadNewImages: 'Загрузка нового изображения',
     url: 'URL',
+    urlVerification: 'Пожалуйста, используйте только латинские символы, цифры и дефисы',
     useAuthCode: 'Использовать код аутентификации',
     useRecoveryCode: 'Использовать код восстановления',
     userCommented: 'Прокомментировал пользователь: ',

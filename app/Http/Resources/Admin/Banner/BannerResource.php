@@ -23,6 +23,7 @@ class BannerResource extends JsonResource
             'left'          => $this->left,
             'right'         => $this->right,
             'title'         => $this->title,
+            'link'          => $this->link,
             'short'         => $this->short,
             'comment'       => $this->comment,
             'created_at'    => $this->created_at?->format('d-m-Y'),

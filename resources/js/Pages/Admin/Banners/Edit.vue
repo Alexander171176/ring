@@ -36,6 +36,7 @@ const form = useForm({
     _method: 'PUT',
     sort: props.banner.sort ?? 0,
     title: props.banner.title ?? '',
+    link: props.banner.link ?? '',
     short: props.banner.short ?? '',
     comment: props.banner.comment ?? '',
     activity: Boolean(props.banner.activity),
@@ -214,6 +215,19 @@ const submitForm = () => {
                             autocomplete="title"
                         />
                         <InputError class="mt-2" :message="form.errors.title"/>
+                    </div>
+
+                    <div class="mb-3 flex flex-col items-start">
+                        <LabelInput for="link" :value="t('url')"/>
+                        <InputText
+                            id="link"
+                            type="text"
+                            v-model="form.link"
+                            autocomplete="link"
+                            pattern="^(https?:\/\/)?[A-Za-z0-9\.\-]+(:[0-9]+)?(\/[A-Za-z0-9\-\/]+)?$"
+                            :title="t('urlVerification')"
+                        />
+                        <InputError class="mt-2" :message="form.errors.link"/>
                     </div>
 
                     <div class="mb-3 flex flex-col items-start">

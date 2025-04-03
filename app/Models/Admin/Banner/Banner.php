@@ -20,6 +20,7 @@ class Banner extends Model
         'left',
         'right',
         'title',
+        'link',
         'short',
         'comment',
     ];

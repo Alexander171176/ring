@@ -18,6 +18,7 @@ return new class extends Migration
             $table->boolean('left')->default(false); // Печатать пост в левом сайдбаре
             $table->boolean('right')->default(false); // Печатать в правом сайдбаре
             $table->string('title')->unique(); // Заголовок
+            $table->string('link')->nullable(); // ссылка на источник
             $table->string('short')->nullable(); // Краткое Описание
             $table->string('comment')->nullable(); // Комментарий
             $table->timestamps();

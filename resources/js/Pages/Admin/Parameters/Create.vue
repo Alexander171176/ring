@@ -80,20 +80,31 @@ const handleConstantFocus = () => {
                                 id="type"
                                 type="text"
                                 v-model="form.type"
+                                maxlength="255"
                                 autocomplete="type"
+                                pattern="[A-Za-z0-9\-]+"
+                                :title="t('urlVerification')"
                             />
                             <InputError class="mt-2" :message="form.errors.type"/>
                         </div>
                     </div>
 
                     <div class="mb-3 flex flex-col items-start">
-                        <LabelInput for="option" :value="t('parameterName')"/>
+                        <div class="flex justify-between w-full">
+                            <LabelInput for="option" :value="t('parameterName')"/>
+                            <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
+                                {{ form.option.length }} / 255 {{ t('characters') }}
+                            </div>
+                        </div>
                         <InputText
                             id="option"
                             type="text"
                             v-model="form.option"
                             required
+                            maxlength="255"
                             autocomplete="option"
+                            pattern="[A-Za-z0-9\-]+"
+                            :title="t('urlVerification')"
                         />
                         <InputError class="mt-2" :message="form.errors.option"/>
                     </div>
@@ -112,23 +123,39 @@ const handleConstantFocus = () => {
                     </div>
 
                     <div class="mb-3 flex flex-col items-start">
-                        <LabelInput for="value" :value="t('parameterValue')"/>
+                        <div class="flex justify-between w-full">
+                            <LabelInput for="value" :value="t('parameterValue')"/>
+                            <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
+                                {{ form.value.length }} / 255 {{ t('characters') }}
+                            </div>
+                        </div>
                         <InputText
                             id="value"
                             type="text"
                             v-model="form.value"
+                            maxlength="255"
                             autocomplete="value"
+                            pattern="^(https?:\/\/)?[A-Za-z0-9\.\-]+(:[0-9]+)?(\/[A-Za-z0-9\-\/]+)?$"
+                            :title="t('urlVerification')"
                         />
                         <InputError class="mt-2" :message="form.errors.value"/>
                     </div>
 
                     <div class="mb-3 flex flex-col items-start">
-                        <LabelInput for="category" :value="t('parameterCategory')"/>
+                        <div class="flex justify-between w-full">
+                            <LabelInput for="category" :value="t('parameterCategory')"/>
+                            <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
+                                {{ form.category.length }} / 255 {{ t('characters') }}
+                            </div>
+                        </div>
                         <InputText
                             id="category"
                             type="text"
                             v-model="form.category"
+                            maxlength="255"
                             autocomplete="value"
+                            pattern="[A-Za-z0-9\-]+"
+                            :title="t('urlVerification')"
                         />
                         <InputError class="mt-2" :message="form.errors.category"/>
                     </div>

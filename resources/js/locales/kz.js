@@ -390,6 +390,7 @@ export default {
     uploadingComments: 'Пікірлерді жүктеу...',
     uploadNewImages: 'Жаңа суретті жүктеу',
     url: 'URL',
+    urlVerification: 'Тек латын таңбаларын, сандарды және сызықшаларды қолданыңыз',
     useAuthCode: 'Аутентификация кодын пайдалану',
     useRecoveryCode: 'Қалпына келтіру кодын пайдалану',
     userCommented: 'Пайдаланушы пікір қалдырды: ',

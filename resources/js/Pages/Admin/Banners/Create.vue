@@ -28,6 +28,7 @@ defineProps({
 const form = useForm({
     sort: 0,
     title: '',
+    link: '',
     short: '',
     comment: '',
     activity: false,
@@ -167,6 +168,19 @@ const submitForm = () => {
                             autocomplete="title"
                         />
                         <InputError class="mt-2" :message="form.errors.title"/>
+                    </div>
+
+                    <div class="mb-3 flex flex-col items-start">
+                        <LabelInput for="link" :value="t('url')"/>
+                        <InputText
+                            id="link"
+                            type="text"
+                            v-model="form.link"
+                            autocomplete="link"
+                            pattern="^(https?:\/\/)?[A-Za-z0-9\.\-]+(:[0-9]+)?(\/[A-Za-z0-9\-\/]+)?$"
+                            :title="t('urlVerification')"
+                        />
+                        <InputError class="mt-2" :message="form.errors.link"/>
                     </div>
 
                     <div class="mb-3 flex flex-col items-start">

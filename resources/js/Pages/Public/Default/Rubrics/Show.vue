@@ -1,5 +1,5 @@
 <script setup>
-import { Head, usePage } from '@inertiajs/vue3';
+import {Head, Link, usePage} from '@inertiajs/vue3';
 import {ref, computed, onUnmounted, onMounted} from 'vue';
 import { useI18n } from 'vue-i18n';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
@@ -171,15 +171,33 @@ const filteredSections = computed(() => {
                                 <div v-for="banner in section.banners" :key="banner.id"
                                      class="w-full flex flex-col justify-center items-center">
 
-                                    <h3 class="mb-3 tracking-wide text-2xl
-                                               font-semibold text-slate-500 dark:text-slate-200">
-                                        {{ banner.title }}
-                                    </h3>
+                                    <!-- Название баннера -->
+                                    <template v-if="banner.link">
+                                        <Link :href="banner.link">
+                                            <h3 class="mb-3 tracking-wide text-2xl
+                                                       font-semibold text-slate-500 dark:text-slate-200">
+                                                {{ banner.title }}
+                                            </h3>
+                                        </Link>
+                                    </template>
+                                    <template v-else>
+                                        <h3 class="mb-3 tracking-wide text-xl
+                                                   font-semibold text-slate-500 dark:text-slate-200">
+                                            {{ banner.title }}
+                                        </h3>
+                                    </template>
 
                                     <!-- Изображение баннера -->
-                                    <div v-if="banner.images && banner.images.length > 0"
-                                         class="overflow-hidden">
-                                        <BannerImageSlider :images="banner.images" />
+                                    <!-- Если banner.link не пустой, оборачиваем слайдер в ссылку, иначе просто выводим слайдер -->
+                                    <div v-if="banner.images && banner.images.length > 0">
+                                        <template v-if="banner.link">
+                                            <Link :href="banner.link">
+                                                <BannerImageSlider :images="banner.images" />
+                                            </Link>
+                                        </template>
+                                        <template v-else>
+                                            <BannerImageSlider :images="banner.images" />
+                                        </template>
                                     </div>
 
                                     <p v-if="banner.short"

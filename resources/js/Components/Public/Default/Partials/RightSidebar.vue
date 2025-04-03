@@ -96,22 +96,42 @@ const bgColorClass = computed(() => {
                         class="mb-2 pb-2">
 
                         <!-- Название баннера -->
-                        <!--                    <div class="px-3 my-1">-->
-                        <!--                        <h3 class="text-center text-lg font-semibold text-teal-600 dark:text-yellow-200">-->
-                        <!--                            {{ banner.title }}-->
-                        <!--                        </h3>-->
-                        <!--                    </div>-->
+<!--                        <template v-if="banner.link">-->
+<!--                            <Link :href="banner.link">-->
+<!--                                <div class="px-3 my-1">-->
+<!--                                    <h3 class="text-center text-lg font-semibold-->
+<!--                                        text-teal-600 dark:text-yellow-200">-->
+<!--                                        {{ banner.title }}-->
+<!--                                    </h3>-->
+<!--                                </div>-->
+<!--                            </Link>-->
+<!--                        </template>-->
+<!--                        <template v-else>-->
+<!--                            <div class="px-3 my-1">-->
+<!--                                <h3 class="text-center text-lg font-semibold-->
+<!--                                    text-teal-600 dark:text-yellow-200">-->
+<!--                                    {{ banner.title }}-->
+<!--                                </h3>-->
+<!--                            </div>-->
+<!--                        </template>-->
 
                         <!-- Изображение баннера -->
-                        <div v-if="banner.images && banner.images.length > 0" :title="banner.title"
-                             class="h-auto overflow-hidden">
-                            <BannerImageSlider :images="banner.images"/>
+                        <!-- Если banner.link не пустой, оборачиваем слайдер в ссылку, иначе просто выводим слайдер -->
+                        <div v-if="banner.images && banner.images.length > 0">
+                            <template v-if="banner.link">
+                                <Link :href="banner.link">
+                                    <BannerImageSlider :images="banner.images" />
+                                </Link>
+                            </template>
+                            <template v-else>
+                                <BannerImageSlider :images="banner.images" />
+                            </template>
                         </div>
 
                         <!-- Краткое описание статьи -->
-                        <!--                    <p class="mt-2 text-center text-sm font-semibold text-slate-600 dark:text-slate-300">-->
-                        <!--                        {{ banner.short }}-->
-                        <!--                    </p>-->
+                        <p class="mt-2 text-center text-sm font-semibold text-slate-600 dark:text-slate-300">
+                            {{ banner.short }}
+                        </p>
 
                     </li>
                     <li v-for="article in articles" :key="article.id"
