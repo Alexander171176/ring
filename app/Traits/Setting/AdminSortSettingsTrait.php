@@ -111,6 +111,23 @@ trait AdminSortSettingsTrait
     }
 
     /**
+     * Обновить сортировку по умолчанию в таблице Видео.
+     */
+    public function updateAdminSortVideos(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'value' => 'required|string',
+        ]);
+
+        $setting = Setting::where('option', 'AdminSortVideos')->firstOrFail();
+        $setting->value = $validated['value'];
+        $setting->save();
+        config(['site_settings.AdminSortVideos' => $setting->value]);
+
+        return response()->json(['success' => true, 'value' => $setting->value]);
+    }
+
+    /**
      * Обновить сортировку по умолчанию в таблице Пользователей.
      */
     public function updateAdminSortUsers(Request $request): JsonResponse

@@ -233,7 +233,26 @@
     `docker exec ring-php-app php artisan make:resource Admin/Banner/BannerSharedResource` <br>
     `docker exec ring-php-app php artisan migrate` <br>
 
-36) creating business logic app API <br>
+36) creating business logic ap Video
+    `docker exec ring-php-app php artisan make:model Admin/Video/Video -mf` <br>
+    `docker exec ring-php-app php artisan make:migration create_video_has_article_table --create=video_has_article` <br>
+    `docker exec ring-php-app php artisan make:migration create_video_has_section_table --create=video_has_section` <br>
+    `docker exec ring-php-app php artisan make:controller Admin/Invokable/RemoveSectionFromVideoController --invokable` <br>
+    `docker exec ring-php-app php artisan make:controller Admin/Invokable/RemoveArticleFromVideoController --invokable` <br>
+    `docker exec ring-php-app php artisan make:model Admin/Video/ImageVideo -mf` <br>
+    `docker exec ring-php-app php artisan make:migration create_image_has_videos_table --create=image_has_videos` <br>
+    `docker exec ring-php-app php artisan make:resource Admin/Video/VideoResource` <br>
+    `docker exec ring-php-app php artisan make:resource Admin/Video/ImageVideoResource` <br>
+    `docker exec ring-php-app php artisan make:resource Admin/Video/VideoSharedResource` <br>
+    `docker exec ring-php-app php artisan make:request Admin/Video/VideoRequest` <br>
+    `docker exec ring-php-app php artisan make:controller Admin/Video/VideoController --resource` <br>
+    `docker exec ring-php-app php artisan make:controller Public/Default/VideoController` <br>
+    `docker exec ring-php-app php artisan make:migration create_video_related_table --create=video_related` <br>
+    `docker exec ring-php-app php artisan make:migration create_video_likes_table --create=video_likes` <br>
+    `docker exec ring-php-app php artisan make:model User/Like/VideoLike` <br>
+    `docker exec ring-php-app php artisan migrate` <br>
+
+37) creating business logic app API <br>
     `composer require "darkaonline/l5-swagger` <br>
     `docker exec ring-php-app php artisan vendor:publish --provider "L5Swagger\L5SwaggerServiceProvider"` <br>
     `docker exec ring-php-app php artisan make:controller Api/User/ApiUserController --api` <br>
@@ -254,7 +273,7 @@
     `docker-compose restart` <br>
     `docker exec ring-php-app php artisan l5-swagger:generate` <br>
 
-37) Помощь в командах
+38) Помощь в командах
     Удалите существующие символические ссылки <br>
     `docker exec -it ring-php-app rm /var/www/public/storage` <br>
     `docker exec -it ring-php-app rm /var/www/storage/api-docs` <br>
@@ -277,7 +296,7 @@
     `docker restart ring-php-app`  <br>
     `docker exec -it ring-php-app php artisan route:list`  <br>
     `mkdir -p app/Services`  <br>
-38) `composer config --global disable-tls true` <br> отключение сертификатов, если нужно
+39) `composer config --global disable-tls true` <br> отключение сертификатов, если нужно
     `php --ini` <br> найти php.ini
     `composer diagnose` <br> диагностика composer
     `composer self-update` <br> обновление текущей версии composer

@@ -68,6 +68,7 @@ const linkInfo = {
     tags: {label: t('tags'), route: 'tags.index'},
     comments: {label: t('comments'), route: 'comments.index'},
     banners: {label: t('banners'), route: 'banners.index'},
+    videos: {label: t('videos'), route: 'videos.index'},
     reports: {label: t('reports'), route: 'reports.index'},
     charts: {label: t('charts'), route: 'charts.index'},
     diagrams: {label: t('diagrams'), route: 'diagrams.index'},

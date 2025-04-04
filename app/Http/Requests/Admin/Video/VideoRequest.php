@@ -1,0 +1,132 @@
+<?php
+
+namespace App\Http\Requests\Admin\Video;
+
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+
+class VideoRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        return [
+            'sort'               => 'nullable|integer',
+            'activity'           => 'required|boolean',
+            'left'               => 'required|boolean',
+            'main'               => 'required|boolean',
+            'right'              => 'required|boolean',
+            'locale'             => [
+                'required',
+                'string',
+                'size:2',
+                Rule::in(['ru', 'en', 'kz']),
+            ],
+            'title'              => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('videos', 'title')->ignore($this->route('video')),
+            ],
+            'url'                => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('videos', 'url')->ignore($this->route('video')),
+            ],
+            'description'        => 'nullable|string',
+            'author'             => 'nullable|string|max:255',
+            'published_at'       => 'nullable|date',
+            'duration'           => 'nullable|integer',
+            'source_type'        => 'nullable|string',
+            'video_url'          => 'nullable|string',
+            'external_video_id'  => 'nullable|string',
+            'views'              => 'nullable|integer|min:0',
+            'likes'              => 'nullable|integer|min:0',
+            'meta_title'         => 'nullable|string|max:255',
+            'meta_keywords'      => 'nullable|string|max:255',
+            'meta_desc'          => 'nullable|string|max:255',
+
+            // Дополнительные поля для связей
+            'sections'           => 'nullable|array',
+            'tags'               => 'nullable|array',
+            'related_articles'   => 'nullable|array',
+            'images'             => 'nullable|array',
+            'images.*.id'        => 'nullable|exists:images,id',
+            'images.*.file'      => 'nullable|image|mimes:jpeg,jpg,png,webp|max:10240',
+        ];
+    }
+
+    /**
+     * Get the validation messages that apply to the request.
+     */
+    public function messages(): array
+    {
+        return [
+            'locale.required'           => 'Язык видео обязателен.',
+            'locale.string'             => 'Язык должен быть строкой.',
+            'locale.size'               => 'Код языка должен состоять из 2 символов (например, "ru", "en", "kz").',
+            'locale.in'                 => 'Допустимые языки: ru, en, kz.',
+
+            'title.required'            => 'Название видео обязательно для заполнения.',
+            'title.string'              => 'Название видео должно быть строкой.',
+            'title.max'                 => 'Название видео не должно превышать 255 символов.',
+            'title.unique'              => 'Видео с таким названием уже существует.',
+
+            'url.required'              => 'URL видео обязателен.',
+            'url.string'                => 'URL видео должен быть строкой.',
+            'url.max'                   => 'URL видео не должен превышать 255 символов.',
+            'url.unique'                => 'Видео с таким URL уже существует.',
+
+            'description.string'        => 'Описание должно быть строкой.',
+
+            'author.string'             => 'Имя автора должно быть строкой.',
+            'author.max'                => 'Имя автора не должно превышать 255 символов.',
+
+            'views.integer'             => 'Количество просмотров должно быть числом.',
+            'views.min'                 => 'Количество просмотров не может быть отрицательным.',
+
+            'likes.integer'             => 'Количество лайков должно быть числом.',
+            'likes.min'                 => 'Количество лайков не может быть отрицательным.',
+
+            'meta_title.max'            => 'Meta заголовок не должен превышать 255 символов.',
+            'meta_keywords.max'         => 'Meta ключевые слова не должны превышать 255 символов.',
+            'meta_desc.max'             => 'Meta описание не должно превышать 255 символов.',
+
+            'sort.integer'              => 'Поле сортировки должно быть числом.',
+            'activity.required'         => 'Поле активности обязательно для заполнения.',
+            'activity.boolean'          => 'Поле активности должно быть логическим значением.',
+
+            'left.required'             => 'Поле новость в левой колонке обязательно для заполнения.',
+            'left.boolean'              => 'Поле новость в левой колонке должно быть логическим значением.',
+
+            'main.required'             => 'Поле главная новость обязательно для заполнения.',
+            'main.boolean'              => 'Поле главная новость должно быть логическим значением.',
+
+            'right.required'            => 'Поле новость в правой колонке обязательно для заполнения.',
+            'right.boolean'             => 'Поле новость в правой колонке должно быть логическим значением.',
+
+            'sections.array'            => 'Секции должны быть массивом.',
+            'tags.array'                => 'Теги должны быть массивом.',
+            'related_articles.array'    => 'Список связанных статей должен быть массивом.',
+
+            'images.array'              => 'Изображения должны быть массивом.',
+            'images.*.id.exists'        => 'Указанного изображения не существует.',
+            'images.*.file.image'       => 'Файл должен быть изображением.',
+            'images.*.file.mimes'       => 'Файл должен быть формата jpeg, jpg, png или webp.',
+            'images.*.file.max'         => 'Размер файла изображения не должен превышать 10 Мб.',
+        ];
+    }
+}

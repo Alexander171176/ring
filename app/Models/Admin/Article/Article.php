@@ -5,6 +5,7 @@ namespace App\Models\Admin\Article;
 use App\Models\Admin\Comment\Comment;
 use App\Models\Admin\Section\Section;
 use App\Models\Admin\Tag\Tag;
+use App\Models\Admin\Video\Video;
 use App\Models\User\Like\ArticleLike;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -75,6 +76,14 @@ class Article extends Model
     public function images(): BelongsToMany
     {
         return $this->belongsToMany(ArticleImage::class, 'article_has_images', 'article_id', 'image_id');
+    }
+
+    /**
+     * Видео, привязанные к статье.
+     */
+    public function videos(): BelongsToMany
+    {
+        return $this->belongsToMany(Video::class, 'video_has_article');
     }
 
     /**

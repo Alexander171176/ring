@@ -2,7 +2,7 @@
 import {computed, onMounted, onUnmounted, ref} from "vue";
 import {Head, usePage} from '@inertiajs/vue3';
 import {useI18n} from 'vue-i18n';
-import PublicLayout from '@/Layouts/PublicLayout.vue';
+import DefaultLayout from '@/Layouts/DefaultLayout.vue';
 import MainSlider from "@/Components/Public/Default/Article/MainSlider.vue";
 import LeftColumn from "@/Components/Public/Default/Partials/LeftColumn.vue";
 import SectionArticlesPagination from "@/Components/Public/Default/Article/SectionArticlesPagination.vue";
@@ -67,7 +67,7 @@ const filteredArticles = computed(() => {
 </script>
 
 <template>
-    <PublicLayout :title="tag.name" :can-login="$page.props.canLogin" :can-register="$page.props.canRegister">
+    <DefaultLayout :title="tag.name" :can-login="$page.props.canLogin" :can-register="$page.props.canRegister">
         <Head>
             <title>{{ tag.name }}</title>
             <meta name="title" :content="tag.name || ''"/>
@@ -141,5 +141,5 @@ const filteredArticles = computed(() => {
                 {{ t('noData') }}
             </div>
         </div>
-    </PublicLayout>
+    </DefaultLayout>
 </template>

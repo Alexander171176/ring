@@ -4,10 +4,10 @@ import {useRubric} from '@/composables/rubrics.js';
 import {useArticle} from "@/composables/articles.js";
 import {useBanner} from "@/composables/banners.js";
 import {Head, usePage} from "@inertiajs/vue3";
-import Header from "@/Partials/Public/Header.vue";
+import Header from "@/Partials/Default/Header.vue";
 import LeftSidebar from "@/Components/Public/Default/Partials/LeftSidebar.vue";
 import RightSidebar from "@/Components/Public/Default/Partials/RightSidebar.vue";
-import Footer from "@/Partials/Public/Footer.vue";
+import Footer from "@/Partials/Default/Footer.vue";
 
 const { siteSettings } = usePage().props;
 const props = defineProps({

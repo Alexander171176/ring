@@ -1,6 +1,6 @@
 <script setup>
 import {Head, Link, usePage} from '@inertiajs/vue3';
-import PublicLayout from '@/Layouts/PublicLayout.vue';
+import DefaultLayout from '@/Layouts/DefaultLayout.vue';
 import {useI18n} from 'vue-i18n';
 import LikeButton from "@/Components/Public/Default/Article/LikeButton.vue";
 import ArticleImageMain from "@/Components/Public/Default/Article/ArticleImageMain.vue";
@@ -54,7 +54,7 @@ const bgColorClass = computed(() => {
 </script>
 
 <template>
-    <PublicLayout :title="article.title" :can-login="$page.props.canLogin" :can-register="$page.props.canRegister">
+    <DefaultLayout :title="article.title" :can-login="$page.props.canLogin" :can-register="$page.props.canRegister">
         <Head>
             <title>{{ article.title }}</title>
             <!-- Основные метатеги, Open Graph, Twitter, Dublin Core, Schema.org и т.д. -->
@@ -214,5 +214,5 @@ const bgColorClass = computed(() => {
 
         </article>
 
-    </PublicLayout>
+    </DefaultLayout>
 </template>

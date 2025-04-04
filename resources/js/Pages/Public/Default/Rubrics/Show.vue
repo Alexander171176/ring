@@ -2,7 +2,7 @@
 import {Head, Link, usePage} from '@inertiajs/vue3';
 import {ref, computed, onUnmounted, onMounted} from 'vue';
 import { useI18n } from 'vue-i18n';
-import PublicLayout from '@/Layouts/PublicLayout.vue';
+import DefaultLayout from '@/Layouts/DefaultLayout.vue';
 import MainSlider from "@/Components/Public/Default/Article/MainSlider.vue";
 import LeftColumn from "@/Components/Public/Default/Partials/LeftColumn.vue";
 import SectionArticlesPagination from "@/Components/Public/Default/Article/SectionArticlesPagination.vue";
@@ -79,7 +79,7 @@ const filteredSections = computed(() => {
 
 
 <template>
-    <PublicLayout :title="rubric.title" :can-login="$page.props.canLogin" :can-register="$page.props.canRegister">
+    <DefaultLayout :title="rubric.title" :can-login="$page.props.canLogin" :can-register="$page.props.canRegister">
         <Head>
             <title>{{ rubric.title }}</title>
             <meta name="title" :content="rubric.title || ''"/>
@@ -221,5 +221,5 @@ const filteredSections = computed(() => {
 
         </div>
 
-    </PublicLayout>
+    </DefaultLayout>
 </template>

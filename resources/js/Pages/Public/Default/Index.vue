@@ -1,6 +1,6 @@
 <script setup>
 import {Head, usePage} from '@inertiajs/vue3';
-import PublicLayout from '@/Layouts/PublicLayout.vue';
+import DefaultLayout from '@/Layouts/DefaultLayout.vue';
 
 // Получаем доступ к глобальным свойствам страницы
 const {locale} = usePage().props;
@@ -14,7 +14,7 @@ defineProps({
 </script>
 
 <template>
-    <PublicLayout
+    <DefaultLayout
         :title="title"
         :can-login="canLogin"
         :can-register="canRegister"
@@ -89,7 +89,7 @@ defineProps({
             </div>
         </div>
 
-    </PublicLayout>
+    </DefaultLayout>
 </template>
 
 <style>

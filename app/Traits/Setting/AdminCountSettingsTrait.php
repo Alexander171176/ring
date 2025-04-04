@@ -141,6 +141,28 @@ trait AdminCountSettingsTrait
     }
 
     /**
+     * Обновляем количество видео в таблице на странице
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function updateAdminCountVideos(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'value' => 'required|string', // меняем правило валидации на строку
+        ]);
+
+        $setting = Setting::where('option', 'AdminCountVideos')->firstOrFail();
+        $setting->value = $validated['value']; // если нужно, можно принудительно привести к строке: (string)$validated['value']
+        $setting->save();
+
+        // Обновляем конфигурацию, если нужно
+        config(['site_settings.AdminCountVideos' => $setting->value]);
+
+        return response()->json(['success' => true, 'value' => $setting->value]);
+    }
+
+    /**
      * Обновляем количество пользователей в таблице на странице
      *
      * @param Request $request
