@@ -72,31 +72,73 @@ class VideoController extends Controller
     {
         $data = $request->validated();
         $imagesData = $data['images'] ?? [];
-        unset($data['images']);
+        $videoFile = $request->file('video_file'); // Получаем файл отдельно
+
+        // Удаляем данные, не являющиеся колонками таблицы videos
+        unset(
+            $data['images'],
+            $data['sections'],
+            $data['articles'],
+            $data['related_videos'],
+            $data['video_file'] // Удаляем ключ файла из массива данных для создания
+        );
+
+        // Если тип источника 'local', не сохраняем video_url
+        if ($data['source_type'] === 'local') {
+            unset($data['video_url']);
+            // Можно обнулить external_video_id, если нужно
+            $data['external_video_id'] = null;
+        } else {
+            // Если тип не local, обнуляем video_url (если вы решили его не использовать для code/external)
+            // $data['video_url'] = null; // Раскомментируйте, если нужно
+        }
+
 
         // Создаем видео
         $video = Video::create($data);
 
-        // Синхронизация рубрик и тегов
-        if (!empty($data['sections'])) {
-            $sectionIds = Section::whereIn('title', array_column($data['sections'], 'title'))->pluck('id')->toArray();
+        // --- НОВАЯ ЛОГИКА ЗАГРУЗКИ ЛОКАЛЬНОГО ВИДЕО ---
+        if ($data['source_type'] === 'local' && $videoFile && $videoFile->isValid()) {
+            try {
+                $video->addMedia($videoFile)
+                    ->toMediaCollection('videos'); // Используем коллекцию 'videos'
+            } catch (\Exception $e) {
+                // Обработка ошибки загрузки Spatie (логирование, сообщение пользователю)
+                // Возможно, стоит удалить созданное видео, если файл обязателен
+                $video->delete(); // Откатываем создание видео
+                return back()->withInput()->withErrors(['video_file' => 'Не удалось загрузить видеофайл: ' . $e->getMessage()]);
+            }
+        }
+        // --- КОНЕЦ НОВОЙ ЛОГИКИ ---
+
+        // Синхронизация рубрик
+        if ($request->has('sections') && !empty($request->input('sections'))) {
+            $sectionIds = Section::whereIn('title', array_column($request->input('sections'), 'title'))->pluck('id')->toArray();
             $video->sections()->sync($sectionIds);
+        } else {
+            $video->sections()->detach(); // Отсоединяем все, если массив пуст
         }
 
-        if (!empty($data['articles'])) {
-            $articleIds = Article::whereIn('title', array_column($data['articles'], 'title'))->pluck('id')->toArray();
+        // Синхронизация статей
+        if ($request->has('articles') && !empty($request->input('articles'))) {
+            $articleIds = Article::whereIn('title', array_column($request->input('articles'), 'title'))->pluck('id')->toArray();
             $video->articles()->sync($articleIds);
+        } else {
+            $video->articles()->detach();
         }
 
-        // Связанные статьи
-        if (!empty($data['related_videos'])) {
-            $relatedIds = Video::whereIn('title', array_column($data['related_videos'], 'title'))
-                ->where('id', '<>', $video->id)
+        // Связанные видео
+        if ($request->has('related_videos') && !empty($request->input('related_videos'))) {
+            $relatedIds = Video::whereIn('title', array_column($request->input('related_videos'), 'title'))
+                ->where('id', '<>', $video->id) // Исключаем само себя
                 ->pluck('id')->toArray();
             $video->relatedVideos()->sync($relatedIds);
+        } else {
+            $video->relatedVideos()->detach();
         }
 
-        // Обработка изображений через библиотеку spatie
+        // Обработка изображений превью через библиотеку spatie
+        $imageIds = []; // Массив для хранения ID обработанных изображений
         foreach ($imagesData as $imageData) {
             $image = VideoImage::create([
                 'order' => $imageData['order'] ?? 0,
@@ -104,12 +146,22 @@ class VideoController extends Controller
                 'caption' => $imageData['caption'] ?? '',
             ]);
 
-            if (!empty($imageData['file'])) {
-                $image->addMedia($imageData['file'])->toMediaCollection('images');
+            // Добавляем медиа, только если есть файл
+            if (isset($imageData['file']) && $imageData['file'] instanceof \Illuminate\Http\UploadedFile) {
+                try {
+                    $image->addMedia($imageData['file'])->toMediaCollection('images');
+                } catch (\Exception $e) {
+                    // Обработка ошибки загрузки превью
+                    $image->delete(); // Удаляем созданную запись VideoImage
+                    // Можно добавить лог или сообщение об ошибке
+                    continue; // Пропускаем это изображение
+                }
             }
-
-            $video->images()->attach($image->id);
+            $imageIds[] = $image->id; // Добавляем ID в массив
         }
+        // Синхронизируем только успешно созданные/обработанные изображения
+        $video->images()->sync($imageIds);
+
 
         return redirect()->route('videos.index')->with('success', 'Видео успешно создано.');
     }
@@ -147,61 +199,122 @@ class VideoController extends Controller
         $video = Video::findOrFail($id);
         $data = $request->validated();
         $imagesData = $data['images'] ?? [];
-        unset($data['images']);
+        $videoFile = $request->file('video_file'); // Получаем новый файл
 
-        // Удаление изображений
+        // Удаление старых изображений превью
         if ($request->has('deletedImages')) {
             $this->deleteImages($request->deletedImages);
         }
 
-        // Обновляем данные статьи
+        // Удаляем данные, не являющиеся прямыми колонками таблицы videos
+        unset(
+            $data['images'],
+            $data['deletedImages'], // Удаляем и это
+            $data['sections'],
+            $data['articles'],
+            $data['related_videos'],
+            $data['video_file']
+        );
+
+        // Если тип источника меняется на 'local' или остается 'local'
+        if ($data['source_type'] === 'local') {
+            unset($data['video_url']); // Не обновляем video_url
+            // Если пришел новый файл, удаляем старый медиафайл (если он был)
+            if ($videoFile && $videoFile->isValid()) {
+                $video->clearMediaCollection('videos'); // Удаляем старое видео из коллекции
+            }
+            // Можно обнулить external_video_id
+            $data['external_video_id'] = null;
+        } else {
+            // Если тип НЕ 'local', удаляем старый локальный медиафайл, если он был
+            $video->clearMediaCollection('videos');
+            // $data['video_url'] = null; // Можно обнулить URL, если не используется
+        }
+
+        // Обновляем основные данные видео
         $video->update($data);
 
-        // Синхронизация секций и постов
-        $sectionIds = $request->has('sections')
-            ? Section::whereIn('title', array_column($data['sections'], 'title'))->pluck('id')->toArray()
+        // --- ЗАГРУЗКА НОВОГО ЛОКАЛЬНОГО ВИДЕО ПРИ ОБНОВЛЕНИИ ---
+        if ($data['source_type'] === 'local' && $videoFile && $videoFile->isValid()) {
+            try {
+                $video->addMedia($videoFile)
+                    ->toMediaCollection('videos');
+            } catch (\Exception $e) {
+                // Обработка ошибки загрузки при обновлении
+                return back()->withInput()->withErrors(['video_file' => 'Не удалось загрузить новый видеофайл: ' . $e->getMessage()]);
+            }
+        }
+        // --- КОНЕЦ ЛОГИКИ ЗАГРУЗКИ ПРИ ОБНОВЛЕНИИ ---
+
+
+        // Синхронизация секций
+        $sectionIds = ($request->has('sections') && !empty($request->input('sections')))
+            ? Section::whereIn('title', array_column($request->input('sections'), 'title'))->pluck('id')->toArray()
             : [];
         $video->sections()->sync($sectionIds);
 
-        $articleIds = $request->has('articles')
-            ? Article::whereIn('title', array_column($data['articles'], 'title'))->pluck('id')->toArray()
+        // Синхронизация статей
+        $articleIds = ($request->has('articles') && !empty($request->input('articles')))
+            ? Article::whereIn('title', array_column($request->input('articles'), 'title'))->pluck('id')->toArray()
             : [];
         $video->articles()->sync($articleIds);
 
         // Связанные видео
-        $relatedIds = $request->has('related_videos')
-            ? Video::whereIn('title', array_column($data['related_videos'], 'title'))->pluck('id')->toArray()
+        $relatedIds = ($request->has('related_videos') && !empty($request->input('related_videos')))
+            ? Video::whereIn('title', array_column($request->input('related_videos'), 'title'))
+                ->where('id', '<>', $video->id) // Исключаем само себя
+                ->pluck('id')->toArray()
             : [];
         $video->relatedVideos()->sync($relatedIds);
 
-        $imageIds = [];
 
-        // Обработка изображений
+        // Обработка изображений превью при обновлении
+        $currentImageIds = []; // ID изображений, которые должны остаться
         foreach ($imagesData as $imageData) {
+            $image = null;
             if (!empty($imageData['id'])) {
+                // Обновляем существующее изображение
                 $image = VideoImage::find($imageData['id']);
                 if ($image) {
                     $image->update([
-                        'order' => $imageData['order'] ?? 0,
+                        'order' => $imageData['order'] ?? $image->order, // Сохраняем порядок, если не передан
                         'alt' => $imageData['alt'] ?? '',
                         'caption' => $imageData['caption'] ?? '',
                     ]);
-                    $imageIds[] = $image->id;
+                    // Обновляем медиафайл, только если пришел новый файл для СУЩЕСТВУЮЩЕГО VideoImage
+                    if (isset($imageData['file']) && $imageData['file'] instanceof \Illuminate\Http\UploadedFile) {
+                        try {
+                            $image->clearMediaCollection('images'); // Удаляем старый файл
+                            $image->addMedia($imageData['file'])->toMediaCollection('images');
+                        } catch (\Exception $e) {
+                            // Ошибка обновления файла превью
+                            // Можно пропустить или вернуть ошибку
+                        }
+                    }
                 }
-            } else {
-                // Новое изображение
+            } elseif (isset($imageData['file']) && $imageData['file'] instanceof \Illuminate\Http\UploadedFile) {
+                // Создаем новое изображение
                 $image = VideoImage::create([
                     'order' => $imageData['order'] ?? 0,
                     'alt' => $imageData['alt'] ?? '',
                     'caption' => $imageData['caption'] ?? '',
                 ]);
-                $image->addMedia($imageData['file'])->toMediaCollection('images');
-                $imageIds[] = $image->id;
+                try {
+                    $image->addMedia($imageData['file'])->toMediaCollection('images');
+                } catch (\Exception $e) {
+                    $image->delete(); // Удаляем запись, если файл не загрузился
+                    $image = null; // Сбрасываем, чтобы не добавить ID
+                    // Обработка ошибки загрузки превью
+                }
+            }
+
+            if ($image) {
+                $currentImageIds[] = $image->id; // Добавляем ID в массив
             }
         }
+        // Синхронизируем только существующие и успешно добавленные изображения
+        $video->images()->sync($currentImageIds);
 
-        // Синхронизируем связи изображений статьи
-        $video->images()->sync($imageIds);
 
         return redirect()->route('videos.index')->with('success', 'Видео успешно обновлено.');
     }

@@ -12,6 +12,7 @@ class VideoRequest extends FormRequest
      */
     public function authorize(): bool
     {
+        // Обычно true для админки, или добавить логику прав доступа
         return true;
     }
 
@@ -22,63 +23,81 @@ class VideoRequest extends FormRequest
      */
     public function rules(): array
     {
+        // Определяем, это создание или обновление
+        $isCreating = $this->isMethod('POST');
+        $videoId = $this->route('video'); // Получаем ID из маршрута при обновлении
+
         return [
-            'sort'               => 'nullable|integer',
-            'activity'           => 'required|boolean',
-            'left'               => 'required|boolean',
-            'main'               => 'required|boolean',
-            'right'              => 'required|boolean',
-            'locale'             => [
-                'required',
-                'string',
-                'size:2',
-                Rule::in(['ru', 'en', 'kz']),
-            ],
-            'title'              => [
+            'sort' => 'nullable|integer|min:0',
+            'activity' => 'required|boolean',
+            'left' => 'required|boolean',
+            'main' => 'required|boolean',
+            'right' => 'required|boolean',
+            'locale' => 'required|string|max:2',
+            'title' => 'required|string|max:255',
+            // Уникальность URL проверяем только при создании или если URL изменился при обновлении
+            'url' => [
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('videos', 'title')->ignore($this->route('video')),
+                'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', // Правило для slug
+                $isCreating
+                    ? Rule::unique('videos', 'url')
+                    : Rule::unique('videos', 'url')->ignore($videoId),
             ],
-            'url'                => [
-                'required',
+            'short' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+            'author' => 'nullable|string|max:255',
+            'published_at' => 'nullable|date',
+            'duration' => 'nullable|integer|min:0',
+            'source_type' => ['required', 'string', Rule::in(['local', 'youtube', 'vimeo', 'code'])],
+            'video_url' => [ // Поле URL теперь необязательно, если тип 'local' и есть файл
+                'nullable',
+                Rule::requiredIf(fn () => !in_array($this->input('source_type'), ['local', 'youtube', 'vimeo'])), // Обязательно для 'code'
+                'string',
+                'max:65535', // Для кода может быть длинным
+                // Можно добавить 'url' валидацию, если нужно, но для кода это не подходит
+            ],
+            'external_video_id' => [ // ID/Ссылка для внешних сервисов
+                'nullable',
+                Rule::requiredIf(fn () => in_array($this->input('source_type'), ['youtube', 'vimeo'])),
                 'string',
                 'max:255',
-                Rule::unique('videos', 'url')->ignore($this->route('video')),
             ],
-            'short'              => 'nullable|string|max:255',
-            'description'        => 'nullable|string',
-            'author'             => 'nullable|string|max:255',
-            'published_at'       => 'nullable|date',
-            'duration'           => 'nullable|integer',
-            'source_type'        => 'nullable|string',
-            'video_url'          => 'nullable|string',
-            'external_video_id'  => 'nullable|string',
-            'views'              => 'nullable|integer|min:0',
-            'likes'              => 'nullable|integer|min:0',
-            'meta_title'         => 'nullable|string|max:255',
-            'meta_keywords'      => 'nullable|string|max:255',
-            'meta_desc'          => 'nullable|string|max:255',
+            'video_file' => [ // Файл для локального видео
+                'nullable',
+                // Обязательно, если тип 'local' И нет ID (т.е. при создании)
+                // или если тип 'local' и нет video_url (если вы решите его использовать для отображения имени файла)
+                Rule::requiredIf(fn() => $this->input('source_type') === 'local' && $isCreating),
+                'file',
+                'mimes:mp4,mov,ogg,qt,webm,avi', // Укажите разрешенные MIME типы или расширения
+                'max:102400', // Максимальный размер в килобайтах (например, 100MB) - настройте на сервере!
+            ],
+            'views' => 'nullable|integer|min:0',
+            'likes' => 'nullable|integer|min:0',
+            'meta_title' => 'nullable|string|max:160',
+            'meta_keywords' => 'nullable|string|max:255',
+            'meta_desc' => 'nullable|string|max:255',
 
             // Дополнительные поля для связей
-            'sections'           => 'nullable|array',
-            'articles'           => 'nullable|array',
-            'related_videos'     => 'nullable|array',
+            'sections.*.id' => 'sometimes|integer|exists:sections,id',
+            'sections.*.title' => 'sometimes|string', // Добавлено для vue-multiselect
+            'articles' => 'nullable|array',
+            'articles.*.id' => 'sometimes|integer|exists:articles,id',
+            'articles.*.title' => 'sometimes|string', // Добавлено для vue-multiselect
+            'related_videos' => 'nullable|array',
+            'related_videos.*.id' => 'sometimes|integer|exists:videos,id',
+            'related_videos.*.title' => 'sometimes|string', // Добавлено для vue-multiselect
 
             // Валидация массива изображений в таблице в таблице video_images
-            'images' => ['sometimes', 'array'],
-            'images.*.id' => ['nullable', 'integer', 'exists:video_images,id'],
-            'images.*.order' => ['nullable', 'integer'],
-            'images.*.alt' => ['nullable', 'string', 'max:255'],
-            'images.*.caption' => ['nullable', 'string', 'max:255'],
-            'images.*.file' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:10240'], // 10MB
-
-            // Если файла и ID нет одновременно, то ошибка:
-            'images.*' => ['array', function ($attr, $value, $fail) {
-                if (empty($value['id']) && empty($value['file'])) {
-                    $fail("Изображение должно иметь либо загруженный файл, либо ID существующего изображения.");
-                }
-            }],
+            'images' => 'nullable|array',
+            'images.*.id' => 'nullable|integer|exists:video_images,id',
+            'images.*.file' => 'nullable|required_without:images.*.id|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+            'images.*.order' => 'nullable|integer',
+            'images.*.alt' => 'nullable|string|max:255',
+            'images.*.caption' => 'nullable|string|max:255',
+            'deletedImages' => 'nullable|array',
+            'deletedImages.*' => 'integer|exists:video_images,id',
         ];
     }
 
