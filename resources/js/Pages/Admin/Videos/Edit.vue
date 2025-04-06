@@ -1,8 +1,8 @@
 <script setup>
-import { defineProps, ref } from 'vue';
-import { transliterate } from '@/utils/transliteration';
-import { useI18n } from 'vue-i18n';
-import { useForm } from '@inertiajs/vue3';
+import {defineProps, onMounted, ref} from 'vue';
+import {transliterate} from '@/utils/transliteration';
+import {useI18n} from 'vue-i18n';
+import {useForm} from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import TitlePage from '@/Components/Admin/Headlines/TitlePage.vue';
 import DefaultButton from '@/Components/Admin/Buttons/DefaultButton.vue';
@@ -22,7 +22,8 @@ import VueMultiselect from 'vue-multiselect';
 
 // Импорт двух отдельных компонентов для работы с изображениями:
 import MultiImageUpload from '@/Components/Admin/Image/MultiImageUpload.vue'; // для загрузки новых изображений
-import MultiImageEdit from '@/Components/Admin/Image/MultiImageEdit.vue';         // для редактирования существующих
+import MultiImageEdit from '@/Components/Admin/Image/MultiImageEdit.vue';
+import VideoSourceFields from "@/Components/Admin/Video/Upload/VideoSourceFields.vue"; // для редактирования существующих
 
 const { t } = useI18n();
 
@@ -40,8 +41,16 @@ const form = useForm({
     locale: props.video.locale ?? '',
     title: props.video.title ?? '',
     url: props.video.url ?? '',
+    short: props.video.short ?? '',
     description: props.video.description ?? '',
     author: props.video.author ?? '',
+    published_at: props.video.published_at
+        ? (new Date(props.video.published_at)).toISOString().split('T')[0]
+        : '',
+    duration: props.video.duration ?? '',
+    source_type: props.video.source_type ?? '',
+    video_url: props.video.video_url ?? '',
+    external_video_id: props.video.external_video_id ?? '',
     views: props.video.views ?? '',
     likes: props.video.likes ?? '',
     meta_title: props.video.meta_title ?? '',
@@ -54,8 +63,64 @@ const form = useForm({
     sections: props.video.sections ?? [],
     articles: props.video.articles ?? [],
     related_videos: props.video.related_videos ?? [],
-    deletedImages: [] // массив для хранения ID удалённых изображений
+    deletedImages: [],// массив для хранения ID удалённых изображений
+    video_file: null
 });
+
+// Функция форматирования даты
+const formatDate = (dateStr) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return '';
+    return date.toISOString().split('T')[0];
+};
+
+onMounted(() => {
+    if (form.published_at) {
+        form.published_at = formatDate(form.published_at);
+    }
+});
+
+const handleVideoFileUpload = (event) => {
+    // Сохраняем файл в форме (при необходимости добавьте поле video_file в useForm)
+    form.video_file = event.target.files[0];
+};
+
+// автоматическое заполнение поля url
+const handleUrlInputFocus = () => {
+    if (form.title) {
+        form.url = transliterate(form.title.toLowerCase());
+    }
+};
+
+// количество символов в поле при генерации SEO
+const truncateText = (text, maxLength, addEllipsis = false) => {
+    if (text.length <= maxLength) return text;
+    const truncated = text.substr(0, text.lastIndexOf(' ', maxLength));
+    return addEllipsis ? `${truncated}...` : truncated;
+};
+
+// очистка мета-тегов
+const clearMetaFields = () => {
+    form.meta_title = '';
+    form.meta_keywords = '';
+    form.meta_desc = '';
+};
+
+// автоматическая генерация мета-тегов
+const generateMetaFields = () => {
+    if (form.title && !form.meta_title) {
+        form.meta_title = truncateText(form.title, 160);
+    }
+    if (form.short && !form.meta_keywords) {
+        // Убираем HTML-теги, разбиваем строку на слова и объединяем через запятую
+        const stripped = form.short.replace(/(<([^>]+)>)/gi, "");
+        form.meta_keywords = stripped.split(/\s+/).filter(word => word.length > 0).join(', ');
+    }
+    if (form.description && !form.meta_desc) {
+        form.meta_desc = truncateText(form.description.replace(/(<([^>]+)>)/gi, ""), 255, true);
+    }
+};
 
 // Массив для существующих изображений
 const existingImages = ref(
@@ -70,7 +135,6 @@ const existingImages = ref(
             caption: img.caption || ''
         }))
 );
-
 
 // Массив для новых изображений (будут содержать свойство file)
 const newImages = ref([]);
@@ -93,37 +157,6 @@ const handleDeleteExistingImage = (deletedId) => {
 // Обработчик обновления новых изображений из компонента MultiImageUpload
 const handleNewImagesUpdate = (images) => {
     newImages.value = images;
-};
-
-// автоматическое заполнение поля url
-const handleUrlInputFocus = () => {
-    if (form.title) {
-        form.url = transliterate(form.title.toLowerCase());
-    }
-};
-
-// количество символов в поле
-const truncateText = (text, maxLength, addEllipsis = false) => {
-    if (text.length <= maxLength) return text;
-    const truncated = text.substr(0, text.lastIndexOf(' ', maxLength));
-    return addEllipsis ? `${truncated}...` : truncated;
-};
-
-// очистка мета-тегов
-const clearMetaFields = () => {
-    form.meta_title = '';
-    form.meta_keywords = '';
-    form.meta_desc = '';
-};
-
-// автоматическая генерация мета-тегов
-const generateMetaFields = () => {
-    if (form.title && !form.meta_title) {
-        form.meta_title = truncateText(form.title, 160);
-    }
-    if (form.description && !form.meta_desc) {
-        form.meta_desc = truncateText(form.description.replace(/(<([^>]+)>)/gi, ""), 255, true);
-    }
 };
 
 // метод сохранения
@@ -194,24 +227,39 @@ const submitForm = () => {
                 </div>
                 <form @submit.prevent="submitForm" enctype="multipart/form-data" class="p-3 w-full">
 
+                    <!-- Активность, Локализация, Сортировка -->
                     <div class="mb-3 flex justify-between flex-col lg:flex-row items-center gap-4">
+
+                        <!-- Активность -->
                         <div class="flex flex-row items-center gap-2">
-                            <ActivityCheckbox v-model="form.activity" />
-                            <LabelCheckbox for="activity" :text="t('activity')" class="text-sm h-8 flex items-center" />
+                            <ActivityCheckbox v-model="form.activity"/>
+                            <LabelCheckbox for="activity" :text="t('activity')" class="text-sm h-8 flex items-center"/>
                         </div>
+
+                        <!-- Локализация -->
                         <div class="flex flex-row items-center gap-2 w-auto">
-                            <SelectLocale v-model="form.locale" :errorMessage="form.errors.locale" />
-                            <InputError class="mt-2 lg:mt-0" :message="form.errors.locale" />
+                            <SelectLocale v-model="form.locale" :errorMessage="form.errors.locale"/>
+                            <InputError class="mt-2 lg:mt-0" :message="form.errors.locale"/>
                         </div>
+
+                        <!-- Сортировка -->
                         <div class="flex flex-row items-center gap-2">
                             <div class="h-8 flex items-center">
-                                <LabelInput for="sort" :value="t('sort')" class="text-sm" />
+                                <LabelInput for="sort" :value="t('sort')" class="text-sm"/>
                             </div>
-                            <InputNumber id="sort" type="number" v-model="form.sort" autocomplete="sort" class="w-full lg:w-28" />
-                            <InputError class="mt-2 lg:mt-0" :message="form.errors.sort" />
+                            <InputNumber
+                                id="sort"
+                                type="number"
+                                v-model="form.sort"
+                                autocomplete="sort"
+                                class="w-full lg:w-28"
+                            />
+                            <InputError class="mt-2 lg:mt-0" :message="form.errors.sort"/>
                         </div>
+
                     </div>
 
+                    <!-- Показывать в левом сайдбаре, в главных новостях, в правом сайдбаре -->
                     <div class="mb-3 flex justify-between flex-col lg:flex-row items-center gap-4">
 
                         <!-- Показывать в левом сайдбаре -->
@@ -234,47 +282,22 @@ const submitForm = () => {
 
                     </div>
 
+                    <!-- Выбрать секции для показа -->
                     <div class="mb-3 flex flex-col items-start">
-                        <LabelInput for="sections" :value="t('sections')" class="mb-1" />
+                        <LabelInput for="sections" :value="t('sections')" class="mb-1"/>
                         <VueMultiselect v-model="form.sections"
                                         :options="sections"
                                         :multiple="true"
                                         :close-on-select="true"
                                         :placeholder="t('select')"
                                         label="title"
-                                        track-by="title" />
+                                        track-by="title"
+                        />
                     </div>
 
+                    <!-- Выбрать статьи для показа -->
                     <div class="mb-3 flex flex-col items-start">
-                        <LabelInput for="title">
-                            <span class="text-red-500 dark:text-red-300 font-semibold">*</span> {{ t('name') }}
-                        </LabelInput>
-                        <InputText id="title" type="text" v-model="form.title" required autocomplete="title" />
-                        <InputError class="mt-2" :message="form.errors.title" />
-                    </div>
-
-                    <div class="mb-3 flex flex-col items-start">
-                        <LabelInput for="url">
-                            <span class="text-red-500 dark:text-red-300 font-semibold">*</span> {{ t('url') }}
-                        </LabelInput>
-                        <InputText id="url" type="text" v-model="form.url" required autocomplete="url" @focus="handleUrlInputFocus" />
-                        <InputError class="mt-2" :message="form.errors.url" />
-                    </div>
-
-                    <div class="mb-3 flex flex-col items-start">
-                        <LabelInput for="description" :value="t('description')" />
-                        <CKEditor v-model="form.description" class="w-full" />
-                        <InputError class="mt-2" :message="form.errors.description" />
-                    </div>
-
-                    <div class="mb-3 flex flex-col items-start">
-                        <LabelInput for="author" :value="t('postAuthor')" />
-                        <InputText id="author" type="text" v-model="form.author" autocomplete="author" />
-                        <InputError class="mt-2" :message="form.errors.author" />
-                    </div>
-
-                    <div class="mb-3 flex flex-col items-start">
-                        <LabelInput for="videos" :value="t('articles')" class="mb-1"/>
+                        <LabelInput for="articles" :value="t('articles')" class="mb-1"/>
                         <VueMultiselect v-model="form.articles"
                                         :options="articles"
                                         :multiple="true"
@@ -285,24 +308,145 @@ const submitForm = () => {
                         />
                     </div>
 
-                    <!-- Мультиселект для связанных статей -->
+                    <!-- Название -->
                     <div class="mb-3 flex flex-col items-start">
-                        <LabelInput for="related_articles" :value="t('relatedVideos')" class="mb-1" />
+                        <LabelInput for="title">
+                            <span class="text-red-500 dark:text-red-300 font-semibold">*</span> {{ t('name') }}
+                        </LabelInput>
+                        <InputText
+                            id="title"
+                            type="text"
+                            v-model="form.title"
+                            required
+                            autocomplete="title"
+                        />
+                        <InputError class="mt-2" :message="form.errors.title"/>
+                    </div>
+
+                    <!-- url -->
+                    <div class="mb-3 flex flex-col items-start">
+                        <LabelInput for="url">
+                            <span class="text-red-500 dark:text-red-300 font-semibold">*</span> {{ t('url') }}
+                        </LabelInput>
+                        <InputText
+                            id="url"
+                            type="text"
+                            v-model="form.url"
+                            required
+                            autocomplete="url"
+                            @focus="handleUrlInputFocus"
+                        />
+                        <InputError class="mt-2" :message="form.errors.url"/>
+                    </div>
+
+                    <!-- краткое описание -->
+                    <div class="mb-3 flex flex-col items-start">
+                        <div class="flex justify-between w-full">
+                            <LabelInput for="short" :value="t('shortDescription')"/>
+                            <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
+                                {{ form.short.length }} / 255 {{ t('characters') }}
+                            </div>
+                        </div>
+                        <MetaDescTextarea v-model="form.short" class="w-full"/>
+                        <InputError class="mt-2" :message="form.errors.short"/>
+                    </div>
+
+                    <!-- описание -->
+                    <div class="mb-3 flex flex-col items-start">
+                        <LabelInput for="description" :value="t('description')"/>
+                        <CKEditor v-model="form.description" class="w-full"/>
+                        <InputError class="mt-2" :message="form.errors.description"/>
+                    </div>
+
+                    <!-- Дата публикации, Автор -->
+                    <div class="mb-3 flex flex-col lg:flex-row sm:justify-between sm:space-x-4">
+                        <!-- Дата публикации -->
+                        <div class="flex flex-col lg:flex-row items-center mb-2 lg:mb-0 flex-1">
+                            <LabelInput for="published_at" :value="t('publishedAt')"
+                                        class="mb-1 lg:mb-0 lg:mr-2"/>
+                            <InputText
+                                id="published_at"
+                                type="date"
+                                v-model="form.published_at"
+                                autocomplete="published_at"
+                                class="w-full max-w-56"
+                            />
+                            <InputError class="mt-1 sm:mt-0" :message="form.errors.published_at"/>
+                        </div>
+                        <!-- Автор -->
+                        <div class="flex flex-col lg:flex-row items-center mb-2 lg:mb-0 flex-1">
+                            <LabelInput for="author" :value="t('postAuthor')"
+                                        class="w-40 mb-1 lg:mb-0 lg:mr-2"/>
+                            <InputText
+                                id="author"
+                                type="text"
+                                v-model="form.author"
+                                autocomplete="author"
+                                class="w-full"
+                            />
+                            <InputError class="mt-1 sm:mt-0" :message="form.errors.author"/>
+                        </div>
+                    </div>
+
+                    <!-- Блок выбора типа источника видео, Блок продолжительности видео -->
+                    <div class="mb-3 flex flex-col lg:flex-row lg:justify-between lg:space-x-4">
+                        <!-- Блок выбора типа источника видео -->
+                        <div class="flex flex-col lg:flex-row items-center mb-2 lg:mb-0 flex-1">
+                            <LabelInput for="source_type" :value="t('sourceType')" class="mb-1 lg:mb-0 lg:mr-2"/>
+                            <select id="source_type" v-model="form.source_type"
+                                    class="form-select px-2 py-0.5 min-w-[12rem] font-semibold text-sm
+                                    rounded-sm shadow-sm dark:bg-cyan-800 dark:text-slate-100 border-slate-500 focus:border-indigo-500 focus:ring-indigo-300">
+                                <option value="local">{{ t('local') }}</option>
+                                <option value="youtube">{{ t('youtube') }}</option>
+                                <option value="vimeo">{{ t('vimeo') }}</option>
+                                <option value="code">{{ t('code') }}</option>
+                            </select>
+                            <InputError class="mt-1 lg:mt-0" :message="form.errors.source_type"/>
+                        </div>
+
+                        <!-- Блок продолжительности видео -->
+                        <div class="flex flex-col lg:flex-row items-center mb-2 lg:mb-0 flex-1 justify-between">
+                            <LabelInput for="duration" :value="t('duration')" class="mb-1 lg:mb-0 lg:mr-2"/>
+                            <InputNumber id="duration" type="number" v-model="form.duration" autocomplete="duration"
+                                         class="w-full max-w-24"/>
+                            <InputError class="mt-1 lg:mt-0" :message="form.errors.duration"/>
+                        </div>
+                    </div>
+
+                    <!-- Блок просмотра видео -->
+                    <div class="flex flex-col items-start">
+                        <VideoSourceFields
+                            v-model="form.source_type"
+                            v-model:video-url="form.video_url"
+                            v-model:external-video-id="form.external_video_id"
+                            v-model:video-file="form.video_file" />
+                        <InputError class="mt-2" :message="form.errors.external_video_id"/>
+                    </div>
+
+                    <!-- Мультиселект для связанных видео -->
+                    <div class="mb-3 flex flex-col items-start">
+                        <LabelInput for="related_videos" :value="t('relatedVideos')" class="mb-1"/>
                         <VueMultiselect v-model="form.related_videos"
                                         :options="related_videos"
                                         :multiple="true"
                                         :close-on-select="true"
                                         :placeholder="t('select')"
                                         label="title"
-                                        track-by="title" />
-                        <InputError class="mt-2" :message="form.errors.related_videos" />
+                                        track-by="title"/>
+                        <InputError class="mt-2" :message="form.errors.related_videos"/>
                     </div>
 
-                    <div class="mb-3 flex justify-between">
-                        <div class="flex flex-row items-center">
-                            <LabelInput for="views" :value="t('views')" class="mr-3" />
-                            <InputNumber id="views" type="number" v-model="form.views" autocomplete="views" />
-                            <InputError class="mt-2" :message="form.errors.views" />
+                    <!-- количество просмотров и лайков -->
+                    <div class="mb-3 flex flex-col sm:flex-row justify-between">
+                        <div class="flex flex-row items-center mb-2">
+                            <LabelInput for="views" :value="t('views')" class="mr-3"/>
+                            <InputNumber
+                                id="views"
+                                type="number"
+                                v-model="form.views"
+                                autocomplete="views"
+                            />
+                            <InputError class="mt-2" :message="form.errors.views"/>
                         </div>
 
                         <div class="flex flex-row items-center">
@@ -317,43 +461,55 @@ const submitForm = () => {
                         </div>
                     </div>
 
+                    <!-- meta title -->
                     <div class="mb-3 flex flex-col items-start">
                         <div class="flex justify-between w-full">
-                            <LabelInput for="meta_title" :value="t('metaTitle')" />
+                            <LabelInput for="meta_title" :value="t('metaTitle')"/>
                             <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
                                 {{ form.meta_title.length }} / 160 {{ t('characters') }}
                             </div>
                         </div>
-                        <InputText id="meta_title" type="text" v-model="form.meta_title" maxlength="160" autocomplete="url" />
-                        <InputError class="mt-2" :message="form.errors.meta_title" />
+                        <InputText
+                            id="meta_title"
+                            type="text"
+                            v-model="form.meta_title"
+                            maxlength="160"
+                            autocomplete="url"
+                        />
+                        <InputError class="mt-2" :message="form.errors.meta_title"/>
                     </div>
 
+                    <!-- meta keywords -->
                     <div class="mb-3 flex flex-col items-start">
                         <div class="flex justify-between w-full">
-                            <LabelInput for="meta_keywords" :value="t('metaKeywords')" />
+                            <LabelInput for="meta_keywords" :value="t('metaKeywords')"/>
                             <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
                                 {{ form.meta_keywords.length }} / 255 {{ t('characters') }}
                             </div>
                         </div>
-                        <InputText id="meta_keywords"
-                                   type="text"
-                                   v-model="form.meta_keywords"
-                                   maxlength="255"
-                                   autocomplete="url" />
-                        <InputError class="mt-2" :message="form.errors.meta_keywords" />
+                        <InputText
+                            id="meta_keywords"
+                            type="text"
+                            v-model="form.meta_keywords"
+                            maxlength="255"
+                            autocomplete="url"
+                        />
+                        <InputError class="mt-2" :message="form.errors.meta_keywords"/>
                     </div>
 
+                    <!-- meta description -->
                     <div class="mb-3 flex flex-col items-start">
                         <div class="flex justify-between w-full">
-                            <LabelInput for="meta_desc" :value="t('metaDescription')" />
+                            <LabelInput for="meta_desc" :value="t('metaDescription')"/>
                             <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
                                 {{ form.meta_desc.length }} / 200 {{ t('characters') }}
                             </div>
                         </div>
-                        <MetaDescTextarea v-model="form.meta_desc" maxlength="200" class="w-full" />
-                        <InputError class="mt-2" :message="form.errors.meta_desc" />
+                        <MetaDescTextarea v-model="form.meta_desc" maxlength="200" class="w-full"/>
+                        <InputError class="mt-2" :message="form.errors.meta_desc"/>
                     </div>
 
+                    <!-- Кнопка очистки мета-полей, генерации мета-полей -->
                     <div class="flex justify-end mt-4">
                         <!-- Кнопка очистки мета-полей -->
                         <ClearMetaButton @clear="clearMetaFields" class="mr-4">
@@ -389,6 +545,7 @@ const submitForm = () => {
                         <MultiImageUpload @update:images="handleNewImagesUpdate" />
                     </div>
 
+                    <!-- кнопка сохранения -->
                     <div class="flex items-center justify-center mt-4">
                         <DefaultButton :href="route('videos.index')" class="mb-3">
                             <template #icon>

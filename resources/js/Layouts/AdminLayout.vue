@@ -7,7 +7,11 @@ import Footer from '@/Partials/Admin/Footer.vue';
 import WidgetPanel from '@/Partials/Admin/WidgetPanel.vue';
 import ScrollButtons from '@/Components/Admin/Scroll/ScrollButtons.vue';
 import {usePermission} from '@/composables/permissions.js';
+import {useRubrics} from '@/composables/rubrics.js';
+import {useSection} from '@/composables/sections.js';
 import {useArticle} from '@/composables/articles.js';
+import {useBanners} from '@/composables/banners.js';
+import {useVideos} from '@/composables/videos.js';
 import {useSetting} from '@/composables/settings.js';
 import {usePlugin} from '@/composables/plugins.js';
 
@@ -21,7 +25,12 @@ const props = defineProps({
 const {hasPlugin} = usePlugin();
 const {hasSetting} = useSetting();
 const {HasRole} = usePermission();
+const {HasRubric} = useRubrics();
+const {HasVideosSection} = useSection();
 const {HasSection} = useArticle();
+const {HasTags} = useArticle();
+const {HasBanners} = useBanners();
+const {HasVideos} = useVideos();
 
 const sidebarOpen = ref(false);
 const showingNavigationDropdown = ref(false);

@@ -53,7 +53,7 @@ class ArticleRequest extends FormRequest
             'tags' => ['sometimes', 'array'],
             'related_articles' => ['sometimes', 'array'],
 
-            // Валидация массива изображений
+            // Валидация массива изображений в таблице в таблице article_images
             'images' => ['sometimes', 'array'],
             'images.*.id' => ['nullable', 'integer', 'exists:article_images,id'],
             'images.*.order' => ['nullable', 'integer'],

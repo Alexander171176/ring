@@ -148,6 +148,7 @@
     `docker exec ring-php-app php artisan make:seeder SectionSeeder` <br>
     `docker exec ring-php-app php artisan db:seed --class=SectionSeeder` <br>
     `docker exec ring-php-app php artisan make:resource Admin/Section/SectionResource` <br>
+    `docker exec ring-php-app php artisan make:resource Admin/Section/SectionSharedResource` <br>
     `docker exec ring-php-app php artisan make:request Admin/Section/SectionRequest` <br>
     `docker exec ring-php-app php artisan make:controller Admin/Section/SectionController --resource` <br>
     `docker exec ring-php-app php artisan make:controller Admin/Invokable/RemoveRubricFromSectionController --invokable` <br>
@@ -235,15 +236,15 @@
 
 36) creating business logic ap Video
     `docker exec ring-php-app php artisan make:model Admin/Video/Video -mf` <br>
-    `docker exec ring-php-app php artisan make:migration create_video_has_article_table --create=video_has_article` <br>
-    `docker exec ring-php-app php artisan make:migration create_video_has_section_table --create=video_has_section` <br>
+    `docker exec ring-php-app php artisan make:migration create_section_has_video_table --create=section_has_video` <br>
+    `docker exec ring-php-app php artisan make:migration create_article_has_video_table --create=article_has_video` <br>
     `docker exec ring-php-app php artisan make:controller Admin/Invokable/RemoveSectionFromVideoController --invokable` <br>
     `docker exec ring-php-app php artisan make:controller Admin/Invokable/RemoveArticleFromVideoController --invokable` <br>
-    `docker exec ring-php-app php artisan make:model Admin/Video/ImageVideo -mf` <br>
-    `docker exec ring-php-app php artisan make:migration create_image_has_videos_table --create=image_has_videos` <br>
+    `docker exec ring-php-app php artisan make:model Admin/Video/VideoImage -mf` <br>
+    `docker exec ring-php-app php artisan make:migration create_video_has_images_table --create=video_has_images` <br>
     `docker exec ring-php-app php artisan make:resource Admin/Video/VideoResource` <br>
-    `docker exec ring-php-app php artisan make:resource Admin/Video/ImageVideoResource` <br>
     `docker exec ring-php-app php artisan make:resource Admin/Video/VideoSharedResource` <br>
+    `docker exec ring-php-app php artisan make:resource Admin/Video/VideoImageResource` <br>
     `docker exec ring-php-app php artisan make:request Admin/Video/VideoRequest` <br>
     `docker exec ring-php-app php artisan make:controller Admin/Video/VideoController --resource` <br>
     `docker exec ring-php-app php artisan make:controller Public/Default/VideoController` <br>

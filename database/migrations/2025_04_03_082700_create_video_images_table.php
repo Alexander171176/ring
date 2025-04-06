@@ -11,11 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('image_has_videos', function (Blueprint $table) {
+        Schema::create('video_images', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('video_id')->constrained('videos')->onDelete('cascade');
-            $table->foreignId('image_id')->constrained('image_videos')->onDelete('cascade');
+            $table->integer('order')->default(0);
+            $table->string('path')->nullable();
+            $table->string('alt')->nullable();
+            $table->string('caption')->nullable();
+            $table->timestamps();
         });
+
     }
 
     /**
@@ -23,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('image_has_videos');
+        Schema::dropIfExists('video_images');
     }
 };

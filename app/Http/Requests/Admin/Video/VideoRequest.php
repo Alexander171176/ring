@@ -46,6 +46,7 @@ class VideoRequest extends FormRequest
                 'max:255',
                 Rule::unique('videos', 'url')->ignore($this->route('video')),
             ],
+            'short'              => 'nullable|string|max:255',
             'description'        => 'nullable|string',
             'author'             => 'nullable|string|max:255',
             'published_at'       => 'nullable|date',
@@ -61,11 +62,23 @@ class VideoRequest extends FormRequest
 
             // Дополнительные поля для связей
             'sections'           => 'nullable|array',
-            'tags'               => 'nullable|array',
-            'related_articles'   => 'nullable|array',
-            'images'             => 'nullable|array',
-            'images.*.id'        => 'nullable|exists:images,id',
-            'images.*.file'      => 'nullable|image|mimes:jpeg,jpg,png,webp|max:10240',
+            'articles'           => 'nullable|array',
+            'related_videos'     => 'nullable|array',
+
+            // Валидация массива изображений в таблице в таблице video_images
+            'images' => ['sometimes', 'array'],
+            'images.*.id' => ['nullable', 'integer', 'exists:video_images,id'],
+            'images.*.order' => ['nullable', 'integer'],
+            'images.*.alt' => ['nullable', 'string', 'max:255'],
+            'images.*.caption' => ['nullable', 'string', 'max:255'],
+            'images.*.file' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:10240'], // 10MB
+
+            // Если файла и ID нет одновременно, то ошибка:
+            'images.*' => ['array', function ($attr, $value, $fail) {
+                if (empty($value['id']) && empty($value['file'])) {
+                    $fail("Изображение должно иметь либо загруженный файл, либо ID существующего изображения.");
+                }
+            }],
         ];
     }
 
@@ -90,6 +103,9 @@ class VideoRequest extends FormRequest
             'url.max'                   => 'URL видео не должен превышать 255 символов.',
             'url.unique'                => 'Видео с таким URL уже существует.',
 
+            'short.string'              => 'Краткое описание должно быть строкой.',
+            'short.max'                 => 'Краткое описание не должно превышать 255 символов.',
+
             'description.string'        => 'Описание должно быть строкой.',
 
             'author.string'             => 'Имя автора должно быть строкой.',
@@ -109,18 +125,18 @@ class VideoRequest extends FormRequest
             'activity.required'         => 'Поле активности обязательно для заполнения.',
             'activity.boolean'          => 'Поле активности должно быть логическим значением.',
 
-            'left.required'             => 'Поле новость в левой колонке обязательно для заполнения.',
-            'left.boolean'              => 'Поле новость в левой колонке должно быть логическим значением.',
+            'left.required'             => 'Поле видео в левой колонке обязательно для заполнения.',
+            'left.boolean'              => 'Поле видео в левой колонке должно быть логическим значением.',
 
-            'main.required'             => 'Поле главная новость обязательно для заполнения.',
-            'main.boolean'              => 'Поле главная новость должно быть логическим значением.',
+            'main.required'             => 'Поле главная видео обязательно для заполнения.',
+            'main.boolean'              => 'Поле главная видео должно быть логическим значением.',
 
-            'right.required'            => 'Поле новость в правой колонке обязательно для заполнения.',
-            'right.boolean'             => 'Поле новость в правой колонке должно быть логическим значением.',
+            'right.required'            => 'Поле видео в правой колонке обязательно для заполнения.',
+            'right.boolean'             => 'Поле видео в правой колонке должно быть логическим значением.',
 
             'sections.array'            => 'Секции должны быть массивом.',
-            'tags.array'                => 'Теги должны быть массивом.',
-            'related_articles.array'    => 'Список связанных статей должен быть массивом.',
+            'articles.array'            => 'Теги должны быть массивом.',
+            'related_videos.array'      => 'Список связанных статей должен быть массивом.',
 
             'images.array'              => 'Изображения должны быть массивом.',
             'images.*.id.exists'        => 'Указанного изображения не существует.',

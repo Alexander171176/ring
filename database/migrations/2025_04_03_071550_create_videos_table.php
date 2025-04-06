@@ -24,6 +24,7 @@ return new class extends Migration
 
             $table->string('title')->unique(); // Заголовок видео
             $table->text('url')->unique(); // Адрес видео
+            $table->string('short')->nullable(); // Краткое Описание
             $table->text('description')->nullable(); // Описание видео
             $table->string('author')->nullable(); // Автор видео
             $table->timestamp('published_at')->nullable(); // Дата и время публикации видео
@@ -37,7 +38,7 @@ return new class extends Migration
 
             // Для локальных видео можно хранить путь/URL файла,
             // а для внешних видео можно использовать данный столбец для хранения URL или оставить null
-            $table->string('video_url')->nullable();
+            $table->text('video_url')->nullable();
 
             // Идентификатор видео из внешнего сервиса (YouTube или Vimeo)
             $table->string('external_video_id')->nullable();

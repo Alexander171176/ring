@@ -24,6 +24,7 @@ class VideoSharedResource extends JsonResource
             'locale'            => $this->locale,
             'title'             => $this->title,
             'url'               => $this->url,
+            'short'             => $this->short,
             'description'       => $this->description,
             'author'            => $this->author,
             'published_at'      => $this->published_at,

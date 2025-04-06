@@ -179,7 +179,7 @@ const sortArticles = (articles) => {
     }
     if (sortParam.value === 'locale') {
         // Сортировка по locale в обратном порядке
-        return sections.slice().sort((a, b) => {
+        return articles.slice().sort((a, b) => {
             if (a.locale < b.locale) return 1;
             if (a.locale > b.locale) return -1;
             return 0;

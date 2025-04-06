@@ -26,6 +26,7 @@ class VideoResource extends JsonResource
             'locale'            => $this->locale,
             'title'             => $this->title,
             'url'               => $this->url,
+            'short'             => $this->short,
             'description'       => $this->description,
             'author'            => $this->author,
             'published_at'      => $this->published_at,
@@ -48,7 +49,7 @@ class VideoResource extends JsonResource
             'articles' => ArticleResource::collection($this->whenLoaded('articles')),
 
             // Связанные изображения
-            'images' => ImageVideoResource::collection($this->whenLoaded('images')),
+            'images' => VideoImageResource::collection($this->whenLoaded('images')),
 
             // Связанные видео (ручные рекомендации)
             'related_videos' => VideoResource::collection($this->whenLoaded('relatedVideos')),

@@ -35,7 +35,7 @@ class CustomPathGenerator implements PathGenerator
         }
 
         // Если медиа привязано к сущности VideoImage
-        if ($media->model_type === 'App\\Models\\Admin\\Video\\ImageVideo') {
+        if ($media->model_type === 'App\\Models\\Admin\\Video\\VideoImage') {
             return 'video_images/' . $media->model_id . '/';
         }
 

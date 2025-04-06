@@ -12,6 +12,8 @@ import VideoTable from '@/Components/Admin/Video/Table/VideoTable.vue';
 import CountTable from '@/Components/Admin/Count/CountTable.vue';
 import ItemsPerPageSelect from "@/Components/Admin/Select/ItemsPerPageSelect.vue";
 import SortSelect from "@/Components/Admin/Video/Sort/SortSelect.vue";
+import BulkActionSelect from '@/Components/Admin/Video/Select/BulkActionSelect.vue';
+import axios from 'axios';
 
 const { t } = useI18n();
 const props = defineProps(['videos', 'videosCount', 'adminCountVideos', 'adminSortVideos']);
@@ -54,13 +56,73 @@ const closeModal = () => {
     showConfirmDeleteModal.value = false;
 };
 
-// Удаление разрешения
+// Удаление видео
 const deleteVideo = () => {
     if (videoToDeleteId.value !== null) {
         form.delete(route('videos.destroy', videoToDeleteId.value), {
             onSuccess: () => closeModal()
         });
     }
+};
+
+// Кнопка включения видео в левой колонке
+const toggleLeft = (video) => {
+    const newLeft = !video.left;
+    axios.put(route('videos.updateLeft', video.id), { left: newLeft })
+        .then(response => {
+            video.left = newLeft;
+            if (response.data.reload) {
+                window.location.reload();
+            }
+        })
+        .catch(error => {
+            console.error(error.response.data);
+        });
+};
+
+// Кнопка включения видео как главной
+const toggleMain = (video) => {
+    const newMain = !video.main;
+    axios.put(route('videos.updateMain', video.id), { main: newMain })
+        .then(response => {
+            video.main = newMain;
+            if (response.data.reload) {
+                window.location.reload();
+            }
+        })
+        .catch(error => {
+            console.error(error.response.data);
+        });
+};
+
+// Кнопка включения видео в правой колонке
+const toggleRight = (video) => {
+    const newRight = !video.right;
+    axios.put(route('videos.updateRight', video.id), { right: newRight })
+        .then(response => {
+            video.right = newRight;
+            if (response.data.reload) {
+                window.location.reload();
+            }
+        })
+        .catch(error => {
+            console.error(error.response.data);
+        });
+};
+
+// Кнопка активности
+const toggleActivity = (video) => {
+    const newActivity = !video.activity;
+    axios.put(route('videos.updateActivity', video.id), { activity: newActivity })
+        .then(response => {
+            video.activity = newActivity;
+            if (response.data.reload) {
+                window.location.reload();
+            }
+        })
+        .catch(error => {
+            console.error(error.response.data);
+        });
 };
 
 // Пагинация
@@ -78,6 +140,42 @@ const sortVideos = (videos) => {
     if (sortParam.value === 'idDesc') {
         return videos.slice().sort((a, b) => b.id - a.id);
     }
+    if (sortParam.value === 'activity') {
+        return videos.filter(video => video.activity);
+    }
+    if (sortParam.value === 'inactive') {
+        return videos.filter(video => !video.activity);
+    }
+    if (sortParam.value === 'left') {
+        return videos.filter(video => video.left);
+    }
+    if (sortParam.value === 'noLeft') {
+        return videos.filter(video => !video.left);
+    }
+    if (sortParam.value === 'main') {
+        return videos.filter(video => video.main);
+    }
+    if (sortParam.value === 'noMain') {
+        return videos.filter(video => !video.main);
+    }
+    if (sortParam.value === 'right') {
+        return videos.filter(video => video.right);
+    }
+    if (sortParam.value === 'noRight') {
+        return videos.filter(video => !video.right);
+    }
+    if (sortParam.value === 'locale') {
+        // Сортировка по locale в обратном порядке
+        return videos.slice().sort((a, b) => {
+            if (a.locale < b.locale) return 1;
+            if (a.locale > b.locale) return -1;
+            return 0;
+        });
+    }
+    // Для просмотров и лайков сортировка по убыванию:
+    if (sortParam.value === 'views' || sortParam.value === 'likes') {
+        return videos.slice().sort((a, b) => b[sortParam.value] - a[sortParam.value]);
+    }
     // Для остальных полей — стандартное сравнение:
     return videos.slice().sort((a, b) => {
         if (a[sortParam.value] < b[sortParam.value]) return -1
@@ -92,7 +190,7 @@ const filteredVideos = computed(() => {
 
     if (searchQuery.value) {
         filtered = filtered.filter(video =>
-            video.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+            video.title.toLowerCase().includes(searchQuery.value.toLowerCase())
         );
     }
 
@@ -106,6 +204,156 @@ const paginatedVideos = computed(() => {
 });
 
 const totalPages = computed(() => Math.ceil(filteredVideos.value.length / itemsPerPage.value));
+
+// Drag and drop
+const recalculateSort = (event) => {
+    paginatedVideos.value.forEach((video, index) => {
+        video.sort = index + 1;
+        axios.put(route('videos.updateSort', video.id), { sort: video.sort })
+            .then(
+                // response => console.log(`Обновлена сортировка по идентификатору ${video.id} на ${video.sort}`)
+            )
+            .catch(
+                error => console.error(error.response.data)
+            );
+    });
+};
+
+// Выбранные статьи для массовых действий
+const selectedVideos = ref([]);
+
+// Функции для выбора и отмены выбора всех элементов select
+const toggleAll = (event) => {
+    const isChecked = event.target.checked;
+    selectedVideos.value = isChecked ? paginatedVideos.value.map(video => video.id) : [];
+};
+
+const toggleSelectVideo = (videoId) => {
+    const index = selectedVideos.value.indexOf(videoId);
+    if (index > -1) {
+        selectedVideos.value.splice(index, 1);
+    } else {
+        selectedVideos.value.push(videoId);
+    }
+};
+
+// Функции для массового включения/выключения активности
+const bulkToggleActivity = (newActivity) => {
+    const updatePromises = selectedVideos.value.map((videoId) =>
+        axios.put(route('videos.updateActivity', videoId), { activity: newActivity })
+    );
+
+    Promise.all(updatePromises)
+        .then((responses) => {
+            const reloadRequired = responses.some(response => response.data.reload);
+            if (reloadRequired) {
+                window.location.reload();
+            }
+        })
+        .catch(error => {
+            console.error(error.response.data);
+        });
+};
+
+// Функции для массового включения/выключения в левую колонку
+const bulkToggleLeft = (newLeft) => {
+    const updatePromises = selectedVideos.value.map((videoId) =>
+        axios.put(route('videos.updateLeft', videoId), { left: newLeft })
+    );
+
+    Promise.all(updatePromises)
+        .then((responses) => {
+            const reloadRequired = responses.some(response => response.data.reload);
+            if (reloadRequired) {
+                window.location.reload();
+            }
+        })
+        .catch(error => {
+            console.error(error.response.data);
+        });
+};
+
+// Функции для массового включения/выключения в слайдер
+const bulkToggleMain = (newMain) => {
+    const updatePromises = selectedVideos.value.map((videoId) =>
+        axios.put(route('videos.updateMain', videoId), { main: newMain })
+    );
+
+    Promise.all(updatePromises)
+        .then((responses) => {
+            const reloadRequired = responses.some(response => response.data.reload);
+            if (reloadRequired) {
+                window.location.reload();
+            }
+        })
+        .catch(error => {
+            console.error(error.response.data);
+        });
+};
+
+// Функции для массового включения/выключения в правую колонку
+const bulkToggleRight = (newRight) => {
+    const updatePromises = selectedVideos.value.map((videoId) =>
+        axios.put(route('videos.updateRight', videoId), { right: newRight })
+    );
+
+    Promise.all(updatePromises)
+        .then((responses) => {
+            const reloadRequired = responses.some(response => response.data.reload);
+            if (reloadRequired) {
+                window.location.reload();
+            }
+        })
+        .catch(error => {
+            console.error(error.response.data);
+        });
+};
+
+const bulkDelete = () => {
+    axios.delete(route('videos.bulkDestroy'), { data: { ids: selectedVideos.value } })
+        .then(response => {
+            selectedVideos.value = [];
+            if (response.data.reload) {
+                window.location.reload();
+            }
+        })
+        .catch(error => {
+            console.error(error.response.data);
+        });
+};
+
+const handleBulkAction = (event) => {
+    const action = event.target.value;
+    if (action === 'selectAll') {
+        paginatedVideos.value.forEach(video => {
+            if (!selectedVideos.value.includes(video.id)) {
+                selectedVideos.value.push(video.id);
+            }
+        });
+    } else if (action === 'deselectAll') {
+        selectedVideos.value = [];
+    } else if (action === 'activate') {
+        bulkToggleActivity(true);
+    } else if (action === 'deactivate') {
+        bulkToggleActivity(false);
+    } else if (action === 'left') {
+        bulkToggleLeft(true);
+    } else if (action === 'noLeft') {
+        bulkToggleLeft(false);
+    } else if (action === 'main') {
+        bulkToggleMain(true);
+    } else if (action === 'noMain') {
+        bulkToggleMain(false);
+    } else if (action === 'right') {
+        bulkToggleRight(true);
+    } else if (action === 'noRight') {
+        bulkToggleRight(false);
+    } else if (action === 'delete') {
+        bulkDelete();
+    }
+    event.target.value = ''; // Сбросить выбранное значение после выполнения действия
+};
+
 </script>
 
 <template>
@@ -129,12 +377,21 @@ const totalPages = computed(() => Math.ceil(filteredVideos.value.length / itemsP
                         </template>
                         {{ t('addVideo') }}
                     </DefaultButton>
+                    <BulkActionSelect v-if="videosCount" @change="handleBulkAction" />
                 </div>
                 <SearchInput v-if="videosCount" v-model="searchQuery" :placeholder="t('searchByName')"/>
                 <CountTable v-if="videosCount"> {{ videosCount }} </CountTable>
                 <VideoTable
                     :videos="paginatedVideos"
+                    :selected-videos="selectedVideos"
+                    @toggle-left="toggleLeft"
+                    @toggle-main="toggleMain"
+                    @toggle-right="toggleRight"
+                    @toggle-activity="toggleActivity"
                     @delete="confirmDelete"
+                    @recalculate-sort="recalculateSort"
+                    @toggle-select="toggleSelectVideo"
+                    @toggle-all="toggleAll"
                 />
                 <div class="flex justify-between items-center flex-col md:flex-row my-1"  v-if="videosCount">
                     <ItemsPerPageSelect :items-per-page="itemsPerPage" @update:itemsPerPage="itemsPerPage = $event" />

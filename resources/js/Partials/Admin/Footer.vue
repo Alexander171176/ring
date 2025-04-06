@@ -1,7 +1,8 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import axios from 'axios'; // Для работы с API
+import axios from 'axios';
+import LocaleSelectOption from "@/Components/Admin/Select/LocaleSelectOption.vue"; // Для работы с API
 
 const { t, locale } = useI18n();
 
@@ -73,12 +74,7 @@ const clearCache = async () => {
                     </svg>
                     <span class="text-xs sm:text-sm text-gray-500 dark:text-gray-400">{{ t('supportService') }}</span>
                 </a>
-                <select v-model="selectedLocale"
-                        class="bg-slate-100 dark:bg-slate-300 form-select text-gray-900 dark:text-gray-700 px-3 py-0.5">
-                    <option value="ru">{{ t('russian') }}</option>
-                    <option value="en">{{ t('english') }}</option>
-                    <option value="kz">{{ t('kazakh') }}</option>
-                </select>
+                <LocaleSelectOption v-model="selectedLocale" />
             </div>
         </div>
     </footer>

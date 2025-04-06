@@ -6,12 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Video\VideoRequest;
 use App\Http\Resources\Admin\Article\ArticleResource;
 use App\Http\Resources\Admin\Section\SectionResource;
-use App\Http\Resources\Admin\Video\ImageVideoResource;
+use App\Http\Resources\Admin\Video\VideoImageResource;
 use App\Http\Resources\Admin\Video\VideoResource;
 use App\Models\Admin\Article\Article;
 use App\Models\Admin\Section\Section;
-use App\Models\Admin\Video\ImageVideo;
 use App\Models\Admin\Video\Video;
+use App\Models\Admin\Video\VideoImage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -52,7 +52,7 @@ class VideoController extends Controller
         $articles = Article::all();
 
         // Загрузка изображений
-        $images = ImageVideo::all();
+        $images = VideoImage::all();
 
         // Загрузка всех статей для выбора в рекомендованных (или нужный поднабор)
         $allVideos = Video::select('id', 'title')->get();
@@ -60,7 +60,7 @@ class VideoController extends Controller
         return Inertia::render('Admin/Videos/Create', [
             'sections' => SectionResource::collection($sections),
             'articles' => ArticleResource::collection($articles),
-            'images' => ImageVideoResource::collection($images),
+            'images' => VideoImageResource::collection($images),
             'related_videos' => $allVideos,
         ]);
     }
@@ -74,7 +74,7 @@ class VideoController extends Controller
         $imagesData = $data['images'] ?? [];
         unset($data['images']);
 
-        // Создаем статью
+        // Создаем видео
         $video = Video::create($data);
 
         // Синхронизация рубрик и тегов
@@ -93,12 +93,12 @@ class VideoController extends Controller
             $relatedIds = Video::whereIn('title', array_column($data['related_videos'], 'title'))
                 ->where('id', '<>', $video->id)
                 ->pluck('id')->toArray();
-            $video->relatedArticles()->sync($relatedIds);
+            $video->relatedVideos()->sync($relatedIds);
         }
 
         // Обработка изображений через библиотеку spatie
         foreach ($imagesData as $imageData) {
-            $image = ImageVideo::create([
+            $image = VideoImage::create([
                 'order' => $imageData['order'] ?? 0,
                 'alt' => $imageData['alt'] ?? '',
                 'caption' => $imageData['caption'] ?? '',
@@ -179,7 +179,7 @@ class VideoController extends Controller
         // Обработка изображений
         foreach ($imagesData as $imageData) {
             if (!empty($imageData['id'])) {
-                $image = ImageVideo::find($imageData['id']);
+                $image = VideoImage::find($imageData['id']);
                 if ($image) {
                     $image->update([
                         'order' => $imageData['order'] ?? 0,
@@ -190,7 +190,7 @@ class VideoController extends Controller
                 }
             } else {
                 // Новое изображение
-                $image = ImageVideo::create([
+                $image = VideoImage::create([
                     'order' => $imageData['order'] ?? 0,
                     'alt' => $imageData['alt'] ?? '',
                     'caption' => $imageData['caption'] ?? '',
@@ -367,7 +367,7 @@ class VideoController extends Controller
      */
     private function deleteImages(array $imageIds): void
     {
-        $imagesToDelete = ImageVideo::whereIn('id', $imageIds)->get();
+        $imagesToDelete = VideoImage::whereIn('id', $imageIds)->get();
 
         foreach ($imagesToDelete as $image) {
             $image->clearMediaCollection('images'); // удаляем медиафайл из хранилища

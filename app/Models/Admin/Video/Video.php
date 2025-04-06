@@ -26,6 +26,7 @@ class Video extends Model
         'locale',
         'title',
         'url',
+        'short',
         'description',
         'author',
         'published_at',
@@ -45,7 +46,7 @@ class Video extends Model
      */
     public function sections(): BelongsToMany
     {
-        return $this->belongsToMany(Section::class, 'video_has_section');
+        return $this->belongsToMany(Section::class, 'section_has_video');
     }
 
     /**
@@ -53,7 +54,7 @@ class Video extends Model
      */
     public function articles(): BelongsToMany
     {
-        return $this->belongsToMany(Article::class, 'video_has_article');
+        return $this->belongsToMany(Article::class, 'article_has_video');
     }
 
     /**
@@ -69,7 +70,7 @@ class Video extends Model
      */
     public function images(): BelongsToMany
     {
-        return $this->belongsToMany(ImageVideo::class, 'image_has_videos', 'video_id', 'image_id');
+        return $this->belongsToMany(VideoImage::class, 'video_has_images', 'video_id', 'image_id');
     }
 
     /**
@@ -77,6 +78,6 @@ class Video extends Model
      */
     public function relatedVideos(): BelongsToMany
     {
-        return $this->belongsToMany(self::class, 'video_related', 'related_video_id', 'video_id');
+        return $this->belongsToMany(self::class, 'video_related', 'video_id', 'related_video_id');
     }
 }

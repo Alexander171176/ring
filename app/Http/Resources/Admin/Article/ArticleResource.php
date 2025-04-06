@@ -4,6 +4,7 @@ namespace App\Http\Resources\Admin\Article;
 
 use App\Http\Resources\Admin\Section\SectionResource;
 use App\Http\Resources\Admin\Tag\TagResource;
+use App\Http\Resources\Admin\Video\VideoResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -46,6 +47,9 @@ class ArticleResource extends JsonResource
 
             // Связанные изображения
             'images' => ArticleImageResource::collection($this->whenLoaded('images')),
+
+            // Связанные рубрики
+            'videos' => VideoResource::collection($this->whenLoaded('videos')),
 
             // Связанные статьи (ручные рекомендации)
             'related_articles' => ArticleResource::collection($this->whenLoaded('relatedArticles')),

@@ -83,7 +83,7 @@ class Article extends Model
      */
     public function videos(): BelongsToMany
     {
-        return $this->belongsToMany(Video::class, 'video_has_article');
+        return $this->belongsToMany(Video::class, 'article_has_video', 'article_id', 'video_id');
     }
 
     /**

@@ -9,11 +9,11 @@ use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
-class ImageVideo extends Model implements HasMedia
+class VideoImage extends Model implements HasMedia
 {
     use HasFactory, InteractsWithMedia;
 
-    protected $table = 'image_videos';
+    protected $table = 'video_images';
 
     protected $fillable = [
         'order',   // Сортировка
@@ -27,7 +27,7 @@ class ImageVideo extends Model implements HasMedia
      */
     public function videos(): BelongsToMany
     {
-        return $this->belongsToMany(Video::class, 'image_has_videos', 'image_id', 'video_id');
+        return $this->belongsToMany(Video::class, 'video_has_images', 'image_id', 'video_id');
     }
 
     /**

@@ -40,9 +40,9 @@ class BannerRequest extends FormRequest
             // Связи
             'sections' => ['sometimes', 'array'],
 
-            // Валидация массива изображений
+            // Валидация массива изображений в таблице banner_images
             'images' => ['sometimes', 'array'],
-            'images.*.id' => ['nullable', 'integer', 'exists:article_images,id'],
+            'images.*.id' => ['nullable', 'integer', 'exists:banner_images,id'],
             'images.*.order' => ['nullable', 'integer'],
             'images.*.alt' => ['nullable', 'string', 'max:255'],
             'images.*.caption' => ['nullable', 'string', 'max:255'],

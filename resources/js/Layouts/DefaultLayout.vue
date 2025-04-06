@@ -1,9 +1,13 @@
 <script setup>
-import {defineProps} from 'vue';
-import {useRubric} from '@/composables/rubrics.js';
-import {useArticle} from "@/composables/articles.js";
-import {useBanner} from "@/composables/banners.js";
 import {Head, usePage} from "@inertiajs/vue3";
+import {defineProps} from 'vue';
+import {useRubrics} from '@/composables/rubrics.js';
+import {useSection} from '@/composables/sections.js';
+import {useArticle} from '@/composables/articles.js';
+import {useBanners} from '@/composables/banners.js';
+import {useVideos} from '@/composables/videos.js';
+import {useSetting} from '@/composables/settings.js';
+import {usePlugin} from '@/composables/plugins.js';
 import Header from "@/Partials/Default/Header.vue";
 import LeftSidebar from "@/Components/Public/Default/Partials/LeftSidebar.vue";
 import RightSidebar from "@/Components/Public/Default/Partials/RightSidebar.vue";
@@ -18,9 +22,14 @@ const props = defineProps({
     phpVersion: String,
 });
 
-const {HasRubric} = useRubric();
-const {HasArticle} = useArticle();
-const {HasBanner} = useBanner();
+const {hasPlugin} = usePlugin();
+const {hasSetting} = useSetting();
+const {HasRubric} = useRubrics();
+const {HasVideosSection} = useSection();
+const {HasSection} = useArticle();
+const {HasTags} = useArticle();
+const {HasBanners} = useBanners();
+const {HasVideos} = useVideos();
 
 const {props: pageProps} = usePage();
 
