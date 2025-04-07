@@ -9,6 +9,7 @@ class RubricSharedResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
+     * (Пример: только ID, title, url и активность)
      *
      * @return array<string, mixed>
      */
@@ -16,20 +17,11 @@ class RubricSharedResource extends JsonResource
     {
         return [
             'id'            => $this->id,
-            'sort'          => $this->sort,
-            'activity'      => $this->activity,
-            'icon'          => $this->icon,
-            'locale'        => $this->locale,
             'title'         => $this->title,
             'url'           => $this->url,
-            'short'         => $this->short,
-            'meta_title'    => $this->meta_title,
-            'meta_keywords' => $this->meta_keywords,
-            'meta_desc'     => $this->meta_desc,
-            'created_at'    => $this->created_at?->format('Y-m-d H:i:s'),
-            'updated_at'    => $this->updated_at?->format('Y-m-d H:i:s'),
-            // Количество секций, если есть
-            'sections_count' => $this->whenLoaded('sections', fn() => $this->sections->count()),
+            'activity'      => $this->activity, // Уже boolean
+            'locale'        => $this->locale,   // Локаль может быть важна для фильтрации
+            'icon'          => $this->icon, // Возможно, иконка тоже нужна
         ];
     }
 }

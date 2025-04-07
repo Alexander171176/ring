@@ -12,16 +12,28 @@ class UserResource extends JsonResource
     /**
      * Transform the resource into an array.
      *
+     * @param Request $request
      * @return array<string, mixed>
      */
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
-            'name' => $this->name,
-            'email' => $this->email,
-            'roles' => RoleResource::collection($this->whenLoaded('roles')),
-            'permissions' => PermissionResource::collection($this->whenLoaded('permissions')),
+            'id'                 => $this->id,
+            'name'               => $this->name,
+            'email'              => $this->email,
+            'email_verified_at'  => $this->email_verified_at?->toIso8601String(), // <--- ДОБАВЛЕНО
+            'profile_photo_url'  => $this->profile_photo_url, // <--- ДОБАВЛЕНО (из $appends)
+            'created_at'         => $this->created_at?->toIso8601String(), // <--- ДОБАВЛЕНО
+            'updated_at'         => $this->updated_at?->toIso8601String(), // <--- ДОБАВЛЕНО
+
+            // Счетчики (если нужны и используются с withCount)
+            'roles_count'        => $this->whenCounted('roles'),       // <--- ДОБАВЛЕНО
+            'permissions_count'  => $this->whenCounted('permissions'), // <--- ДОБАВЛЕНО (прямые разрешения)
+
+            // Полные данные связей
+            'roles'              => RoleResource::collection($this->whenLoaded('roles')),
+            'permissions'        => PermissionResource::collection($this->whenLoaded('permissions')), // Прямые разрешения
+            // 'all_permissions' => PermissionResource::collection($this->whenLoaded('allPermissions')), // Если загружали все разрешения (включая через роли)
         ];
     }
 }

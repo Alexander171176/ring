@@ -8,30 +8,33 @@ use Illuminate\Http\Resources\Json\JsonResource;
 class ArticleImageResource extends JsonResource
 {
     /**
-     * Преобразует ресурс в массив.
+     * Transform the resource into an array.
+     *
+     * @param Request $request
+     * @return array<string, mixed>
      */
     public function toArray(Request $request): array
     {
-        // Получаем первое медиа из коллекции 'images'
-        $media = $this->getFirstMedia('images');
-
+        // Используем аксессоры модели для получения URL
         return [
             'id'         => $this->id,
-            'order'      => $this->order,
+            'order'      => $this->order, // Уже integer из $casts
             'alt'        => $this->alt,
             'caption'    => $this->caption,
-            'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
-            'updated_at' => $this->updated_at?->format('Y-m-d H:i:s'),
 
-            // URL оригинального изображения
-            'url' => $media ? $media->getUrl() : null,
+            // Используем аксессоры из модели ArticleImage
+            'url'        => $this->image_url, // Оригинал
+            'webp_url'   => $this->webp_url,  // WebP версия
+            'thumb_url'  => $this->thumb_url, // Thumbnail версия <-- ДОБАВЛЕНО
 
-            // URL WebP-версии изображения
-            'webp_url' => $media ? $media->getUrl('webp') : null,
+            // Даты в стандартном формате ISO 8601
+            'created_at' => $this->created_at?->toIso8601String(),
+            'updated_at' => $this->updated_at?->toIso8601String(),
 
-            // Дополнительные свойства (опционально)
-            'mime_type' => $media->mime_type ?? null,
-            'size'      => $media->size ?? null,
+            // Дополнительные свойства, если нужны
+            'mime_type'  => $this->whenLoaded('media', fn() => $this->getFirstMedia('images')?->mime_type), // Получаем через getFirstMedia
+            'size'       => $this->whenLoaded('media', fn() => $this->getFirstMedia('images')?->size),      // Получаем через getFirstMedia
+            'size_human' => $this->whenLoaded('media', fn() => $this->getFirstMedia('images')?->humanReadableSize), // Размер в читаемом виде
         ];
     }
 }

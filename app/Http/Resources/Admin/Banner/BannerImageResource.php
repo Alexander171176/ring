@@ -10,30 +10,31 @@ class BannerImageResource extends JsonResource
     /**
      * Transform the resource into an array.
      *
+     * @param Request $request
      * @return array<string, mixed>
      */
     public function toArray(Request $request): array
     {
-        // Получаем первое медиа из коллекции 'images'
-        $media = $this->getFirstMedia('images');
-
+        // Используем аксессоры модели BannerImage
         return [
             'id'         => $this->id,
-            'order'      => $this->order,
+            'order'      => $this->order, // integer
             'alt'        => $this->alt,
             'caption'    => $this->caption,
-            'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
-            'updated_at' => $this->updated_at?->format('Y-m-d H:i:s'),
 
-            // URL оригинального изображения
-            'url' => $media ? $media->getUrl() : null,
+            // Используем аксессоры
+            'url'        => $this->image_url,
+            'webp_url'   => $this->webp_url,
+            'thumb_url'  => $this->thumb_url, // <--- ДОБАВЛЕНО
 
-            // URL WebP-версии изображения
-            'webp_url' => $media ? $media->getUrl('webp') : null,
+            // Даты в ISO 8601
+            'created_at' => $this->created_at?->toIso8601String(),
+            'updated_at' => $this->updated_at?->toIso8601String(),
 
-            // Дополнительные свойства (опционально)
-            'mime_type' => $media->mime_type ?? null,
-            'size'      => $media->size ?? null,
+            // Доп. свойства
+            'mime_type'  => $this->whenLoaded('media', fn() => $this->getFirstMedia('images')?->mime_type),
+            'size'       => $this->whenLoaded('media', fn() => $this->getFirstMedia('images')?->size),
+            'size_human' => $this->whenLoaded('media', fn() => $this->getFirstMedia('images')?->humanReadableSize),
         ];
     }
 }

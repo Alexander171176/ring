@@ -18,8 +18,11 @@ class UserSharedResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'email' => $this->email,
-            'roles' => $this->getRoleNames(),
-            'permissions' => $this->getPermissionNames(),
+            'profile_photo_url' => $this->profile_photo_url, // Добавим фото
+            // Возвращаем только имена ролей/разрешений
+            'roles' => $this->whenLoaded('roles', fn() => $this->getRoleNames()), // Используем whenLoaded для оптимизации
+            'permissions' => $this->whenLoaded('permissions', fn() => $this->getPermissionNames()), // Используем whenLoaded для оптимизации
+            // 'created_at' => $this->created_at?->toIso8601String(), // Можно добавить дату создания, если нужно
         ];
     }
 }

@@ -9,22 +9,24 @@ class BannerSharedResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
+     * (Облегченная версия)
      *
      * @return array<string, mixed>
      */
     public function toArray(Request $request): array
     {
+        // Получаем первое изображение (если было загружено)
+        $firstImage = $this->whenLoaded('images', fn() => $this->resource->images->first());
+
         return [
             'id'            => $this->id,
-            'sort'          => $this->sort,
-            'activity'      => $this->activity,
-            'left'          => $this->left,
-            'right'         => $this->right,
             'title'         => $this->title,
-            'short'         => $this->short,
-            'comment'       => $this->comment,
-            'created_at'    => $this->created_at?->format('d-m-Y'),
-            'updated_at'    => $this->updated_at?->format('Y-m-d H:i:s'),
+            'activity'      => $this->activity, // boolean
+            'link'          => $this->link,     // Ссылка может быть важна
+            // 'locale'     => $this->locale,  // Добавить, если мультиязычные
+
+            // URL первого превью
+            'thumbnail_url' => $firstImage ? $firstImage->thumb_url : null,
         ];
     }
 }
