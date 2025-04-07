@@ -6,30 +6,24 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('plugins', function (Blueprint $table) {
             $table->id();
-            $table->integer('sort')->default(0);
+            $table->unsignedInteger('sort')->default(0)->index(); // unsigned + index
             $table->text('icon')->nullable();
-            $table->string('name')->unique();
+            $table->string('name')->unique(); // Уникальность здесь ОК
             $table->string('version')->nullable();
-            $table->string('code')->nullable();
-            $table->text('options')->nullable();
+            $table->string('code')->nullable()->index(); // Добавляем индекс, если часто ищем по коду
+            $table->json('options')->nullable(); // Используем JSON для опций
             $table->text('description')->nullable();
             $table->text('readme')->nullable();
             $table->string('templates')->nullable();
-            $table->boolean('activity')->default(false);
+            $table->boolean('activity')->default(false)->index(); // index
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('plugins');

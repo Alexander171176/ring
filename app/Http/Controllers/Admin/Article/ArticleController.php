@@ -15,9 +15,11 @@ use App\Models\Admin\Tag\Tag;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB; // <--- Используем DB фасад для транзакций
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
+use Throwable; // <--- Импортируем Throwable для обработки исключений
 
 class ArticleController extends Controller
 {
@@ -28,17 +30,28 @@ class ArticleController extends Controller
      */
     public function index(): Response
     {
-        $articles = Article::with(['sections', 'tags', 'images'])->get();
-        $articlesCount = Article::count();
+        // Используем пагинацию вместо ->get() для больших списков
+        $adminCountArticles = config('site_settings.AdminCountArticles', 15); // Стандартно 15, если нет настройки
+        $adminSortArticles = config('site_settings.AdminSortArticles', 'idDesc');
 
-        // Получаем значение параметра из конфигурации (оно загружается через AppServiceProvider)
-        $adminCountArticles = config('site_settings.AdminCountArticles', 10);
-        $adminSortArticles  = config('site_settings.AdminSortArticles', 'idDesc');
+        // Логика сортировки
+        $sortField = 'id';
+        $sortDirection = 'desc';
+        if ($adminSortArticles === 'sortAsc') {
+            $sortField = 'sort';
+            $sortDirection = 'asc';
+        } // Добавьте другие варианты сортировки, если нужно
+
+        $articles = Article::with(['sections', 'tags', 'images'])
+            ->orderBy($sortField, $sortDirection)
+            ->paginate($adminCountArticles); // Используем paginate()
+
+        $articlesCount = Article::count(); // Можно оставить для общего счетчика
 
         return Inertia::render('Admin/Articles/Index', [
-            'articles' => ArticleResource::collection($articles),
+            'articles' => ArticleResource::collection($articles), // Пагинированный ресурс
             'articlesCount' => $articlesCount,
-            'adminCountArticles' => (int)$adminCountArticles,
+            'adminCountArticles' => $adminCountArticles, // Передаем для отображения
             'adminSortArticles' => $adminSortArticles,
         ]);
     }
@@ -50,22 +63,18 @@ class ArticleController extends Controller
      */
     public function create(): Response
     {
-        // Загрузка рубрик
-        $sections = Section::all();
-
-        // Загрузка тегов
-        $tags = Tag::all();
-
-        // Загрузка изображений
-        $images = ArticleImage::all();
-
-        // Загрузка всех статей для выбора в рекомендованных (или нужный поднабор)
+        // Загружаем только необходимые поля для селектов
+        $sections = Section::select('id', 'title')->get();
+        $tags = Tag::select('id', 'name')->get(); // Предполагаем, что у тега поле 'name'
         $allArticles = Article::select('id', 'title')->get();
+
+        // images здесь не нужны, т.к. они будут загружаться в форме
+        // $images = ArticleImage::all(); // УБРАТЬ
 
         return Inertia::render('Admin/Articles/Create', [
             'sections' => SectionResource::collection($sections),
             'tags' => TagResource::collection($tags),
-            'images' => ArticleImageResource::collection($images),
+            // 'images' => ArticleImageResource::collection($images), // УБРАТЬ
             'related_articles' => $allArticles,
         ]);
     }
@@ -80,46 +89,76 @@ class ArticleController extends Controller
     {
         $data = $request->validated();
         $imagesData = $data['images'] ?? [];
-        unset($data['images']);
+        $sectionTitles = isset($data['sections']) ? array_column($data['sections'], 'title') : [];
+        $tagNames = isset($data['tags']) ? array_column($data['tags'], 'name') : [];
+        $relatedTitles = isset($data['related_articles']) ? array_column($data['related_articles'], 'title') : [];
 
-        // Создаем статью
-        $article = Article::create($data);
+        // Удаляем связи и изображения из основных данных
+        unset($data['images'], $data['sections'], $data['tags'], $data['related_articles']);
 
-        // Синхронизация рубрик и тегов
-        if (!empty($data['sections'])) {
-            $sectionIds = Section::whereIn('title', array_column($data['sections'], 'title'))->pluck('id')->toArray();
+        try {
+            // Начинаем транзакцию
+            DB::beginTransaction();
+
+            // Создаем статью
+            $article = Article::create($data);
+
+            // Получаем ID для связей после валидации
+            $sectionIds = !empty($sectionTitles) ? Section::whereIn('title', $sectionTitles)->pluck('id')->toArray() : [];
+            $tagIds = !empty($tagNames) ? Tag::whereIn('name', $tagNames)->pluck('id')->toArray() : [];
+            $relatedIds = !empty($relatedTitles) ? Article::whereIn('title', $relatedTitles)->where('id', '<>', $article->id)->pluck('id')->toArray() : [];
+
+            // Синхронизация связей
             $article->sections()->sync($sectionIds);
-        }
-
-        if (!empty($data['tags'])) {
-            $tagIds = Tag::whereIn('name', array_column($data['tags'], 'name'))->pluck('id')->toArray();
             $article->tags()->sync($tagIds);
-        }
-
-        // Связанные статьи
-        if (!empty($data['related_articles'])) {
-            $relatedIds = Article::whereIn('title', array_column($data['related_articles'], 'title'))
-                ->where('id', '<>', $article->id)
-                ->pluck('id')->toArray();
             $article->relatedArticles()->sync($relatedIds);
-        }
 
-        // Обработка изображений через библиотеку spatie
-        foreach ($imagesData as $imageData) {
-            $image = ArticleImage::create([
-                'order' => $imageData['order'] ?? 0,
-                'alt' => $imageData['alt'] ?? '',
-                'caption' => $imageData['caption'] ?? '',
-            ]);
+            // Обработка изображений
+            $imageSyncData = []; // Массив для данных сводной таблицы [image_id => ['order' => value]]
+            foreach ($imagesData as $imageData) {
+                // Создаем ArticleImage только если есть файл (т.к. это store)
+                if (isset($imageData['file']) && $request->hasFile('images.' . key($imagesData) . '.file')) {
+                    $image = ArticleImage::create([
+                        'order'   => $imageData['order'] ?? 0, // Используем order из запроса
+                        'alt'     => $imageData['alt'] ?? '',
+                        'caption' => $imageData['caption'] ?? '',
+                    ]);
 
-            if (!empty($imageData['file'])) {
-                $image->addMedia($imageData['file'])->toMediaCollection('images');
+                    try {
+                        $file = $request->file('images.' . key($imagesData) . '.file');
+                        if ($file && $file->isValid()) {
+                            $image->addMedia($file)->toMediaCollection('images');
+                            // Готовим данные для sync со сводной таблицы
+                            $imageSyncData[$image->id] = ['order' => $image->order];
+                        } else {
+                            $image->delete(); // Удаляем, если файл невалидный
+                            Log::warning('Невалидный файл изображения при создании статьи', ['imageData' => $imageData]);
+                        }
+                    } catch (\Exception $e) {
+                        $image->delete(); // Удаляем при ошибке Spatie
+                        Log::error('Ошибка добавления медиа Spatie при создании статьи: ' . $e->getMessage(), ['imageData' => $imageData]);
+                        // Рассмотрите возможность отката всей транзакции или возврата ошибки
+                        // DB::rollBack();
+                        // return back()->withInput()->withErrors(['images' => 'Ошибка загрузки изображения.']);
+                    }
+                }
+                next($imagesData); // Переход к следующему файлу
             }
 
-            $article->images()->attach($image->id);
-        }
+            // Синхронизируем изображения с данными для сводной таблицы
+            $article->images()->sync($imageSyncData);
 
-        return redirect()->route('articles.index')->with('success', 'Статья успешно создана.');
+            // Если все успешно, подтверждаем транзакцию
+            DB::commit();
+
+            return redirect()->route('articles.index')->with('success', 'Статья успешно создана.');
+
+        } catch (Throwable $e) {
+            // Откатываем транзакцию в случае любой ошибки
+            DB::rollBack();
+            Log::error("Ошибка при создании статьи: " . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return back()->withInput()->withErrors(['general' => 'Произошла ошибка при создании статьи. Пожалуйста, попробуйте снова.']);
+        }
     }
 
     /**
@@ -130,23 +169,24 @@ class ArticleController extends Controller
      */
     public function edit(string $id): Response
     {
-        // Находим статью с рубриками, тегами, изображениями и связанными статьями
-        $article = Article::with(['sections', 'tags', 'images', 'relatedArticles'])->findOrFail($id);
+        // Загружаем статью со связями и сортируем изображения
+        $article = Article::with([
+            'sections',
+            'tags',
+            'images' => fn ($query) => $query->orderBy('pivot_order', 'asc'), // Используем сортировку из связи
+            'relatedArticles'
+        ])->findOrFail($id);
 
-        // Получаем все рубрики
-        $sections = Section::all();
-
-        // Получаем все теги
-        $tags = Tag::all();
-
-        // Загружаем все статьи для мультиселекта (исключая текущую)
+        // Загружаем только необходимые поля для селектов
+        $sections = Section::select('id', 'title')->get();
+        $tags = Tag::select('id', 'name')->get();
         $allArticles = Article::where('id', '<>', $article->id)->select('id', 'title')->get();
 
         return Inertia::render('Admin/Articles/Edit', [
-            'article' => new ArticleResource($article),
+            'article' => new ArticleResource($article), // Используем ArticleResource
             'sections' => SectionResource::collection($sections),
             'tags' => TagResource::collection($tags),
-            'related_articles' => $allArticles,
+            'related_articles' => $allArticles, // Ресурс здесь не нужен, т.к. это просто список для селекта
         ]);
     }
 
@@ -159,66 +199,115 @@ class ArticleController extends Controller
      */
     public function update(ArticleRequest $request, string $id): RedirectResponse
     {
-        $article = Article::findOrFail($id);
+        $article = Article::findOrFail($id); // Загружаем статью
         $data = $request->validated();
         $imagesData = $data['images'] ?? [];
-        unset($data['images']);
+        $deletedImageIds = $data['deletedImages'] ?? [];
 
-        // Удаление изображений
-        if ($request->has('deletedImages')) {
-            $this->deleteImages($request->deletedImages);
-        }
+        $sectionTitles = isset($data['sections']) ? array_column($data['sections'], 'title') : [];
+        $tagNames = isset($data['tags']) ? array_column($data['tags'], 'name') : [];
+        $relatedTitles = isset($data['related_articles']) ? array_column($data['related_articles'], 'title') : [];
 
-        // Обновляем данные статьи
-        $article->update($data);
+        // Удаляем ненужные ключи из $data
+        unset($data['images'], $data['deletedImages'], $data['sections'], $data['tags'], $data['related_articles'], $data['_method']);
 
-        // Синхронизация рубрик и тегов
-        $sectionIds = $request->has('sections')
-            ? Section::whereIn('title', array_column($data['sections'], 'title'))->pluck('id')->toArray()
-            : [];
-        $article->sections()->sync($sectionIds);
+        try {
+            DB::beginTransaction();
 
-        $tagIds = $request->has('tags')
-            ? Tag::whereIn('name', array_column($data['tags'], 'name'))->pluck('id')->toArray()
-            : [];
-        $article->tags()->sync($tagIds);
+            // Удаление изображений, отмеченных для удаления
+            if (!empty($deletedImageIds)) {
+                // Сначала отсоединяем от статьи, потом удаляем ArticleImage и медиа
+                $article->images()->detach($deletedImageIds);
+                $this->deleteImages($deletedImageIds); // Используем наш приватный метод
+            }
 
-        // Связанные статьи
-        $relatedIds = $request->has('related_articles')
-            ? Article::whereIn('title', array_column($data['related_articles'], 'title'))->pluck('id')->toArray()
-            : [];
-        $article->relatedArticles()->sync($relatedIds);
+            // Обновляем основные данные статьи
+            $article->update($data);
 
-        $imageIds = [];
+            // Получаем ID для связей
+            $sectionIds = !empty($sectionTitles) ? Section::whereIn('title', $sectionTitles)->pluck('id')->toArray() : [];
+            $tagIds = !empty($tagNames) ? Tag::whereIn('name', $tagNames)->pluck('id')->toArray() : [];
+            $relatedIds = !empty($relatedTitles) ? Article::whereIn('title', $relatedTitles)->pluck('id')->toArray() : []; // При обновлении можно не исключать себя
 
-        // Обработка изображений
-        foreach ($imagesData as $imageData) {
-            if (!empty($imageData['id'])) {
-                $image = ArticleImage::find($imageData['id']);
-                if ($image) {
-                    $image->update([
-                        'order' => $imageData['order'] ?? 0,
-                        'alt' => $imageData['alt'] ?? '',
+            // Синхронизация связей
+            $article->sections()->sync($sectionIds);
+            $article->tags()->sync($tagIds);
+            $article->relatedArticles()->sync($relatedIds);
+
+            // Обработка изображений
+            $imageSyncData = []; // [image_id => ['order' => value]]
+            $imageIndex = 0; // Индекс для доступа к файлам
+            foreach ($imagesData as $imageData) {
+                $image = null;
+                $fileKey = 'images.' . $imageIndex . '.file'; // Ключ файла в запросе
+
+                if (!empty($imageData['id'])) {
+                    // Обновляем существующее ArticleImage
+                    $image = ArticleImage::find($imageData['id']);
+                    if ($image) {
+                        $newOrder = $imageData['order'] ?? $image->order; // Обновляем order, если передан
+                        $image->update([
+                            'order'   => $newOrder, // Обновляем order в самой модели ArticleImage (хотя основное - в pivot)
+                            'alt'     => $imageData['alt'] ?? '',
+                            'caption' => $imageData['caption'] ?? '',
+                        ]);
+
+                        // Если пришел НОВЫЙ файл для СУЩЕСТВУЮЩЕГО image
+                        if ($request->hasFile($fileKey)) {
+                            try {
+                                $file = $request->file($fileKey);
+                                if ($file && $file->isValid()) {
+                                    $image->clearMediaCollection('images'); // Удаляем старый файл Spatie
+                                    $image->addMedia($file)->toMediaCollection('images');
+                                } else {
+                                    Log::warning('Невалидный файл при обновлении изображения статьи', ['imageData' => $imageData]);
+                                }
+                            } catch (\Exception $e) {
+                                Log::error('Ошибка обновления медиа Spatie при обновлении статьи: ' . $e->getMessage(), ['imageData' => $imageData]);
+                                // Возможно, стоит вернуть ошибку
+                            }
+                        }
+                        // Добавляем в данные для sync с order
+                        $imageSyncData[$image->id] = ['order' => $newOrder];
+                    }
+                } elseif ($request->hasFile($fileKey)) {
+                    // Создаем новое ArticleImage
+                    $image = ArticleImage::create([
+                        'order'   => $imageData['order'] ?? 0,
+                        'alt'     => $imageData['alt'] ?? '',
                         'caption' => $imageData['caption'] ?? '',
                     ]);
-                    $imageIds[] = $image->id;
+                    try {
+                        $file = $request->file($fileKey);
+                        if ($file && $file->isValid()) {
+                            $image->addMedia($file)->toMediaCollection('images');
+                            // Добавляем в данные для sync с order
+                            $imageSyncData[$image->id] = ['order' => $image->order];
+                        } else {
+                            $image->delete(); // Удаляем запись, если файл невалидный
+                            Log::warning('Невалидный файл для нового изображения при обновлении статьи', ['imageData' => $imageData]);
+                        }
+                    } catch (\Exception $e) {
+                        $image->delete(); // Удаляем запись при ошибке Spatie
+                        Log::error('Ошибка добавления нового медиа Spatie при обновлении статьи: ' . $e->getMessage(), ['imageData' => $imageData]);
+                        // Возможно, стоит вернуть ошибку
+                    }
                 }
-            } else {
-                // Новое изображение
-                $image = ArticleImage::create([
-                    'order' => $imageData['order'] ?? 0,
-                    'alt' => $imageData['alt'] ?? '',
-                    'caption' => $imageData['caption'] ?? '',
-                ]);
-                $image->addMedia($imageData['file'])->toMediaCollection('images');
-                $imageIds[] = $image->id;
+                $imageIndex++; // Увеличиваем индекс
             }
+
+            // Синхронизируем изображения со статьей, передавая 'order' для сводной таблицы
+            $article->images()->sync($imageSyncData);
+
+            DB::commit(); // Подтверждаем транзакцию
+
+            return redirect()->route('articles.index')->with('success', 'Статья успешно обновлена.');
+
+        } catch (Throwable $e) {
+            DB::rollBack(); // Откатываем транзакцию
+            Log::error("Ошибка при обновлении статьи ID {$id}: " . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return back()->withInput()->withErrors(['general' => 'Произошла ошибка при обновлении статьи. Пожалуйста, попробуйте снова.']);
         }
-
-        // Синхронизируем связи изображений статьи
-        $article->images()->sync($imageIds);
-
-        return redirect()->route('articles.index')->with('success', 'Статья успешно обновлена.');
     }
 
     /**
@@ -231,16 +320,25 @@ class ArticleController extends Controller
     {
         $article = Article::with('images')->findOrFail($id);
 
-        foreach ($article->images as $image) {
-            $image->clearMediaCollection('images');
-            $image->delete();
+        try {
+            DB::beginTransaction();
+
+            // Используем приватный метод для удаления ArticleImage и медиа
+            $this->deleteImages($article->images->pluck('id')->toArray());
+            // Отсоединять не нужно, т.к. deleteImages удаляет сами ArticleImage
+
+            // Удаляем статью (связи в сводных таблицах удалятся каскадно, если настроено)
+            $article->delete();
+
+            DB::commit();
+            Log::info('Статья удалена с ID: ' . $id);
+            return back()->with('success', 'Статья и связанные изображения удалены.');
+
+        } catch (Throwable $e) {
+            DB::rollBack();
+            Log::error("Ошибка при удалении статьи ID {$id}: " . $e->getMessage());
+            return back()->withErrors(['general' => 'Произошла ошибка при удалении статьи.']);
         }
-
-        $article->delete();
-
-        //Log::info('Статья удалена с ID: ' . $id);
-
-        return back()->with('success', 'Статья и связанные изображения удалены.');
     }
 
     /**
@@ -258,13 +356,27 @@ class ArticleController extends Controller
 
         $articleIds = $validated['ids'];
 
-        Article::whereIn('id', $articleIds)->each(function ($article) {
-            $article->delete();
-        });
+        try {
+            DB::beginTransaction();
 
-        //Log::info('Статьи удалены: ', $articleIds);
+            Article::whereIn('id', $articleIds)->each(function (Article $article) {
+                // Используем приватный метод для удаления изображений каждой статьи
+                $this->deleteImages($article->images()->pluck('id')->toArray());
+                // Отсоединять не нужно
 
-        return response()->json(['success' => true, 'reload' => true]);
+                // Удаляем саму статью
+                $article->delete();
+            });
+
+            DB::commit();
+            Log::info('Статьи удалены: ', $articleIds);
+            return response()->json(['success' => true, 'reload' => true]);
+
+        } catch (Throwable $e) {
+            DB::rollBack();
+            Log::error("Ошибка при массовом удалении статей: " . $e->getMessage(), ['ids' => $articleIds]);
+            return response()->json(['success' => false, 'message' => 'Ошибка при удалении статей.'], 500);
+        }
     }
 
     /**
@@ -412,22 +524,29 @@ class ArticleController extends Controller
         return response()->json(['success' => true, 'reload' => true]);
     }
 
+
     /**
-     * Удаление изображений
+     * Удаление записей ArticleImage и их медиафайлов.
+     * Этот метод теперь вызывается из destroy и bulkDestroy.
+     * При update удаление происходит через detach + вызов этого метода.
      *
      * @param array $imageIds
      * @return void
      */
     private function deleteImages(array $imageIds): void
     {
+        if (empty($imageIds)) {
+            return;
+        }
+        // Ищем ArticleImage для удаления
         $imagesToDelete = ArticleImage::whereIn('id', $imageIds)->get();
 
         foreach ($imagesToDelete as $image) {
-            $image->clearMediaCollection('images'); // удаляем медиафайл из хранилища
-            $image->delete();
+            $image->clearMediaCollection('images'); // Удаляем медиафайл Spatie
+            $image->delete(); // Удаляем запись ArticleImage из базы данных
         }
 
-        //Log::info('Удалены изображения: ', ['image_ids' => $imageIds]);
+        Log::info('Удалены записи ArticleImage и их медиа: ', ['image_ids' => $imageIds]);
     }
 
 }

@@ -2,7 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+// use Illuminate\Contracts\Auth\MustVerifyEmail; // Если используете верификацию email
+use App\Models\Admin\Comment\Comment; // Добавляем Comment
+use App\Models\User\Like\ArticleLike; // Добавляем ArticleLike
+use App\Models\User\Like\VideoLike; // Добавляем VideoLike
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -11,8 +14,10 @@ use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Jetstream\HasTeams;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Database\Eloquent\Relations\HasMany; // Добавляем HasMany
 
-class User extends Authenticatable
+// Если используете MustVerifyEmail, раскомментируйте его и implements
+class User extends Authenticatable /* implements MustVerifyEmail */
 {
     use HasApiTokens;
     use HasFactory;
@@ -20,7 +25,7 @@ class User extends Authenticatable
     use HasTeams;
     use Notifiable;
     use TwoFactorAuthenticatable;
-    use HasRoles;
+    use HasRoles; // От Spatie/Permission
 
     /**
      * The attributes that are mass assignable.
@@ -28,7 +33,9 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'name', 'email', 'password',
+        'name',
+        'email',
+        'password',
     ];
 
     /**
@@ -41,6 +48,8 @@ class User extends Authenticatable
         'remember_token',
         'two_factor_recovery_codes',
         'two_factor_secret',
+        'current_team_id', // Часто скрывают ID текущей команды
+        'profile_photo_path', // Скрываем путь, т.к. используем appends profile_photo_url
     ];
 
     /**
@@ -50,6 +59,7 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'password' => 'hashed', // Добавляем каст для автоматического хеширования пароля (рекомендовано в Laravel 10+)
     ];
 
     /**
@@ -60,4 +70,34 @@ class User extends Authenticatable
     protected $appends = [
         'profile_photo_url',
     ];
+
+    // --- НОВЫЕ СВЯЗИ ---
+
+    /**
+     * Комментарии, оставленные пользователем.
+     */
+    public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class, 'user_id');
+    }
+
+    /**
+     * Лайки статей, поставленные пользователем.
+     */
+    public function articleLikes(): HasMany
+    {
+        return $this->hasMany(ArticleLike::class, 'user_id');
+    }
+
+    /**
+     * Лайки видео, поставленные пользователем.
+     */
+    public function videoLikes(): HasMany
+    {
+        return $this->hasMany(VideoLike::class, 'user_id');
+    }
+
+    // --- КОНЕЦ НОВЫХ СВЯЗЕЙ ---
+
+    // Вы можете добавить здесь другие связи или методы, специфичные для пользователя
 }

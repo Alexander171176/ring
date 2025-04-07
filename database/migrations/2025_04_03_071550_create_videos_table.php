@@ -6,57 +6,49 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('videos', function (Blueprint $table) {
             $table->id();
-            $table->integer('sort')->default(0); // Поле для хранения порядка сортировки видео
-            $table->boolean('activity')->default(false); // Активность видео
+            $table->unsignedInteger('sort')->default(0)->index(); // unsigned + index
+            $table->boolean('activity')->default(false)->index(); // index
 
-            $table->boolean('left')->default(false); // Показывать видео в левом сайдбаре
-            $table->boolean('main')->default(false); // Показывать видео в главном экране
-            $table->boolean('right')->default(false); // Показывать видео в правом сайдбаре
+            $table->boolean('left')->default(false)->index(); // index
+            $table->boolean('main')->default(false)->index(); // index
+            $table->boolean('right')->default(false)->index(); // index
 
-            $table->string('locale', 2); // Язык (ru, en, kz)
+            $table->string('locale', 2)->index(); // index
 
-            $table->string('title')->unique(); // Заголовок видео
-            $table->text('url')->unique(); // Адрес видео
-            $table->string('short')->nullable(); // Краткое Описание
-            $table->text('description')->nullable(); // Описание видео
-            $table->string('author')->nullable(); // Автор видео
-            $table->timestamp('published_at')->nullable(); // Дата и время публикации видео
-            $table->unsignedInteger('duration')->nullable()->comment('Длительность видео в секундах');
+            $table->string('title'); // Убираем unique
+            $table->string('url', 500)->index(); // Меняем text на string, убираем unique, добавляем index
+            $table->string('short', 255)->nullable(); // string
+            $table->text('description')->nullable();
+            $table->string('author')->nullable();
+            $table->timestamp('published_at')->nullable()->index(); // index
+            $table->unsignedInteger('duration')->nullable()->comment('Длительность видео в секундах'); // unsigned
 
-            // Тип источника видео:
-            // - local  : видео загружается на сайт,
-            // - youtube: видео с YouTube,
-            // - vimeo  : видео с Vimeo
-            $table->enum('source_type', ['local', 'youtube', 'vimeo', 'code'])->default('local');
+            $table->enum('source_type', ['local', 'youtube', 'vimeo', 'code'])->default('local')->index(); // index
 
-            // Для локальных видео можно хранить путь/URL файла,
-            // а для внешних видео можно использовать данный столбец для хранения URL или оставить null
-            $table->text('video_url')->nullable();
+            // Убираем это поле, т.к. Spatie управляет путем для 'local'
+            // $table->text('video_url')->nullable();
 
-            // Идентификатор видео из внешнего сервиса (YouTube или Vimeo)
-            $table->string('external_video_id')->nullable();
+            $table->string('external_video_id')->nullable(); // Для youtube/vimeo ID или для code (iframe)
 
-            $table->unsignedBigInteger('views')->default(0); // Количество просмотров видео
-            $table->unsignedBigInteger('likes')->default(0); // Количество лайков видео
+            $table->unsignedBigInteger('views')->default(0)->index(); // index
+            $table->unsignedBigInteger('likes')->default(0)->index(); // index
 
-            $table->string('meta_title', 255)->nullable(); // meta title
-            $table->string('meta_keywords', 255)->nullable(); // meta keywords
-            $table->string('meta_desc', 255)->nullable(); // meta description
+            $table->string('meta_title', 255)->nullable();
+            $table->string('meta_keywords', 255)->nullable();
+            $table->text('meta_desc')->nullable(); // text
 
             $table->timestamps();
+
+            // Композитные уникальные ключи
+            $table->unique(['locale', 'title']);
+            $table->unique(['locale', 'url']);
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('videos');

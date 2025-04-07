@@ -6,28 +6,19 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('rubric_has_sections', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('rubric_id');
-            $table->unsignedBigInteger('section_id');
 
-            // Внешние ключи
-            $table->foreign('rubric_id')->references('id')->on('rubrics')->onDelete('cascade');
-            $table->foreign('section_id')->references('id')->on('sections')->onDelete('cascade');
+            // Внешние ключи (можно использовать более короткий синтаксис)
+            $table->foreignId('rubric_id')->constrained('rubrics')->onDelete('cascade');
+            $table->foreignId('section_id')->constrained('sections')->onDelete('cascade');
 
-            // Комбинация должна быть уникальной
-            $table->unique(['rubric_id', 'section_id']);
+            // Заменяем unique на primary для стандартной pivot таблицы
+            $table->primary(['rubric_id', 'section_id']);
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('rubric_has_sections');

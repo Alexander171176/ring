@@ -10,10 +10,8 @@ use App\Models\Admin\Article\ArticleImage;
 use App\Models\Admin\Section\Section;
 use App\Models\Admin\Tag\Tag;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * @OA\Info(
@@ -95,58 +93,73 @@ class ApiArticleController extends Controller
     public function store(ArticleRequest $request): JsonResponse
     {
         $data = $request->validated();
-
-        // Обработка разделов (sections)
-        $sectionIds = [];
-        if ($request->has('sections')) {
-            $sectionTitles = array_column($request->input('sections'), 'title');
-            $sectionIds = Section::whereIn('title', $sectionTitles)->pluck('id')->toArray();
-        }
-
-        // Обработка тегов
-        $tagIds = [];
-        if ($request->has('tags')) {
-            $tagNames = array_column($request->input('tags'), 'name');
-            $tagIds = Tag::whereIn('name', $tagNames)->pluck('id')->toArray();
-        }
+        $imagesData = $data['images'] ?? [];
+        // Удаляем связи и изображения из основных данных для создания Article
+        unset($data['images'], $data['sections'], $data['tags'], $data['related_articles']);
 
         // Создание статьи
         $article = Article::create($data);
 
-        if ($sectionIds) {
+        // Обработка связей (без изменений)
+        if ($request->has('sections')) {
+            $sectionTitles = array_column($request->input('sections'), 'title');
+            $sectionIds = Section::whereIn('title', $sectionTitles)->pluck('id')->toArray();
             $article->sections()->sync($sectionIds);
         }
-        if ($tagIds) {
+        if ($request->has('tags')) {
+            $tagNames = array_column($request->input('tags'), 'name');
+            $tagIds = Tag::whereIn('name', $tagNames)->pluck('id')->toArray();
             $article->tags()->sync($tagIds);
         }
+        // Связанные статьи (если нужно)
+        if ($request->has('related_articles')) {
+            $relatedTitles = array_column($request->input('related_articles'), 'title');
+            $relatedIds = Article::whereIn('title', $relatedTitles)
+                ->where('id', '<>', $article->id)->pluck('id')->toArray();
+            $article->relatedArticles()->sync($relatedIds);
+        }
 
-        // Обработка изображений (новые файлы или обновление существующих)
-        if ($request->has('images')) {
-            foreach ($data['images'] as $imageData) {
-                if (isset($imageData['file']) && $imageData['file'] instanceof UploadedFile) {
-                    // Загружаем новое изображение
-                    $path = $imageData['file']->store('article_images', 'public');
-                    $image = ArticleImage::create([
-                        'path'    => $path,
-                        'order'   => $imageData['order'] ?? 0,
-                        'alt'     => $imageData['alt'] ?? '',
-                        'caption' => $imageData['caption'] ?? '',
-                    ]);
-                    $article->images()->attach($image->id);
-                } elseif (isset($imageData['id'])) {
-                    // Обновляем alt и caption для существующего изображения
-                    $existingImage = ArticleImage::find($imageData['id']);
-                    if ($existingImage) {
-                        $existingImage->update([
-                            'order'   => $imageData['order'] ?? 0,
-                            'alt'     => $imageData['alt'] ?? '',
-                            'caption' => $imageData['caption'] ?? '',
-                        ]);
-                        $article->images()->syncWithoutDetaching([$existingImage->id]);
+        // --- ИСПРАВЛЕННАЯ ОБРАБОТКА ИЗОБРАЖЕНИЙ ---
+        $imageIds = [];
+        if (!empty($imagesData)) {
+            foreach ($imagesData as $imageData) {
+                // Создаем запись ArticleImage
+                $image = ArticleImage::create([
+                    'order'   => $imageData['order'] ?? 0,
+                    'alt'     => $imageData['alt'] ?? '',
+                    'caption' => $imageData['caption'] ?? '',
+                ]);
+
+                // Добавляем медиафайл, если он есть
+                if (isset($imageData['file']) && $request->hasFile('images.' . key($imagesData) . '.file')) { // Проверяем наличие файла в запросе
+                    try {
+                        // Получаем файл по его индексу в массиве (более надежно)
+                        $file = $request->file('images.' . key($imagesData) . '.file');
+                        if ($file && $file->isValid()) {
+                            $image->addMedia($file)->toMediaCollection('images');
+                            $imageIds[] = $image->id; // Добавляем ID только если медиа добавлено
+                        } else {
+                            $image->delete(); // Удаляем запись, если файл невалидный
+                            Log::warning('Невалидный файл изображения при создании статьи API', ['imageData' => $imageData]);
+                        }
+                    } catch (\Exception $e) {
+                        $image->delete(); // Удаляем запись при ошибке Spatie
+                        Log::error('Ошибка добавления медиа Spatie при создании статьи API: ' . $e->getMessage(), ['imageData' => $imageData]);
+                        // Можно вернуть ошибку 500 или продолжить без этого изображения
                     }
+                } else {
+                    $image->delete(); // Удаляем запись, если нет файла
+                    Log::warning('Нет файла для нового изображения при создании статьи API', ['imageData' => $imageData]);
                 }
+                next($imagesData); // Переходим к следующему элементу для правильного индекса key()
             }
         }
+        // Синхронизируем только успешно созданные изображения
+        $article->images()->sync($imageIds);
+        // --- КОНЕЦ ИСПРАВЛЕННОЙ ОБРАБОТКИ ---
+
+        // Перезагружаем статью со связями для ответа
+        $article->load(['sections', 'tags', 'images', 'relatedArticles']);
 
         return response()->json(new ArticleResource($article), 201);
     }
@@ -204,17 +217,19 @@ class ApiArticleController extends Controller
     {
         $data = $request->validated();
         $imagesData = $data['images'] ?? [];
-        unset($data['images']);
 
-        // Обработка удаления изображений (удалённых с клиента)
+        // Удаление изображений, отмеченных на клиенте
         if ($request->has('deletedImages') && is_array($request->deletedImages)) {
-            $this->deleteImages($request->deletedImages);
+            $this->deleteImages($request->deletedImages); // Используем исправленный метод
         }
+
+        // Удаляем данные связей и изображений из основного массива
+        unset($data['images'], $data['deletedImages'], $data['sections'], $data['tags'], $data['related_articles']);
 
         // Обновление данных статьи
         $article->update($data);
 
-        // Обновление связей разделов (sections)
+        // Обновление связей (без изменений)
         $sectionIds = [];
         if ($request->has('sections')) {
             $sectionTitles = array_column($request->input('sections'), 'title');
@@ -222,7 +237,6 @@ class ApiArticleController extends Controller
         }
         $article->sections()->sync($sectionIds);
 
-        // Обновление связей тегов
         $tagIds = [];
         if ($request->has('tags')) {
             $tagNames = array_column($request->input('tags'), 'name');
@@ -230,37 +244,81 @@ class ApiArticleController extends Controller
         }
         $article->tags()->sync($tagIds);
 
-        // Обработка изображений: новые или обновление существующих
+        // Связанные статьи (если нужно)
+        $relatedIds = [];
+        if ($request->has('related_articles')) {
+            $relatedTitles = array_column($request->input('related_articles'), 'title');
+            $relatedIds = Article::whereIn('title', $relatedTitles)
+                ->where('id', '<>', $article->id)->pluck('id')->toArray();
+        }
+        $article->relatedArticles()->sync($relatedIds);
+
+        // --- ИСПРАВЛЕННАЯ ОБРАБОТКА ИЗОБРАЖЕНИЙ ПРИ ОБНОВЛЕНИИ ---
+        $currentImageIds = [];
         if (!empty($imagesData)) {
-            $imageIds = [];
+            $imageIndex = 0; // Индекс для доступа к файлам
             foreach ($imagesData as $imageData) {
-                if (isset($imageData['file']) && $imageData['file'] instanceof UploadedFile) {
-                    $path = $imageData['file']->store('article_images', 'public');
+                $image = null;
+                $fileKey = 'images.' . $imageIndex . '.file'; // Ключ файла в запросе
+
+                if (isset($imageData['id'])) {
+                    // Обновляем существующее
+                    $image = ArticleImage::find($imageData['id']);
+                    if ($image) {
+                        $image->update([
+                            'order'   => $imageData['order'] ?? $image->order,
+                            'alt'     => $imageData['alt'] ?? '',
+                            'caption' => $imageData['caption'] ?? '',
+                        ]);
+
+                        // Если пришел НОВЫЙ файл для СУЩЕСТВУЮЩЕГО image
+                        if ($request->hasFile($fileKey)) {
+                            try {
+                                $file = $request->file($fileKey);
+                                if ($file && $file->isValid()) {
+                                    $image->clearMediaCollection('images'); // Удаляем старый файл Spatie
+                                    $image->addMedia($file)->toMediaCollection('images');
+                                } else {
+                                    Log::warning('Невалидный файл при обновлении изображения статьи API', ['imageData' => $imageData]);
+                                }
+                            } catch (\Exception $e) {
+                                Log::error('Ошибка обновления медиа Spatie при обновлении статьи API: ' . $e->getMessage(), ['imageData' => $imageData]);
+                            }
+                        }
+                        $currentImageIds[] = $image->id; // Добавляем ID существующего
+                    } else {
+                        Log::warning('Существующее изображение не найдено при обновлении статьи API', ['imageData' => $imageData]);
+                    }
+                } elseif ($request->hasFile($fileKey)) {
+                    // Создаем новое изображение, т.к. ID нет, но есть файл
                     $image = ArticleImage::create([
-                        'path'    => $path,
                         'order'   => $imageData['order'] ?? 0,
                         'alt'     => $imageData['alt'] ?? '',
                         'caption' => $imageData['caption'] ?? '',
                     ]);
-                    $imageIds[] = $image->id;
-                } elseif (isset($imageData['id'])) {
-                    $existingImage = ArticleImage::find($imageData['id']);
-                    if ($existingImage) {
-                        $existingImage->update([
-                            'order'   => $imageData['order'] ?? 0,
-                            'alt'     => $imageData['alt'] ?? '',
-                            'caption' => $imageData['caption'] ?? '',
-                        ]);
-                        $imageIds[] = $existingImage->id;
-                    } else {
-                        Log::warning('Существующее изображение не найдено', ['image_id' => $imageData['id']]);
+                    try {
+                        $file = $request->file($fileKey);
+                        if ($file && $file->isValid()) {
+                            $image->addMedia($file)->toMediaCollection('images');
+                            $currentImageIds[] = $image->id; // Добавляем ID нового
+                        } else {
+                            $image->delete(); // Удаляем запись, если файл невалидный
+                            Log::warning('Невалидный файл для нового изображения при обновлении статьи API', ['imageData' => $imageData]);
+                        }
+                    } catch (\Exception $e) {
+                        $image->delete(); // Удаляем запись при ошибке Spatie
+                        Log::error('Ошибка добавления нового медиа Spatie при обновлении статьи API: ' . $e->getMessage(), ['imageData' => $imageData]);
                     }
                 }
+                $imageIndex++; // Увеличиваем индекс для следующего файла
             }
-            $article->images()->sync($imageIds);
-        } else {
-            Log::info('В запросе нет изображений');
         }
+        // Синхронизируем все ID изображений, которые должны остаться у статьи
+        $article->images()->sync($currentImageIds);
+        // --- КОНЕЦ ИСПРАВЛЕННОЙ ОБРАБОТКИ ---
+
+        // Перезагружаем статью со связями для ответа
+        $article->load(['sections', 'tags', 'images', 'relatedArticles']);
 
         return response()->json(new ArticleResource($article));
     }
@@ -286,17 +344,15 @@ class ApiArticleController extends Controller
      */
     public function destroy(Article $article): JsonResponse
     {
-        // Удаление связанных изображений
-        foreach ($article->images as $image) {
-            if ($image->path && Storage::disk('public')->exists($image->path)) {
-                Storage::disk('public')->delete($image->path);
-                Log::info("Файл успешно удалён: {$image->path}");
-            } else {
-                Log::warning("Файл не найден: {$image->path}");
-            }
-            $image->delete();
-        }
+        // --- ИСПРАВЛЕННОЕ УДАЛЕНИЕ ИЗОБРАЖЕНИЙ ---
+        // Удаление связанных записей ArticleImage и их медиафайлов
+        $article->images()->each(function (ArticleImage $image) {
+            $image->clearMediaCollection('images'); // Удаляем файлы Spatie
+            $image->delete(); // Удаляем запись ArticleImage
+        });
+        // --- КОНЕЦ ИСПРАВЛЕННОГО УДАЛЕНИЯ ---
 
+        // Удаляем саму статью (связи в сводных таблицах удалятся каскадно, если настроено)
         $article->delete();
 
         return response()->json(null, 204);
@@ -304,24 +360,22 @@ class ApiArticleController extends Controller
 
     /**
      * Вспомогательный метод для удаления изображений по списку ID.
-     *
-     * @param array $imageIds
-     * @return void
+     * Используется в update при передаче deletedImages.
      */
     private function deleteImages(array $imageIds): void
     {
+        if (empty($imageIds)) {
+            return;
+        }
         $imagesToDelete = ArticleImage::whereIn('id', $imageIds)->get();
 
         foreach ($imagesToDelete as $image) {
-            if ($image->path && Storage::disk('public')->exists($image->path)) {
-                Storage::disk('public')->delete($image->path);
-                Log::info("Файл успешно удалён: {$image->path}");
-            } else {
-                Log::warning("Файл не найден: {$image->path}");
-            }
-            $image->delete();
+            // --- ИСПОЛЬЗУЕМ SPATIE ДЛЯ УДАЛЕНИЯ ФАЙЛОВ ---
+            $image->clearMediaCollection('images');
+            // --- КОНЕЦ ---
+            $image->delete(); // Удаляем запись ArticleImage
         }
 
-        Log::info('Удалены изображения: ', ['image_ids' => $imageIds]);
+        Log::info('Удалены изображения через API: ', ['image_ids' => $imageIds]);
     }
 }

@@ -6,27 +6,19 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::create('video_images', function (Blueprint $table) {
+        Schema::create('article_images', function (Blueprint $table) {
             $table->id();
-            $table->integer('order')->default(0);
-            $table->string('path')->nullable();
+            $table->unsignedInteger('order')->default(0)->index(); // unsigned + index
             $table->string('alt')->nullable();
             $table->string('caption')->nullable();
             $table->timestamps();
         });
-
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('video_images');
+        Schema::dropIfExists('article_images');
     }
 };

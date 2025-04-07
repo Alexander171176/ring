@@ -6,28 +6,26 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('banners', function (Blueprint $table) {
             $table->id();
-            $table->integer('sort')->default(0); // Поле для хранения порядка сортировки постов
-            $table->boolean('activity')->default(false); // Активность поста
-            $table->boolean('left')->default(false); // Печатать пост в левом сайдбаре
-            $table->boolean('right')->default(false); // Печатать в правом сайдбаре
-            $table->string('title')->unique(); // Заголовок
-            $table->string('link')->nullable(); // ссылка на источник
-            $table->string('short')->nullable(); // Краткое Описание
-            $table->string('comment')->nullable(); // Комментарий
+            $table->unsignedInteger('sort')->default(0)->index(); // unsigned + index
+            $table->boolean('activity')->default(false)->index(); // index
+            $table->boolean('left')->default(false)->index(); // index
+            $table->boolean('right')->default(false)->index(); // index
+            $table->string('title'); // unique убран, если они не мультиязычные
+            $table->text('link')->nullable(); // text для длинных URL
+            $table->string('short', 255)->nullable(); // string
+            $table->string('comment', 255)->nullable(); // string
             $table->timestamps();
+
+            // Если баннеры УНИКАЛЬНЫ по названию (независимо от языка), добавьте:
+            // $table->unique('title');
+            // Если баннеры мультиязычные, добавьте locale и композитный ключ, как в статьях.
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('banners');

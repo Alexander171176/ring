@@ -9,47 +9,144 @@ use App\Models\Admin\Video\Video;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
+
+// Для возможной очистки кэша
+use Illuminate\Support\Facades\Log;
 
 class Section extends Model
 {
     use HasFactory;
 
-    protected $guarded = false;
+    /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
     protected $table = 'sections';
 
+    /**
+     * The attributes that are mass assignable.
+     * Добавляем 'description' и убираем $guarded.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'sort',
         'activity',
         'icon',
         'locale',
         'title',
+        // 'url', // Добавьте, если реализовали рекомендацию в миграции
         'short',
+        'description', // Добавлено поле
     ];
 
     /**
-     * Связь: Секция - Рубрики (многие ко многим)
+     * The attributes that should be hidden for serialization.
+     *
+     * @var array<int, string>
+     */
+    protected $hidden = [
+        // Можно скрыть, если не нужно во внешних ответах
+        'created_at',
+        'updated_at',
+    ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'sort' => 'integer',
+        'activity' => 'boolean',
+    ];
+
+    // --- Связи ---
+
+    /**
+     * Рубрики, к которым принадлежит секция.
      */
     public function rubrics(): BelongsToMany
     {
-        return $this->belongsToMany(Rubric::class, 'rubric_has_sections');
+        // Добавляем сортировку рубрик по их полю sort (опционально)
+        return $this->belongsToMany(Rubric::class, 'rubric_has_sections')->orderBy('sort', 'asc');
     }
 
-    // Определите отношение многие ко многим с моделью Article
+    /**
+     * Статьи, принадлежащие этой секции.
+     */
     public function articles(): BelongsToMany
     {
-        return $this->belongsToMany(Article::class, 'article_has_section', 'section_id', 'article_id');
+        // Добавляем сортировку статей по их полю sort (опционально)
+        return $this->belongsToMany(Article::class, 'article_has_section', 'section_id', 'article_id')->orderBy('sort', 'asc');
     }
 
-    // Определите отношение многие ко многим с моделью Banner
+    /**
+     * Баннеры, принадлежащие этой секции.
+     */
     public function banners(): BelongsToMany
     {
-        return $this->belongsToMany(Banner::class, 'banner_has_section');
+        // Добавляем сортировку баннеров по их полю sort (опционально)
+        return $this->belongsToMany(Banner::class, 'banner_has_section')->orderBy('sort', 'asc');
     }
 
-    // Определите отношение многие ко многим с моделью Video
+    /**
+     * Видео, принадлежащие этой секции.
+     */
     public function videos(): BelongsToMany
     {
-        return $this->belongsToMany(Video::class, 'video_has_section', 'section_id', 'video_id');
+        // Связь определена правильно
+        // Добавляем сортировку видео по их полю sort (опционально)
+        return $this->belongsToMany(Video::class, 'section_has_video', 'section_id', 'video_id')->orderBy('sort', 'asc');
     }
+
+    // --- Конец связей ---
+
+
+    /**
+     * Опционально: Очистка кэша, связанного с секциями (например, для меню или списков).
+     */
+    protected static function booted(): void
+    {
+        static::saved(function (Section $section) {
+            // TODO: Заменить 'sections_cache_key' на реальные ключи кэша
+            // Cache::forget('sections_list_' . $section->locale);
+            // Cache::forget('menu_structure'); // Если секции влияют на меню
+            Log::info("Section saved, potentially clearing cache: " . $section->title);
+        });
+
+        static::deleted(function (Section $section) {
+            // TODO: Заменить 'sections_cache_key' на реальные ключи кэша
+            // Cache::forget('sections_list_' . $section->locale);
+            // Cache::forget('menu_structure');
+            Log::info("Section deleted, potentially clearing cache: " . $section->title);
+        });
+    }
+
+    /**
+     * Опционально: Метод для проверки активности секции.
+     *
+     * @return bool
+     */
+    public function isActive(): bool
+    {
+        return $this->activity;
+    }
+
+    /**
+     * Опционально: Аксессор для URL (если вы добавили поле 'url' в миграцию).
+     * Генерирует URL на основе роута.
+     *
+     * @return string
+     */
+    /*
+    public function getSectionUrlAttribute(): string
+    {
+        // Замените 'public.sections.show' на имя вашего реального роута для показа секции
+        // и убедитесь, что у секции есть поле 'url' или 'slug'
+        return route('public.sections.show', ['url' => $this->url]);
+    }
+    */
 }

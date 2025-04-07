@@ -6,23 +6,18 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('banner_has_section', function (Blueprint $table) {
-            $table->unsignedBigInteger('banner_id');
-            $table->unsignedBigInteger('section_id');
+            // Короткий синтаксис ключей
+            $table->foreignId('banner_id')->constrained('banners')->onDelete('cascade');
+            $table->foreignId('section_id')->constrained('sections')->onDelete('cascade');
 
-            $table->foreign('banner_id')->references('id')->on('banners')->onDelete('cascade');
-            $table->foreign('section_id')->references('id')->on('sections')->onDelete('cascade');
+            // Добавляем первичный ключ
+            $table->primary(['banner_id', 'section_id']);
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('banner_has_section');

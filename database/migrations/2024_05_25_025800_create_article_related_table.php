@@ -6,25 +6,17 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('article_related', function (Blueprint $table) {
-            $table->unsignedBigInteger('article_id');
-            $table->unsignedBigInteger('related_article_id');
-
-            $table->foreign('article_id')->references('id')->on('articles')->onDelete('cascade');
-            $table->foreign('related_article_id')->references('id')->on('articles')->onDelete('cascade');
+            // Используем foreignId для краткости
+            $table->foreignId('article_id')->constrained('articles')->onDelete('cascade');
+            $table->foreignId('related_article_id')->constrained('articles')->onDelete('cascade'); // Указываем ту же таблицу 'articles'
 
             $table->primary(['article_id', 'related_article_id']);
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('article_related');

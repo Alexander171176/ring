@@ -8,17 +8,18 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('banner_images', function (Blueprint $table) {
+        Schema::create('video_images', function (Blueprint $table) {
             $table->id();
             $table->unsignedInteger('order')->default(0)->index(); // unsigned + index
             $table->string('alt')->nullable();
             $table->string('caption')->nullable();
             $table->timestamps();
         });
+
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('banner_images');
+        Schema::dropIfExists('video_images');
     }
 };

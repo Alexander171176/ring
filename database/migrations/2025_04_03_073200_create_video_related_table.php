@@ -8,18 +8,18 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('section_has_video', function (Blueprint $table) {
+        Schema::create('video_related', function (Blueprint $table) {
             // Используем foreignId для краткости
             $table->foreignId('video_id')->constrained('videos')->onDelete('cascade');
-            $table->foreignId('section_id')->constrained('sections')->onDelete('cascade');
+            $table->foreignId('related_video_id')->constrained('videos')->onDelete('cascade'); // Указываем ту же таблицу 'videos'
 
             // Составной первичный ключ (уже был правильный)
-            $table->primary(['video_id', 'section_id']);
+            $table->primary(['video_id', 'related_video_id']);
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('section_has_video');
+        Schema::dropIfExists('video_related');
     }
 };

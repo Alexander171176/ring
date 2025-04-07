@@ -6,36 +6,35 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('articles', function (Blueprint $table) {
             $table->id();
-            $table->integer('sort')->default(0); // Поле для хранения порядка сортировки постов
-            $table->boolean('activity')->default(false); // Активность поста
-            $table->boolean('left')->default(false); // Печатать пост в левом сайдбаре
-            $table->boolean('main')->default(false); // Печатать пост как главный
-            $table->boolean('right')->default(false); // Печатать пост в правом сайдбаре
-            $table->string('locale', 2); // Язык (ru, en, kz)
-            $table->string('title')->unique(); // Заголовок поста
-            $table->text('url')->unique(); // Адрес поста
-            $table->string('short')->nullable(); // Краткое Описание поста
-            $table->text('description')->nullable(); // Описание поста
-            $table->string('author')->nullable(); // Автор поста
-            $table->unsignedBigInteger('views')->default(0); // Количество просмотров поста
-            $table->unsignedBigInteger('likes')->default(0); // Количество лайков поста
-            $table->string('meta_title', 255)->nullable(); // meta title
-            $table->string('meta_keywords', 255)->nullable(); // meta keywords
-            $table->string('meta_desc', 255)->nullable(); // meta description
+            $table->unsignedInteger('sort')->default(0)->index(); // unsigned + index
+            $table->boolean('activity')->default(false)->index(); // index
+            $table->boolean('left')->default(false)->index(); // index
+            $table->boolean('main')->default(false)->index(); // index
+            $table->boolean('right')->default(false)->index(); // index
+            $table->string('locale', 2)->index(); // index
+            $table->string('title'); // Убираем unique
+            $table->string('url', 500)->index(); // Меняем text на string(500), убираем unique, добавляем index
+            $table->string('short', 255)->nullable(); // string(255)
+            $table->text('description')->nullable();
+            $table->string('author')->nullable();
+            $table->timestamp('published_at')->nullable()->index(); // РЕКОМЕНДАЦИЯ: Добавить дату публикации, если нужна + index
+            $table->unsignedBigInteger('views')->default(0)->index(); // index
+            $table->unsignedBigInteger('likes')->default(0)->index(); // index (если нужно сортировать/фильтровать по лайкам)
+            $table->string('meta_title', 255)->nullable();
+            $table->string('meta_keywords', 255)->nullable();
+            $table->text('meta_desc')->nullable(); // text
             $table->timestamps();
+
+            // Композитные уникальные ключи
+            $table->unique(['locale', 'title']);
+            $table->unique(['locale', 'url']);
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('articles');
