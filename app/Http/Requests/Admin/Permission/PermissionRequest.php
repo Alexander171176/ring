@@ -12,6 +12,9 @@ class PermissionRequest extends FormRequest
      */
     public function authorize(): bool
     {
+        // TODO: Заменить на реальную проверку прав доступа
+        // $permissionAction = $this->isMethod('POST') ? 'create permissions' : 'update permissions';
+        // return $this->user()->can($permissionAction);
         return true;
     }
 
@@ -22,25 +25,56 @@ class PermissionRequest extends FormRequest
      */
     public function rules(): array
     {
+        // Получаем ID разрешения из маршрута (предполагаем имя параметра 'permission')
+        $permissionId = $this->route('permission')?->id ?? null;
+        // Получаем имя таблицы разрешений из конфига Spatie
+        $permissionsTable = config('permission.table_names.permissions', 'permissions');
+
         return [
-            'name' => ['required', 'string', 'max:30', Rule::unique('permissions', 'name')
-                ->ignore($this->permission)],
+            'name' => [
+                'required',
+                'string',
+                'max:125', // Соответствует миграции Spatie для MySQL 8+
+                Rule::unique($permissionsTable, 'name') // Используем имя таблицы из конфига
+                ->where(function ($query) {
+                    // Учитываем guard_name (по умолчанию 'web')
+                    return $query->where('guard_name', $this->input('guard_name', 'web'));
+                })
+                    ->ignore($permissionId), // Игнорируем текущее разрешение при обновлении
+            ],
+            // Валидируем guard_name, если он передается
+            'guard_name' => ['sometimes', 'string', 'max:125'],
         ];
     }
 
     /**
      * Get custom messages for validator errors.
      *
-     * @return array
+     * @return array<string, string>
      */
     public function messages(): array
     {
-        return [
-            'name.required' => 'Имя разрешения обязательно для заполнения.',
+        return array_merge(parent::messages(), [
+            'name.required' => 'Имя разрешения обязательно.',
             'name.string' => 'Имя разрешения должно быть строкой.',
-            'name.max' => 'Имя разрешения не должно превышать 30 символов.',
-            'name.unique' => 'Разрешение с таким именем уже существует.',
-        ];
+            'name.max' => 'Имя разрешения не должно превышать :max символов.',
+            'name.unique' => 'Разрешение с таким именем для указанного guard уже существует.', // Уточнено
+
+            'guard_name.string' => 'Guard Name должен быть строкой.',
+            'guard_name.max' => 'Guard Name не должен превышать :max символов.',
+        ]);
     }
 
+    /**
+     * Prepare the data for validation.
+     *
+     * @return void
+     */
+    protected function prepareForValidation(): void
+    {
+        // Если guard_name не передается, устанавливаем 'web' по умолчанию
+        if (!$this->has('guard_name')) {
+            $this->merge(['guard_name' => 'web']);
+        }
+    }
 }

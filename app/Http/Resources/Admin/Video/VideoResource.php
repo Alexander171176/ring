@@ -37,12 +37,16 @@ class VideoResource extends JsonResource
             'source_type' => $this->source_type,
 
             // --- ИСПОЛЬЗУЕМ АТРИБУТЫ/АКСЕССОРЫ МОДЕЛИ ---
-            'video_url' => $this->video_url, // Используем аксессор getVideoUrlAttribute()
+            'video_url'        => $this->when(
+                $this->getFirstMediaUrl('videos'),
+                fn() => $this->getFirstMediaUrl('videos')
+            ),
             'embed_url' => $this->embed_url, // Используем аксессор getEmbedUrlAttribute()
             'video_code' => $this->video_code, // Используем аксессор getVideoCodeAttribute()
             // --- КОНЕЦ ИСПОЛЬЗОВАНИЯ АТРИБУТОВ ---
 
             'external_video_id' => $this->external_video_id, // Можно оставить для информации
+            'embed_code' => $this->embed_code, // для HTML кода
             'views' => $this->views,         // integer
             'likes' => $this->likes,         // integer
             'meta_title' => $this->meta_title,

@@ -1,7 +1,12 @@
 <script setup>
-import { defineProps, ref } from 'vue';
-import { transliterate } from '@/utils/transliteration';
+/**
+ * @version PulsarCMS 1.0
+ * @author Александр Косолапов <kosolapov1976@gmail.com>
+ */
+import { useToast } from "vue-toastification";
 import { useI18n } from 'vue-i18n';
+import { transliterate } from '@/utils/transliteration';
+import {defineProps, onMounted, ref} from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import TitlePage from '@/Components/Admin/Headlines/TitlePage.vue';
@@ -22,10 +27,15 @@ import VueMultiselect from 'vue-multiselect';
 
 // Импорт двух отдельных компонентов для работы с изображениями:
 import MultiImageUpload from '@/Components/Admin/Image/MultiImageUpload.vue'; // для загрузки новых изображений
-import MultiImageEdit from '@/Components/Admin/Image/MultiImageEdit.vue';         // для редактирования существующих
+import MultiImageEdit from '@/Components/Admin/Image/MultiImageEdit.vue';     // для редактирования существующих
 
+// --- Инициализация ---
+const toast = useToast();
 const { t } = useI18n();
 
+/**
+ * Входные свойства компонента.
+ */
 const props = defineProps({
     article: { type: Object, required: true },
     sections: Array,
@@ -33,7 +43,9 @@ const props = defineProps({
     related_articles: { type: Array, default: () => [] } // задаём дефолтное значение
 });
 
-// Формируем форму редактирования статьи
+/**
+ * Формируем форму редактирования.
+ */
 const form = useForm({
     _method: 'PUT',
     sort: props.article.sort ?? 0,
@@ -43,6 +55,7 @@ const form = useForm({
     short: props.article.short ?? '',
     description: props.article.description ?? '',
     author: props.article.author ?? '',
+    published_at: props.article.published_at ?? '',
     views: props.article.views ?? '',
     likes: props.article.likes ?? '',
     meta_title: props.article.meta_title ?? '',
@@ -58,7 +71,28 @@ const form = useForm({
     deletedImages: [] // массив для хранения ID удалённых изображений
 });
 
-// Массив для существующих изображений
+/**
+ * Функция форматирования даты
+ */
+const formatDate = (dateStr) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return '';
+    return date.toISOString().split('T')[0];
+};
+
+/**
+ * Монтируем формат даты.
+ */
+onMounted(() => {
+    if (form.published_at) {
+        form.published_at = formatDate(form.published_at);
+    }
+});
+
+/**
+ * Массив существующих изображений.
+ */
 const existingImages = ref(
     (props.article.images || [])
         .filter(img => img.url) // фильтруем изображения, у которых есть URL
@@ -72,16 +106,21 @@ const existingImages = ref(
         }))
 );
 
-
-// Массив для новых изображений (будут содержать свойство file)
+/**
+ * Массив для новых изображений (будут содержать свойство file).
+ */
 const newImages = ref([]);
 
-// Обработчик обновления существующих изображений, приходящих из компонента MultiImageEdit
+/**
+ * Обработчик обновления существующих изображений, приходящих из компонента MultiImageEdit.
+ */
 const handleExistingImagesUpdate = (images) => {
     existingImages.value = images;
 };
 
-// Обработчик удаления изображения из существующего списка
+/**
+ * Обработчик удаления изображения из существующего списка.
+ */
 const handleDeleteExistingImage = (deletedId) => {
     if (!form.deletedImages.includes(deletedId)) {
         form.deletedImages.push(deletedId);
@@ -91,33 +130,44 @@ const handleDeleteExistingImage = (deletedId) => {
     // console.log("Remaining images:", existingImages.value);
 };
 
-// Обработчик обновления новых изображений из компонента MultiImageUpload
+/**
+ * Обработчик обновления новых изображений из компонента MultiImageUpload.
+ */
 const handleNewImagesUpdate = (images) => {
     newImages.value = images;
 };
 
-// автоматическое заполнение поля url
+/**
+ * Автоматически генерирует URL из поля title, если URL пуст.
+ */
 const handleUrlInputFocus = () => {
     if (form.title) {
         form.url = transliterate(form.title.toLowerCase());
     }
 };
 
-// количество символов в поле
+/**
+ * Обрезает текст до заданной длины, стараясь не разрывать слова при генерации мета-тегов.
+ */
 const truncateText = (text, maxLength, addEllipsis = false) => {
     if (text.length <= maxLength) return text;
     const truncated = text.substr(0, text.lastIndexOf(' ', maxLength));
     return addEllipsis ? `${truncated}...` : truncated;
 };
 
-// очистка мета-тегов
+/**
+ * очистка мета-тегов.
+ */
 const clearMetaFields = () => {
     form.meta_title = '';
     form.meta_keywords = '';
     form.meta_desc = '';
 };
 
-// автоматическая генерация мета-тегов
+/**
+ * Генерирует значения для мета-полей (title, keywords, description),
+ * если они не были заполнены вручную.
+ */
 const generateMetaFields = () => {
     if (form.title && !form.meta_title) {
         form.meta_title = truncateText(form.title, 160);
@@ -131,7 +181,9 @@ const generateMetaFields = () => {
     }
 };
 
-// метод сохранения
+/**
+ * Отправляет данные формы для обновления.
+ */
 const submitForm = () => {
     // Используем transform для объединения данных формы с массивами новых и существующих изображений
     form.transform((data) => ({
@@ -157,14 +209,17 @@ const submitForm = () => {
         deletedImages: form.deletedImages
     }));
 
-    form.post(route('articles.update', props.article.id), {
+    form.post(route('admin.articles.update', props.article.id), {
         preserveScroll: true,
         forceFormData: true, // Принудительно отправляем как FormData
         onSuccess: (page) => {
             //console.log("Edit.vue onSuccess:", page);
+            toast.success('Статья успешно обновлена!'); // Можно добавить, если нужно кастомное
         },
         onError: (errors) => {
             console.error("❌ Ошибка при обновлении статьи:", errors);
+            const firstError = errors[Object.keys(errors)[0]];
+            toast.error(firstError || 'Пожалуйста, проверьте правильность заполнения полей.')
         }
     });
 };
@@ -183,7 +238,7 @@ const submitForm = () => {
                         bg-opacity-95 dark:bg-opacity-95">
                 <div class="sm:flex sm:justify-between sm:items-center mb-2">
                     <!-- Кнопка назад -->
-                    <DefaultButton :href="route('articles.index')">
+                    <DefaultButton :href="route('admin.articles.index')">
                         <template #icon>
                             <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">
                                 <path d="M4.3 4.5c1.9-1.9 5.1-1.9 7 0 .7.7 1.2 1.7 1.4 2.7l2-.3c-.2-1.5-.9-2.8-1.9-3.8C10.1.4 5.7.4 2.9 3.1L.7.9 0 7.3l6.4-.7-2.1-2.1zM15.6 8.7l-6.4.7 2.1 2.1c-1.9 1.9-5.1 1.9-7 0-.7-.7-1.2-1.7-1.4-2.7l-2 .3c.2 1.5.9 2.8 1.9 3.8 1.4 1.4 3.1 2 4.9 2 1.8 0 3.6-.7 4.9-2l2.2 2.2.8-6.4z"></path>
@@ -283,10 +338,34 @@ const submitForm = () => {
                         <InputError class="mt-2" :message="form.errors.description" />
                     </div>
 
-                    <div class="mb-3 flex flex-col items-start">
-                        <LabelInput for="author" :value="t('postAuthor')" />
-                        <InputText id="author" type="text" v-model="form.author" autocomplete="author" />
-                        <InputError class="mt-2" :message="form.errors.author" />
+                    <!-- Дата публикации, Автор -->
+                    <div class="mb-3 flex flex-col lg:flex-row sm:justify-between sm:space-x-4">
+                        <!-- Дата публикации -->
+                        <div class="flex flex-col lg:flex-row items-center mb-2 lg:mb-0 flex-1">
+                            <LabelInput for="published_at" :value="t('publishedAt')"
+                                        class="mb-1 lg:mb-0 lg:mr-2"/>
+                            <InputText
+                                id="published_at"
+                                type="date"
+                                v-model="form.published_at"
+                                autocomplete="published_at"
+                                class="w-full max-w-56"
+                            />
+                            <InputError class="mt-1 sm:mt-0" :message="form.errors.published_at"/>
+                        </div>
+                        <!-- Автор -->
+                        <div class="flex flex-col lg:flex-row items-center mb-2 lg:mb-0 flex-1">
+                            <LabelInput for="author" :value="t('postAuthor')"
+                                        class="w-40 mb-1 lg:mb-0 lg:mr-2"/>
+                            <InputText
+                                id="author"
+                                type="text"
+                                v-model="form.author"
+                                autocomplete="author"
+                                class="w-full"
+                            />
+                            <InputError class="mt-1 sm:mt-0" :message="form.errors.author"/>
+                        </div>
                     </div>
 
                     <div class="mb-3 flex flex-col items-start">
@@ -399,7 +478,7 @@ const submitForm = () => {
                     </div>
 
                     <div class="flex items-center justify-center mt-4">
-                        <DefaultButton :href="route('articles.index')" class="mb-3">
+                        <DefaultButton :href="route('admin.articles.index')" class="mb-3">
                             <template #icon>
                                 <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">
                                     <path d="M4.3 4.5c1.9-1.9 5.1-1.9 7 0 .7.7 1.2 1.7 1.4 2.7l2-.3c-.2-1.5-.9-2.8-1.9-3.8C10.1.4 5.7.4 2.9 3.1L.7.9 0 7.3l6.4-.7-2.1-2.1zM15.6 8.7l-6.4.7 2.1 2.1c-1.9 1.9-5.1 1.9-7 0-.7-.7-1.2-1.7-1.4-2.7l-2 .3c-.2 1.5.9 2.8 1.9 3.8 1.4 1.4 3.1 2 4.9 2 1.8 0 3.6-.7 4.9-2l2.2 2.2 .8-6.4z"></path>

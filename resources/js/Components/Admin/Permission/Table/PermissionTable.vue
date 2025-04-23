@@ -46,7 +46,7 @@ const emits = defineEmits(['edit', 'delete']);
                     </td>
                     <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
                         <div class="flex justify-end space-x-2">
-                            <IconEdit :href="route('permissions.edit', permission.id)" />
+                            <IconEdit :href="route('admin.permissions.edit', permission.id)" />
                             <DeleteIconButton @click="$emit('delete', permission.id)"/>
                         </div>
                     </td>

@@ -31,6 +31,7 @@ const updateSort = (event) => {
             <option value="idDesc">{{ t('idDesc') }}</option>
             <option value="idAsc">{{ t('idAsc') }}</option>
             <!-- Остальные варианты сортировки -->
+            <option value="published_at">{{ t('publishedAt') }}</option>
             <option value="sort">{{ t('sortNumber') }}</option>
             <option value="title">{{ t('title') }}</option>
             <option value="locale">{{ t('localization') }}</option>

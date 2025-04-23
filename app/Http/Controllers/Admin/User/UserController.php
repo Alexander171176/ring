@@ -2,42 +2,49 @@
 
 namespace App\Http\Controllers\Admin\User;
 
-use App\Actions\Fortify\PasswordValidationRules;
+use App\Actions\Fortify\PasswordValidationRules; // Для правил пароля
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Admin\Permission\PermissionResource;
-use App\Http\Resources\Admin\Role\RoleResource;
+use App\Http\Requests\Admin\User\StoreUserRequest; // <--- Новый Request для store
+use App\Http\Requests\Admin\User\UpdateUserRequest; // <--- Новый Request для update
+// Ресурсы
 use App\Http\Resources\Admin\User\UserResource;
+use App\Http\Resources\Admin\Role\RoleResource;          // Для списка ролей
+use App\Http\Resources\Admin\Permission\PermissionResource; // Для списка разрешений
+// Модели
 use App\Models\User;
+use Spatie\Permission\Models\Role;          // Используем модели Spatie
+use Spatie\Permission\Models\Permission;    // Используем модели Spatie
+// Другое
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
+use Illuminate\Http\Request; // Для bulkDestroy
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules;
 use Inertia\Inertia;
-use Inertia\Response;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
+use Inertia\Response as InertiaResponse; // Используем псевдоним
+use Throwable;
 
 class UserController extends Controller
 {
+    // Трейт для правил валидации пароля из Fortify/Jetstream
     use PasswordValidationRules;
 
     /**
-     * Display a listing of the resource.
+     * Отображение списка пользователей.
      */
-    public function index(): Response
+    public function index(): InertiaResponse
     {
+        // TODO: Проверка прав $this->authorize('viewAny', User::class);
+        $adminCountUsers = config('site_settings.AdminCountUsers', 15);
+        $adminSortUsers  = config('site_settings.AdminSortUsers', 'idDesc');
+
         // Прямой запрос без кэширования
         $users = User::with(['roles', 'permissions'])->get();
         $usersCount = User::count();
 
-        // Получаем значение параметра из конфигурации (оно загружается через AppServiceProvider)
-        $adminCountUsers = config('site_settings.AdminCountUsers', 10);
-        $adminSortUsers  = config('site_settings.AdminSortUsers', 'idDesc');
-
         return Inertia::render('Admin/Users/Index', [
-            'users' => UserResource::collection($users),
+            'users' => UserResource::collection($users), // Используем полный ресурс
             'usersCount' => $usersCount,
             'adminCountUsers' => (int)$adminCountUsers,
             'adminSortUsers' => $adminSortUsers,
@@ -45,111 +52,153 @@ class UserController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Показ формы создания пользователя.
      */
-    public function create(): Response
+    public function create(): InertiaResponse
     {
-        // Прямой запрос без кэширования
-        $roles = Role::all();
-        $permissions = Permission::all();
+        // TODO: Проверка прав $this->authorize('create', User::class);
+        // Загружаем только ID и имя для списков
+        $roles = Role::select('id', 'name')->orderBy('name')->get();
+        $permissions = Permission::select('id', 'name')->orderBy('name')->get();
 
         return Inertia::render('Admin/Users/Create', [
-            'roles' => RoleResource::collection($roles),
-            'permissions' => PermissionResource::collection($permissions)
+            // Передаем коллекции для селектов (Resource не нужен)
+            'roles' => $roles,
+            'permissions' => $permissions,
         ]);
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Создание нового пользователя.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(StoreUserRequest $request): RedirectResponse // <--- Используем StoreUserRequest
     {
-        $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'roles' => ['sometimes', 'array'],
-            'permissions' => ['sometimes', 'array']
-        ]);
+        // Авторизация и валидация в StoreUserRequest
+        $data = $request->validated();
 
-        $user = User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => Hash::make($data['password']),
-        ]);
+        try {
+            DB::beginTransaction();
 
-        if (isset($data['roles'])) {
-            $user->syncRoles($data['roles']);
+            $user = User::create([
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'password' => Hash::make($data['password']),
+                // Можно добавить другие поля из $fillable модели User, если они есть в $data
+                // 'email_verified_at' => now(), // Пример: сразу верифицировать
+            ]);
+
+            // Назначаем роли и разрешения (реквест должен валидировать их существование)
+            // Spatie ожидает массив имен или ID, или объектов Role/Permission
+            if (!empty($data['roles'])) {
+                // Если фронтенд шлет массив объектов {id: ..., name: ...}, извлекаем name или id
+                $roleNamesOrIds = collect($data['roles'])->pluck('name')->toArray(); // Предполагаем, что приходят объекты с name
+                // Или $roleIds = collect($data['roles'])->pluck('id')->toArray(); // Если приходят объекты с id
+                $user->syncRoles($roleNamesOrIds); // Используем syncRoles
+            }
+            if (!empty($data['permissions'])) {
+                $permissionNamesOrIds = collect($data['permissions'])->pluck('name')->toArray(); // Предполагаем объекты с name
+                $user->syncPermissions($permissionNamesOrIds); // Используем syncPermissions
+            }
+
+            DB::commit();
+            Log::info('Пользователь успешно создан:', ['id' => $user->id, 'email' => $user->email]);
+            return redirect()->route('admin.users.index')->with('success', 'Пользователь успешно создан.');
+
+        } catch (Throwable $e) {
+            DB::rollBack();
+            Log::error("Ошибка при создании пользователя: " . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return back()->withInput($request->except('password', 'password_confirmation'))->withErrors(['general' => 'Произошла ошибка при создании пользователя.']);
         }
-
-        if (isset($data['permissions'])) {
-            $user->syncPermissions($data['permissions']);
-        }
-
-        $user->load(['roles', 'permissions']);
-
-        // Log::info('Пользователь создан:', $user->toArray());
-
-        return redirect()->route('users.index')->with('success', 'Пользователь успешно создан');
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Показ формы редактирования пользователя.
      */
-    public function edit(User $user): Response
+    public function edit(User $user): InertiaResponse // Используем RMB
     {
-        $user->load(['roles', 'permissions']);
-        $roles = Role::all();
-        $permissions = Permission::all();
+        // TODO: Проверка прав $this->authorize('update', $user);
+        // Загружаем роли и прямые разрешения пользователя
+        $user->load(['roles:id,name', 'permissions:id,name']); // Загружаем только ID и имя
+
+        // Загружаем все роли и разрешения для списков выбора
+        $roles = Role::select('id', 'name')->orderBy('name')->get();
+        $permissions = Permission::select('id', 'name')->orderBy('name')->get();
 
         return Inertia::render('Admin/Users/Edit', [
-            'user' => new UserResource($user),
-            'roles' => RoleResource::collection($roles),
-            'permissions' => PermissionResource::collection($permissions)
+            'user' => new UserResource($user), // Передаем ресурс пользователя
+            'roles' => $roles,           // Передаем полный список ролей
+            'permissions' => $permissions, // Передаем полный список разрешений
         ]);
     }
 
     /**
-     * Update the specified resource in storage.
+     * Обновление пользователя.
      */
-    public function update(Request $request, User $user): RedirectResponse
+    public function update(UpdateUserRequest $request, User $user): RedirectResponse // <--- Используем UpdateUserRequest и RMB
     {
-        $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
-            'roles' => ['sometimes', 'array'],
-            'permissions' => ['sometimes', 'array']
-        ]);
+        // authorize() в UpdateUserRequest
+        $data = $request->validated();
 
-        $user->update([
-            'name' => $data['name'],
-            'email' => $data['email'],
-        ]);
+        try {
+            DB::beginTransaction();
 
-        if (isset($data['roles'])) {
-            $user->syncRoles($data['roles']);
+            // Обновляем основные данные
+            $userData = [
+                'name' => $data['name'],
+                'email' => $data['email'],
+            ];
+            // Обновляем пароль, только если он был передан и не пустой
+            if (!empty($data['password'])) {
+                $userData['password'] = Hash::make($data['password']);
+            }
+            $user->update($userData);
+
+            // Синхронизируем роли (если массив передан)
+            if ($request->has('roles')) {
+                $roleNamesOrIds = collect($data['roles'])->pluck('name')->toArray(); // Предполагаем объекты с name
+                $user->syncRoles($roleNamesOrIds);
+            }
+
+            // Синхронизируем прямые разрешения (если массив передан)
+            if ($request->has('permissions')) {
+                $permissionNamesOrIds = collect($data['permissions'])->pluck('name')->toArray(); // Предполагаем объекты с name
+                $user->syncPermissions($permissionNamesOrIds);
+            }
+
+            DB::commit();
+            Log::info('Пользователь обновлен:', ['id' => $user->id, 'email' => $user->email]);
+            return redirect()->route('admin.users.index')->with('success', 'Пользователь успешно обновлен.');
+
+        } catch (Throwable $e) {
+            DB::rollBack();
+            Log::error("Ошибка при обновлении пользователя ID {$user->id}: " . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return back()->withInput($request->except('password', 'password_confirmation'))->withErrors(['general' => 'Произошла ошибка при обновлении пользователя.']);
         }
-
-        if (isset($data['permissions'])) {
-            $user->syncPermissions($data['permissions']);
-        }
-
-        $user->load(['roles', 'permissions']);
-
-        // Log::info('Пользователь обновлён:', $user->toArray());
-
-        return redirect()->route('users.index')->with('success', 'Пользователь успешно обновлён');
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Удаление пользователя.
      */
-    public function destroy(User $user): RedirectResponse
+    public function destroy(User $user): RedirectResponse // Используем RMB
     {
-        $user->delete();
+        // TODO: Проверка прав $this->authorize('delete', $user);
+        // TODO: Добавить проверку, чтобы нельзя было удалить себя или супер-администратора
+        if ($user->id === auth()->id()) {
+            return back()->withErrors(['general' => 'Вы не можете удалить свою учетную запись.']);
+        }
+        if ($user->hasRole('super-admin')) { // Пример проверки роли
+            return back()->withErrors(['general' => 'Нельзя удалить супер-администратора.']);
+        }
 
-        // Log::info('Пользователь удалён:', $user->toArray());
-
-        return redirect()->route('users.index')->with('success', 'Пользователь успешно удалён');
+        try {
+            // Транзакция не строго обязательна, Spatie позаботится об отсоединении связей
+            $user->delete();
+            Log::info('Пользователь удален:', ['id' => $user->id, 'email' => $user->email]);
+            return redirect()->route('admin.users.index')->with('success', 'Пользователь успешно удален.');
+        } catch (Throwable $e) {
+            Log::error("Ошибка при удалении пользователя ID {$user->id}: " . $e->getMessage());
+            return back()->withErrors(['general' => 'Произошла ошибка при удалении пользователя.']);
+        }
     }
+
 }

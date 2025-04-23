@@ -32,7 +32,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.put(route("users.update", props.user?.id), {
+    form.put(route("admin.users.update", props.user?.id), {
         errorBag: 'updateUser',
         onSuccess: () => {
             //console.log("Пользователь успешно обновился");
@@ -71,7 +71,7 @@ watch(
                         bg-opacity-95 dark:bg-opacity-95">
                 <div class="sm:flex sm:justify-between sm:items-center mb-5">
                     <!-- Кнопка назад -->
-                    <DefaultButton :href="route('users.index')">
+                    <DefaultButton :href="route('admin.users.index')">
                         <template #icon>
                             <!-- SVG -->
                             <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">
@@ -179,7 +179,7 @@ watch(
                                             </td>
                                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
                                                 <div class="flex justify-center">
-                                                    <DeleteButton :href="route('users.roles.destroy',
+                                                    <DeleteButton :href="route('admin.users.roles.destroy',
                                                         [user.id, userRole.id])" preserve-scroll />
                                                 </div>
                                             </td>
@@ -228,7 +228,7 @@ watch(
                                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
                                                 <div class="flex justify-center">
                                                     <DeleteButton
-                                                        :href="route('users.permissions.destroy',
+                                                        :href="route('admin.users.permissions.destroy',
                                                             [ user.id, userPermission.id ])" preserve-scroll />
                                                 </div>
                                             </td>
@@ -242,7 +242,7 @@ watch(
                     </div>
 
                     <div class="flex items-center justify-center mt-4">
-                        <DefaultButton :href="route('users.index')" class="mb-3">
+                        <DefaultButton :href="route('admin.users.index')" class="mb-3">
                             <template #icon>
                                 <!-- SVG -->
                                 <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">

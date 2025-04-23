@@ -22,14 +22,16 @@ const props = defineProps({
     videoFile: { // Новый проп для файла локального видео
         type: Object,
         default: null
-    }
+    },
+    embedCode: { type: String, default: '' },
 });
 
 const emit = defineEmits([
     'update:modelValue',
     'update:videoUrl',
     'update:externalVideoId',
-    'update:videoFile'
+    'update:videoFile',
+    'update:embedCode',
 ]);
 
 // Функции для извлечения ID из ссылки YouTube/Vimeo
@@ -97,7 +99,7 @@ const handleFileUpload = (event) => {
                 id="video_file"
                 type="file"
                 @change="handleFileUpload"
-                class="bg-slate-100 dark:bg-slate-300 form-input text-gray-900 dark:text-gray-700 px-3 py-0.5"
+                class="bg-slate-100 dark:bg-slate-300 text-gray-900 dark:text-gray-700 px-3 py-0.5"
             />
         </div>
         <div class="mb-3 flex flex-col">
@@ -111,6 +113,9 @@ const handleFileUpload = (event) => {
                 placeholder="Введите URL локального видео (если требуется)"
             />
         </div>
+        <div v-if="props.videoUrl" class="mt-2 flex justify-center">
+            <video controls :src="props.videoUrl" class="max-w-full rounded-sm shadow" />
+        </div>
     </div>
 
     <!-- Блок для code -->
@@ -118,11 +123,9 @@ const handleFileUpload = (event) => {
         <div class="mb-3 flex flex-col">
             <LabelInput for="video_code" :value="t('videoCode')" />
             <textarea
-                id="video_code"
-                class="h-80 form-textarea bg-slate-100 dark:bg-slate-300
-                       text-gray-950 dark:text-gray-900 px-3 py-1"
-                :value="videoUrl"
-                @input="$emit('update:videoUrl', $event.target.value)"
+                :value="embedCode"
+                @input="$emit('update:embedCode', $event.target.value)"
+                class="h-80 form-textarea …"
                 :placeholder="t('videoCodeInsert')"
             ></textarea>
         </div>

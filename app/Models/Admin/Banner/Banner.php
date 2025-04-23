@@ -83,7 +83,7 @@ class Banner extends Model
         // Добавляем withPivot и orderBy для сортировки изображений
         return $this->belongsToMany(BannerImage::class, 'banner_has_images', 'banner_id', 'image_id')
             ->withPivot('order') // Убедитесь, что поле 'order' есть в таблице banner_has_images
-            ->orderBy('pivot_order', 'asc');
+            ->orderBy('banner_has_images.order', 'asc');
     }
 
     // --- Конец связей ---

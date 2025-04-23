@@ -2,10 +2,12 @@
 
 namespace App\Models\Admin\Video;
 
+use App\Models\Admin\Comment\Comment;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use App\Models\Admin\Section\Section;
@@ -48,6 +50,7 @@ class Video extends Model implements HasMedia
         'duration',
         'source_type',
         'external_video_id', // Оставляем для YouTube/Vimeo/Code
+        'embed_code', // для HTML кода
         'views',
         'likes', // Оставляем, если редактируется админом
         'meta_title',
@@ -110,6 +113,20 @@ class Video extends Model implements HasMedia
             ->orderBy('published_at', 'desc'); // Опциональная сортировка
     }
 
+    // --- НОВАЯ ПОЛИМОРФНАЯ СВЯЗЬ ---
+    /**
+     * Получить все комментарии для данного видео.
+     */
+    public function comments(): MorphMany
+    {
+        // Первый аргумент - связанная модель Comment
+        // Второй аргумент - имя полиморфной связи (должно совпадать с методом в Comment)
+        return $this->morphMany(Comment::class, 'commentable');
+    }
+
+    /**
+     * Связь: Видео - Лайки (один ко многим)
+     */
     public function likes(): HasMany
     {
         // Имя внешнего ключа 'video_id' - ВЕРНО
@@ -125,7 +142,7 @@ class Video extends Model implements HasMedia
         // Добавляем withPivot и orderBy
         return $this->belongsToMany(VideoImage::class, 'video_has_images', 'video_id', 'image_id')
             ->withPivot('order')
-            ->orderBy('pivot_order', 'asc');
+            ->orderBy('video_has_images.order', 'asc');
     }
 
     /**

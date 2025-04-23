@@ -34,6 +34,7 @@ const updateSort = (event) => {
             <option value="sort">{{ t('sortNumber') }}</option>
             <option value="title">{{ t('title') }}</option>
             <option value="locale">{{ t('localization') }}</option>
+            <option value="views">{{ t('views') }}</option>
             <option value="activity">{{ t('active') }}</option>
             <option value="inactive">{{ t('inactive') }}</option>
         </select>

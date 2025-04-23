@@ -1,5 +1,5 @@
 <script setup>
-import {defineProps, defineEmits} from 'vue';
+import {defineProps, defineEmits, watch, ref} from 'vue';
 import {useI18n} from 'vue-i18n';
 import draggable from 'vuedraggable';
 import IconEdit from "@/Components/Admin/Buttons/IconEdit.vue";
@@ -23,23 +23,44 @@ const emits = defineEmits([
     'toggle-activity',
     'edit',
     'delete',
-    'recalculate-sort',
-    'toggle-select'
+    'update-sort-order',
+    'toggle-select',
+    'toggle-all'
 ]);
 
-const recalculateSort = (event) => {
-    emits('recalculate-sort', event);
+// Функция форматирования даты
+const formatDate = (dateStr) => {
+    if (!dateStr) return ''
+    const d = new Date(dateStr)
+    if (isNaN(d)) return ''
+    return d.toLocaleDateString('ru-RU', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    })
+}
+
+// --- Локальная копия для vuedraggable ---
+const localVideos = ref([]);
+
+// --- Следим за изменением props.videos и обновляем локальную копию ---
+watch(() => props.videos, (newVal) => {
+    // Создаем глубокую копию, чтобы избежать мутации props
+    localVideos.value = JSON.parse(JSON.stringify(newVal || []));
+}, { immediate: true, deep: true }); // immediate: true для инициализации
+
+// --- Функция, вызываемая vuedraggable после завершения перетаскивания ---
+const handleDragEnd = () => {
+    // Отправляем НОВЫЙ ПОРЯДОК ID из локального массива
+    const newOrderIds = localVideos.value.map(video => video.id);
+    emits('update-sort-order', newOrderIds); // Отправляем массив ID
 };
 
+// --- Логика массовых действий ---
 const toggleAll = (event) => {
-    const isChecked = event.target.checked;
-    props.videos.forEach(video => {
-        if (isChecked && !props.selectedVideos.includes(video.id)) {
-            emits('toggle-select', video.id);
-        } else if (!isChecked && props.selectedVideos.includes(video.id)) {
-            emits('toggle-select', video.id);
-        }
-    });
+    const checked = event.target.checked;
+    const ids = localVideos.value.map(r => r.id);
+    emits('toggle-all', { ids, checked });
 };
 
 // Функция для выбора изображения с наименьшим значением order
@@ -118,7 +139,7 @@ const getPrimaryImage = (video) => {
                     </th>
                 </tr>
                 </thead>
-                <draggable tag="tbody" :list="videos" @end="recalculateSort" itemKey="id">
+                <draggable tag="tbody" v-model="localVideos" @end="handleDragEnd" itemKey="id">
                     <template #item="{ element: video }">
                         <tr class="text-sm font-semibold border-b-2 hover:bg-slate-100 dark:hover:bg-cyan-800">
                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
@@ -152,7 +173,10 @@ const getPrimaryImage = (video) => {
                                 <div class="text-left text-sky-600 dark:text-sky-200">{{ video.source_type}}</div>
                             </td>
                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
-                                <div class="text-left text-teal-600 dark:text-green-200">{{ video.title }}</div>
+                                <div class="text-left text-teal-600 dark:text-green-200"
+                                     :title="formatDate(video.published_at)">
+                                    {{ video.title }}
+                                </div>
                             </td>
                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
                                 <div class="text-left text-blue-600 dark:text-violet-200">{{ video.url }}</div>
@@ -203,7 +227,7 @@ const getPrimaryImage = (video) => {
                                     <ActivityToggle :isActive="video.activity"
                                                     @toggle-activity="$emit('toggle-activity', video)"
                                                     :title="video.activity ? t('enabled') : t('disabled')"/>
-                                    <IconEdit :href="route('videos.edit', video.id)" />
+                                    <IconEdit :href="route('admin.videos.edit', video.id)" />
                                     <DeleteIconButton @delete="$emit('delete', video.id)"/>
                                 </div>
                             </td>

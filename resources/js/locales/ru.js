@@ -1,6 +1,7 @@
 export default {
     accountManagement: 'Управление Аккаунтом',
     activate: 'Включить активность',
+    activated: 'активирована',
     actions: 'Действия',
     active: 'Активные',
     activity: 'Активность',
@@ -96,6 +97,7 @@ export default {
     data: 'Данные',
     dataUploaded: 'данные загружаются...',
     deactivate: 'Выключить активность',
+    deactivated: 'деактивирована',
     defaultImageAlt: 'Изображение по умолчанию',
     defaultImageTitle: 'Изображение не задано',
     delete: 'Удалить',

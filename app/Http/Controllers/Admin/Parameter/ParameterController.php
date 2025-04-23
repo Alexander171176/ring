@@ -3,116 +3,226 @@
 namespace App\Http\Controllers\Admin\Parameter;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\Setting\SettingRequest;
-use App\Http\Resources\Admin\Setting\SettingResource;
+use App\Http\Requests\Admin\Setting\SettingRequest; // Используем общий реквест для настроек
+// Реквесты для простых действий
+use App\Http\Requests\Admin\UpdateActivityRequest;
+use App\Http\Requests\Admin\UpdateSortRequest; // Если параметры нужно сортировать
+use App\Http\Resources\Admin\Setting\SettingResource; // Используем общий ресурс
 use App\Models\Admin\Setting\Setting;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
+use Illuminate\Http\Request; // Для bulkDestroy
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
+use Throwable;
+use Illuminate\Database\Eloquent\Builder; // Для типизации $query
 
 class ParameterController extends Controller
 {
+    // Определяем категорию для этого контроллера
+    private const PARAMETER_CATEGORY = 'system'; // TODO: Замените на ваше значение категории
 
     /**
-     * Display a listing of the resource.
+     * Применяет базовый скоуп для выборки только параметров системы.
+     */
+    private function getParameterQuery(): Builder
+    {
+        // TODO: Адаптируйте условие where под ваш способ идентификации параметров
+        // return Setting::where('category', self::PARAMETER_CATEGORY);
+        // Или по типу:
+        return Setting::where('type', 'parameter');
+        // Или по списку опций:
+        // return Setting::whereIn('option', ['option1', 'option2', ...]);
+    }
+
+    /**
+     * Отображение списка параметров системы.
      */
     public function index(): Response
     {
+        // TODO: Проверка прав $this->authorize('view parameters');
+        // Используем тот же конфиг, что и для Settings? Или нужен отдельный?
+        $adminCountParameters = config('site_settings.AdminCountParameters', 15); // Используем свой ключ или общий
+        $adminSortParameters  = config('site_settings.AdminSortParameters', 'idDesc'); // Используем свой ключ или общий
 
-        $settings = Setting::all();
-        $settingsCount = Setting::count();
+        $sortField = 'id';
+        $sortDirection = 'desc';
+        if ($adminSortParameters === 'categoryAsc') { $sortField = 'category'; $sortDirection = 'asc'; }
+        elseif ($adminSortParameters === 'optionAsc') { $sortField = 'option'; $sortDirection = 'asc'; }
 
-        // Получаем значение параметра из конфигурации (оно загружается через AppServiceProvider)
-        $adminCountSettings = config('site_settings.AdminCountSettings', 10);
-        $adminSortSettings  = config('site_settings.AdminSortSettings', 'idDesc');
+        // Используем базовый запрос с фильтром
+        $parameters = $this->getParameterQuery()
+            ->orderBy($sortField, $sortDirection)
+            ->paginate($adminCountParameters);
+
+        // Считаем только параметры
+        $parametersCount = $this->getParameterQuery()->count();
 
         return Inertia::render('Admin/Parameters/Index', [
-            'settings' => SettingResource::collection($settings),
-            'settingsCount' => $settingsCount,
-            'adminCountSettings' => (int)$adminCountSettings,
-            'adminSortSettings' => $adminSortSettings,
+            // Используем SettingResource, но передаем как 'parameters'
+            'parameters' => SettingResource::collection($parameters),
+            'parametersCount' => $parametersCount, // Количество только параметров
+            'adminCountParameters' => $adminCountParameters, // Передаем свои настройки
+            'adminSortParameters' => $adminSortParameters,
         ]);
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Показ формы создания параметра системы.
      */
     public function create(): Response
     {
-        return Inertia::render('Admin/Parameters/Create');
+        // TODO: Проверка прав $this->authorize('create', Setting::class); // Или кастомное право
+        return Inertia::render('Admin/Parameters/Create', [
+            // Передаем дефолтное значение категории, если нужно
+            // 'defaultCategory' => self::PARAMETER_CATEGORY,
+        ]);
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Создание параметра системы.
      */
     public function store(SettingRequest $request): RedirectResponse
     {
+        // TODO: Проверка прав $this->authorize('create', Setting::class);
         $data = $request->validated();
-        $setting = Setting::create($data);
 
-        // Log::info('Параметр системы создан: ', $setting->toArray());
+        // Принудительно устанавливаем категорию (или тип), если она не передается из формы
+        // TODO: Адаптировать под ваш способ идентификации
+        // $data['category'] = self::PARAMETER_CATEGORY;
+        $data['type'] = 'parameter'; // Пример
 
-        return redirect()->route('parameters.index')->with('success', 'Параметр системы успешно создан');
+        try {
+            Setting::create($data);
+            Log::info('Параметр системы успешно создан: ', ['option' => $data['option']]);
+            // Редирект на индекс параметров
+            return redirect()->route('admin.parameters.index')->with('success', 'Параметр системы успешно создан.');
+        } catch (Throwable $e) {
+            Log::error("Ошибка при создании параметра: " . $e->getMessage());
+            return back()->withInput()->withErrors(['general' => 'Произошла ошибка при создании параметра.']);
+        }
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Показ формы редактирования параметра системы.
      */
-    public function edit(string $id): Response
+    // Используем RMB {parameter}, но тип будет Setting $setting
+    public function edit(Setting $parameter): Response // Меняем имя переменной на $parameter
     {
-
-        $setting = Setting::findOrFail($id);
+        // TODO: Проверка прав $this->authorize('update', $parameter);
+        // Дополнительная проверка, что это действительно параметр
+        // TODO: Адаптировать проверку
+        if ($parameter->type !== 'parameter') {
+            abort(404, 'Настройка не является параметром системы.');
+        }
 
         return Inertia::render('Admin/Parameters/Edit', [
-            'setting' => new SettingResource($setting),
+            // Передаем как 'parameter', используем SettingResource
+            'parameter' => new SettingResource($parameter),
         ]);
     }
 
     /**
-     * Update the specified resource in storage.
+     * Обновление параметра системы.
      */
-    public function update(SettingRequest $request, string $id): RedirectResponse
+    // Используем RMB {parameter} и SettingRequest
+    public function update(SettingRequest $request, Setting $parameter): RedirectResponse
     {
-        $setting = Setting::findOrFail($id);
+        // TODO: Проверка прав $this->authorize('update', $parameter);
+        // Дополнительная проверка
+        // TODO: Адаптировать проверку
+        if ($parameter->type !== 'parameter') {
+            abort(403, 'Вы не можете редактировать эту настройку как параметр системы.');
+        }
+
         $data = $request->validated();
-        $setting->update($data);
+        // Запрещаем менять категорию/тип через эту форму (если нужно)
+        // TODO: Адаптировать
+        unset($data['type'], $data['category'], $data['option'], $data['constant']); // Запрещаем менять ключевые поля
 
-        // Log::info('Параметр системы обновлен: ', $setting->toArray());
-
-        return redirect()->route('parameters.index')->with('success', 'Параметр системы успешно обновлен');
+        try {
+            $parameter->update($data);
+            Log::info('Параметр системы обновлен: ', ['id' => $parameter->id, 'option' => $parameter->option]);
+            return redirect()->route('admin.parameters.index')->with('success', 'Параметр системы успешно обновлен.');
+        } catch (Throwable $e) {
+            Log::error("Ошибка при обновлении параметра ID {$parameter->id}: " . $e->getMessage());
+            return back()->withInput()->withErrors(['general' => 'Произошла ошибка при обновлении параметра.']);
+        }
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Удаление параметра системы.
      */
-    public function destroy(string $id): RedirectResponse
+    // Используем RMB {parameter}
+    public function destroy(Setting $parameter): RedirectResponse
     {
-        $setting = Setting::findOrFail($id);
-        $setting->delete();
+        // TODO: Проверка прав $this->authorize('delete', $parameter);
+        // Дополнительная проверка
+        // TODO: Адаптировать проверку
+        if ($parameter->type !== 'parameter') {
+            abort(403, 'Вы не можете удалить эту настройку как параметр системы.');
+        }
 
-        // Log::info('Параметр системы удален: ', $setting->toArray());
-
-        return back();
+        try {
+            $parameter->delete();
+            Log::info('Параметр системы удален: ID ' . $parameter->id);
+            return redirect()->route('admin.parameters.index')->with('success', 'Параметр системы успешно удален.');
+        } catch (Throwable $e) {
+            Log::error("Ошибка при удалении параметра ID {$parameter->id}: " . $e->getMessage());
+            return back()->withErrors(['general' => 'Произошла ошибка при удалении параметра.']);
+        }
     }
 
     /**
-     * Обновление активности.
+     * Массовое удаление параметров системы.
      */
-    public function updateActivity(Request $request, $id): JsonResponse
+    public function bulkDestroy(Request $request): JsonResponse
     {
+        // TODO: Проверка прав $this->authorize('delete-bulk parameters');
         $validated = $request->validate([
-            'activity' => 'boolean',
+            'ids' => 'required|array',
+            // Проверяем, что ID существуют и относятся к нужной категории/типу
+            'ids.*' => ['required', 'integer', Rule::exists('settings', 'id')->where(function ($query) {
+                // TODO: Адаптировать условие where
+                $query->where('type', 'parameter');
+                // $query->where('category', self::PARAMETER_CATEGORY);
+            })],
         ]);
+        $parameterIds = $validated['ids'];
+        try {
+            // Удаляем только валидированные параметры
+            Setting::whereIn('id', $parameterIds)->delete();
+            Log::info('Параметры системы удалены: ', $parameterIds);
+            return response()->json(['success' => true, 'message' => 'Выбранные параметры удалены.', 'reload' => true]);
+        } catch (Throwable $e) {
+            Log::error("Ошибка при массовом удалении параметров: " . $e->getMessage(), ['ids' => $parameterIds]);
+            return response()->json(['success' => false, 'message' => 'Ошибка при удалении параметров.'], 500);
+        }
+    }
 
-        $setting = Setting::findOrFail($id);
-        $setting->activity = $validated['activity'];
-        $setting->save();
+    /**
+     * Обновление активности параметра системы.
+     */
+    // Используем {parameter} в маршруте для RMB
+    public function updateActivity(UpdateActivityRequest $request, Setting $parameter): JsonResponse
+    {
+        // TODO: Проверка прав $this->authorize('update', $parameter);
+        // Дополнительная проверка
+        // TODO: Адаптировать проверку
+        if ($parameter->type !== 'parameter') {
+            return response()->json(['success' => false, 'message' => 'Действие неприменимо.'], 403);
+        }
 
-        // Log::info("Обновлено activity параметра системы с ID: $id с данными: ", $validated);
-
+        $validated = $request->validated();
+        $parameter->activity = $validated['activity'];
+        $parameter->save();
+        Log::info("Обновлено activity параметра ID {$parameter->id} на {$parameter->activity}");
         return response()->json(['success' => true, 'reload' => true]);
     }
+
+    // Метод updateSort для параметров может быть не нужен? Если нужен - добавить по аналогии.
+    // Метод clone для параметров обычно не нужен.
 }

@@ -61,6 +61,7 @@
     `npm i vue-echarts-v3` <br>
     `npm install date-fns` <br>
     `npm install highlight.js` <br>
+    `npm install vue-toastification@next` <br>
      `npm i ` <br>
 
 13) Install Jetstream <br>
@@ -100,6 +101,8 @@
 18) Create revoke controllers <br>
     `docker exec ring-php-app php artisan make:controller Admin/Invokable/RemovePermissionFromRoleController --invokable` <br>
     `docker exec ring-php-app php artisan make:controller Admin/Invokable/RemoveRoleFromUserController --invokable` <br>
+    `docker exec ring-php-app php artisan make:request Admin/User/StoreUserRequest` <br>
+    `docker exec ring-php-app php artisan make:request Admin/User/UpdateUserRequest` <br>
     `docker exec ring-php-app php artisan make:controller Admin/Invokable/RemovePermissionFromUserController --invokable` <br>
 
 19) creating business logic app Setting <br>
@@ -109,7 +112,13 @@
     `docker exec ring-php-app php artisan db:seed --class=SettingSeeder` <br>
     `docker exec ring-php-app php artisan make:resource Admin/Setting/SettingResource` <br>
     `docker exec ring-php-app php artisan make:request Admin/Setting/SettingRequest` <br>
+    `docker exec ring-php-app php artisan make:request Admin/Setting/UpdateLocaleRequest` <br>
+    `docker exec ring-php-app php artisan make:request Admin/Setting/UpdateCountSettingRequest` <br>
+    `docker exec ring-php-app php artisan make:request Admin/Setting/UpdateSortSettingRequest` <br>
+    `docker exec ring-php-app php artisan make:request Admin/Setting/UpdateWidgetPanelRequest` <br>
+    `docker exec ring-php-app php artisan make:request Admin/Setting/UpdateSidebarSettingsRequest` <br>
     `docker exec ring-php-app php artisan make:controller Admin/Setting/SettingController --resource` <br>
+    `docker exec ring-php-app php artisan make:request Admin/Parameter/UpdateParameterValueRequest` <br>
     `docker exec ring-php-app php artisan make:controller Admin/Parameter/ParameterController --resource` <br>
  
 20)  Create middleware ShareSettings <br>
@@ -137,7 +146,9 @@
     `docker exec ring-php-app php artisan db:seed --class=RubricSeeder` <br>
     `docker exec ring-php-app php artisan make:resource Admin/Rubric/RubricResource` <br>
     `docker exec ring-php-app php artisan make:request Admin/Rubric/RubricRequest` <br>
-    `docker exec ring-php-app php artisan make:controller Admin/Rubric/RubricController --resource` <br>
+    `docker exec ring-php-app php artisan make:request Admin/UpdateActivityRequest` <br>
+    `docker exec ring-php-app php artisan make:request Admin/UpdateSortEntityRequest` <br>
+    `docker exec ring-php-app php artisan make:controller Admin/Rubric/Rubric/RubricController --resource` <br>
     `docker exec ring-php-app php artisan make:controller Public/Default/RubricController` <br>
     `docker exec ring-php-app php artisan make:resource Admin/Rubric/RubricSharedResource` <br>
 
@@ -161,6 +172,9 @@
     `docker exec ring-php-app php artisan db:seed --class=ArticleSeeder` <br>
     `docker exec ring-php-app php artisan make:resource Admin/Article/ArticleResource` <br>
     `docker exec ring-php-app php artisan make:request Admin/Article/ArticleRequest` <br>
+    `docker exec ring-php-app php artisan make:request Admin/UpdateLeftRequest` <br>
+    `docker exec ring-php-app php artisan make:request Admin/UpdateMainRequest` <br>
+    `docker exec ring-php-app php artisan make:request Admin/UpdateRightRequest` <br>
     `docker exec ring-php-app php artisan make:controller Admin/Article/ArticleController --resource` <br>
     `docker exec ring-php-app php artisan make:controller Public/Default/ArticleController` <br>
     `docker exec ring-php-app php artisan make:resource Admin/Article/ArticleSharedResource` <br>
@@ -185,6 +199,8 @@
     `docker exec ring-php-app php artisan make:seeder CommentsSeeder` <br>
     `docker exec ring-php-app php artisan db:seed --class=CommentsSeeder` <br>
     `docker exec ring-php-app php artisan make:resource Admin/Comment/CommentResource` <br>
+    `docker exec ring-php-app php artisan make:request Admin/Comment/CommentRequest` <br>
+    `docker exec ring-php-app php artisan make:request Admin/Comment/ApproveCommentRequest` <br>
     `docker exec ring-php-app php artisan make:controller Admin/Comment/CommentController --resource` <br>
     `docker exec ring-php-app php artisan make:controller Public/CommentController --resource` <br>
 

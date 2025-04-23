@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('short', 255)->nullable(); // string(255)
             $table->text('description')->nullable();
             $table->string('author')->nullable();
-            $table->timestamp('published_at')->nullable()->index(); // РЕКОМЕНДАЦИЯ: Добавить дату публикации, если нужна + index
+            $table->date('published_at')->nullable()->index(); // РЕКОМЕНДАЦИЯ: Добавить дату публикации, если нужна + index
             $table->unsignedBigInteger('views')->default(0)->index(); // index
             $table->unsignedBigInteger('likes')->default(0)->index(); // index (если нужно сортировать/фильтровать по лайкам)
             $table->string('meta_title', 255)->nullable();

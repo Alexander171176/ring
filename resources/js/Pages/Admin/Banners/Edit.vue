@@ -1,37 +1,44 @@
 <script setup>
-import { defineProps, ref } from 'vue';
-import { transliterate } from '@/utils/transliteration';
+/**
+ * @version PulsarCMS 1.0
+ * @author Александр Косолапов <kosolapov1976@gmail.com>
+ */
+import { useToast } from "vue-toastification";
 import { useI18n } from 'vue-i18n';
+import { defineProps, ref } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import TitlePage from '@/Components/Admin/Headlines/TitlePage.vue';
 import DefaultButton from '@/Components/Admin/Buttons/DefaultButton.vue';
 import PrimaryButton from '@/Components/Admin/Buttons/PrimaryButton.vue';
-import ClearMetaButton from '@/Components/Admin/Buttons/ClearMetaButton.vue';
-import MetatagsButton from '@/Components/Admin/Buttons/MetatagsButton.vue';
 import LabelCheckbox from '@/Components/Admin/Checkbox/LabelCheckbox.vue';
 import ActivityCheckbox from '@/Components/Admin/Checkbox/ActivityCheckbox.vue';
-import CKEditor from '@/Components/Admin/CKEditor/CKEditor.vue';
 import MetaDescTextarea from '@/Components/Admin/Textarea/MetaDescTextarea.vue';
 import InputNumber from '@/Components/Admin/Input/InputNumber.vue';
 import LabelInput from '@/Components/Admin/Input/LabelInput.vue';
 import InputText from '@/Components/Admin/Input/InputText.vue';
 import InputError from '@/Components/Admin/Input/InputError.vue';
-import SelectLocale from "@/Components/Admin/Select/SelectLocale.vue";
 import VueMultiselect from 'vue-multiselect';
 
 // Импорт двух отдельных компонентов для работы с изображениями:
 import MultiImageUpload from '@/Components/Admin/Image/MultiImageUpload.vue'; // для загрузки новых изображений
-import MultiImageEdit from '@/Components/Admin/Image/MultiImageEdit.vue';         // для редактирования существующих
+import MultiImageEdit from '@/Components/Admin/Image/MultiImageEdit.vue';     // для редактирования существующих
 
+// --- Инициализация ---
+const toast = useToast();
 const { t } = useI18n();
 
+/**
+ * Входные свойства компонента.
+ */
 const props = defineProps({
     banner: { type: Object, required: true },
     sections: Array,
 });
 
-// Формируем форму редактирования статьи
+/**
+ * Формируем форму редактирования.
+ */
 const form = useForm({
     _method: 'PUT',
     sort: props.banner.sort ?? 0,
@@ -46,7 +53,9 @@ const form = useForm({
     deletedImages: [] // массив для хранения ID удалённых изображений
 });
 
-// Массив для существующих изображений
+/**
+ * Массив существующих изображений.
+ */
 const existingImages = ref(
     (props.banner.images || [])
         .filter(img => img.url) // фильтруем изображения, у которых есть URL
@@ -61,15 +70,21 @@ const existingImages = ref(
 );
 
 
-// Массив для новых изображений (будут содержать свойство file)
+/**
+ * Массив для новых изображений (будут содержать свойство file).
+ */
 const newImages = ref([]);
 
-// Обработчик обновления существующих изображений, приходящих из компонента MultiImageEdit
+/**
+ * Обработчик обновления существующих изображений, приходящих из компонента MultiImageEdit.
+ */
 const handleExistingImagesUpdate = (images) => {
     existingImages.value = images;
 };
 
-// Обработчик удаления изображения из существующего списка
+/**
+ * Обработчик удаления изображения из существующего списка.
+ */
 const handleDeleteExistingImage = (deletedId) => {
     if (!form.deletedImages.includes(deletedId)) {
         form.deletedImages.push(deletedId);
@@ -79,12 +94,16 @@ const handleDeleteExistingImage = (deletedId) => {
     // console.log("Remaining images:", existingImages.value);
 };
 
-// Обработчик обновления новых изображений из компонента MultiImageUpload
+/**
+ * Обработчик обновления новых изображений из компонента MultiImageUpload.
+ */
 const handleNewImagesUpdate = (images) => {
     newImages.value = images;
 };
 
-// метод сохранения
+/**
+ * Отправляет данные формы для обновления.
+ */
 const submitForm = () => {
     // Используем transform для объединения данных формы с массивами новых и существующих изображений
     form.transform((data) => ({
@@ -109,13 +128,17 @@ const submitForm = () => {
         deletedImages: form.deletedImages
     }));
 
-    form.post(route('banners.update', props.banner.id), {
+    form.post(route('admin.banners.update', props.banner.id), {
         preserveScroll: true,
         forceFormData: true, // Принудительно отправляем как FormData
         onSuccess: (page) => {
+            toast.success('Баннер успешно обновлён!');
+            //console.log("✔️ Форма успешно отправлена.");
         },
         onError: (errors) => {
-            console.error("❌ Ошибка при обновлении статьи:", errors);
+            console.error("❌ Ошибка при обновлении баннера:", errors);
+            const firstError = errors[Object.keys(errors)[0]];
+            toast.error(firstError || 'Пожалуйста, проверьте правильность заполнения полей.');
         }
     });
 };
@@ -134,7 +157,7 @@ const submitForm = () => {
                         bg-opacity-95 dark:bg-opacity-95">
                 <div class="sm:flex sm:justify-between sm:items-center mb-2">
                     <!-- Кнопка назад -->
-                    <DefaultButton :href="route('banners.index')">
+                    <DefaultButton :href="route('admin.banners.index')">
                         <template #icon>
                             <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">
                                 <path d="M4.3 4.5c1.9-1.9 5.1-1.9 7 0 .7.7 1.2 1.7 1.4 2.7l2-.3c-.2-1.5-.9-2.8-1.9-3.8C10.1.4 5.7.4 2.9 3.1L.7.9 0 7.3l6.4-.7-2.1-2.1zM15.6 8.7l-6.4.7 2.1 2.1c-1.9 1.9-5.1 1.9-7 0-.7-.7-1.2-1.7-1.4-2.7l-2 .3c.2 1.5.9 2.8 1.9 3.8 1.4 1.4 3.1 2 4.9 2 1.8 0 3.6-.7 4.9-2l2.2 2.2.8-6.4z"></path>
@@ -266,7 +289,7 @@ const submitForm = () => {
                     </div>
 
                     <div class="flex items-center justify-center mt-4">
-                        <DefaultButton :href="route('banners.index')" class="mb-3">
+                        <DefaultButton :href="route('admin.banners.index')" class="mb-3">
                             <template #icon>
                                 <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">
                                     <path d="M4.3 4.5c1.9-1.9 5.1-1.9 7 0 .7.7 1.2 1.7 1.4 2.7l2-.3c-.2-1.5-.9-2.8-1.9-3.8C10.1.4 5.7.4 2.9 3.1L.7.9 0 7.3l6.4-.7-2.1-2.1zM15.6 8.7l-6.4.7 2.1 2.1c-1.9 1.9-5.1 1.9-7 0-.7-.7-1.2-1.7-1.4-2.7l-2 .3c-.2 1.5.9 2.8 1.9 3.8 1.4 1.4 3.1 2 4.9 2 1.8 0 3.6-.7 4.9-2l2.2 2.2 .8-6.4z"></path>

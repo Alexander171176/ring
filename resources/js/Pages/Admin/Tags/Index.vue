@@ -1,7 +1,12 @@
 <script setup>
+/**
+ * @version PulsarCMS 1.0
+ * @author Александр Косолапов <kosolapov1976@gmail.com>
+ */
 import {defineProps, ref, computed, watch} from 'vue';
-import {useForm} from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
+import {useToast} from 'vue-toastification';
+import {router} from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import TitlePage from '@/Components/Admin/Headlines/TitlePage.vue';
 import DefaultButton from "@/Components/Admin/Buttons/DefaultButton.vue";
@@ -14,69 +19,169 @@ import BulkActionSelect from "@/Components/Admin/Tag/Select/BulkActionSelect.vue
 import ItemsPerPageSelect from "@/Components/Admin/Select/ItemsPerPageSelect.vue";
 import SortSelect from "@/Components/Admin/Tag/Sort/SortSelect.vue";
 
+// --- Инициализация экземпляр i18n, toast ---
 const { t } = useI18n();
+const toast = useToast();
+
+/**
+ * Входные свойства компонента.
+ */
 const props = defineProps(['tags', 'tagsCount', 'adminCountTags', 'adminSortTags']);
-const form = useForm({});
 
-// Используем значение из props для начального количества элементов на странице
-const itemsPerPage = ref(props.adminCountTags)
+/**
+ * Реактивная переменная для хранения текущего количества элементов на странице.
+ */
+const itemsPerPage = ref(props.adminCountTags); // Используем значение из props
 
-// чтобы при изменении itemsPerPage автоматически обновлялся параметр в базе,
+/**
+ * Наблюдатель за изменением количества элементов на странице.
+ */
 watch(itemsPerPage, (newVal) => {
-    axios.put(route('settings.updateAdminCountTags'), { value: newVal.toString() })
-        .then(response => {
-            // console.log('Количество элементов на странице обновлено:', response.data.value)
-        })
-        .catch(error => {
-            console.error('Ошибка обновления настройки:', error.response.data)
-        })
-})
+    router.put(route('admin.settings.updateAdminCountTags'), {value: newVal}, {
+        preserveScroll: true,
+        preserveState: true, // Не перезагружаем все props
+        onSuccess: () => toast.info(`Показ ${newVal} элементов на странице.`),
+        onError: (errors) => toast.error(errors.value || 'Ошибка обновления кол-ва элементов.'),
+    });
+});
 
-// параметр сортировки по умолчанию, устанавливаем из props
-const sortParam = ref(props.adminSortTags)
+/**
+ * Реактивная переменная для хранения текущего параметра сортировки.
+ */
+const sortParam = ref(props.adminSortTags); // Используем значение из props
+
+/**
+ * Наблюдатель за изменением параметра сортировки.
+ */
 watch(sortParam, (newVal) => {
-    axios.put(route('settings.updateAdminSortTags'), { value: newVal })
-        .then(response => {
-            // console.log('Сортировка обновлена:', response.data.value)
-        })
-        .catch(error => {
-            console.error('Ошибка обновления сортировки:', error.response.data)
-        })
+    router.put(route('admin.settings.updateAdminSortTags'), {value: newVal}, {
+        preserveScroll: true,
+        preserveState: true,
+        // onSuccess: () => toast.info(`Сортировка изменена на ${newVal}.`), // TODO: добавить перевод для newVal
+        onSuccess: () => toast.info('Сортировка успешно изменена'),
+        onError: (errors) => toast.error(errors.value || 'Ошибка обновления сортировки.'),
+    });
 })
 
-// Модальное окно удаления
+/**
+ * Флаг отображения модального окна подтверждения удаления.
+ */
 const showConfirmDeleteModal = ref(false);
+
+/**
+ * ID для удаления.
+ */
 const tagToDeleteId = ref(null);
-const confirmDelete = (id) => {
+
+/**
+ * Название для отображения в модальном окне.
+ */
+const tagToDeleteName = ref(''); // Сохраняем название для сообщения
+
+/**
+ * Открывает модальное окно подтверждения удаления с входными переменными.
+ */
+const confirmDelete = (id, name) => {
     tagToDeleteId.value = id;
+    tagToDeleteName.value = name;
     showConfirmDeleteModal.value = true;
 };
+
+/**
+ * Закрывает модальное окно подтверждения и сбрасывает связанные переменные.
+ */
 const closeModal = () => {
     showConfirmDeleteModal.value = false;
+    tagToDeleteId.value = null;
+    tagToDeleteName.value = '';
 };
 
-// Удаление тега
+// --- Логика удаления ---
+/**
+ * Отправляет запрос на удаление тега на сервер.
+ */
 const deleteTag = () => {
-    if (tagToDeleteId.value !== null) {
-        form.delete(route('tags.destroy', tagToDeleteId.value), {
-            onSuccess: () => closeModal()
-        });
-    }
+    if (tagToDeleteId.value === null) return;
+
+    const idToDelete = tagToDeleteId.value; // Сохраняем ID во временную переменную
+    const nameToDelete = tagToDeleteName.value; // Сохраняем name во временную переменную
+
+    router.delete(route('admin.tags.destroy', {tag: idToDelete}), { // Используем временную переменную
+        preserveScroll: true,
+        preserveState: false,
+        onSuccess: (page) => {
+            closeModal(); // Закрываем модалку
+            toast.success(`Тег "${nameToDelete || 'ID: ' + idToDelete}" удален.`);
+            // console.log('Удаление успешно.');
+        },
+        onError: (errors) => {
+            closeModal();
+            const errorMsg = errors.general || errors[Object.keys(errors)[0]] || 'Произошла ошибка при удалении.';
+            toast.error(`${errorMsg} (Тег: ${nameToDelete || 'ID: ' + idToDelete})`);
+            console.error('Ошибка удаления:', errors);
+        },
+        onFinish: () => {
+            // console.log('Запрос на удаление завершен.');
+            tagToDeleteId.value = null;
+            tagToDeleteName.value = '';
+        }
+    });
 };
 
-// Пагинация
+/**
+ * Отправляет запрос на удаление.
+ */
+const toggleActivity = (tag) => {
+    const newActivity = !tag.activity;
+    const actionText = newActivity ? 'активирован' : 'деактивирован';
+
+    // Используем Inertia.put для простого обновления
+    router.put(route('admin.actions.tags.updateActivity', {tag: tag.id}),
+        {activity: newActivity},
+        {
+            preserveScroll: true, // Сохраняем скролл
+            preserveState: true,  // Обновляем только измененные props (если бэк отдает reload: false)
+            // Или false, если бэк всегда отдает reload: true и нужно перезагрузить данные
+            onSuccess: () => {
+                // Обновляем состояние локально СРАЗУ ЖЕ (оптимистичное обновление)
+                // Или дожидаемся обновления props, если preserveState: false
+                // tag.activity = newActivity; // Уже не нужно, если preserveState: false
+                toast.success(`Тег "${tag.name}" ${actionText}.`);
+            },
+            onError: (errors) => {
+                toast.error(errors.activity || errors.general || `Ошибка изменения активности для "${tag.name}".`);
+                // Можно откатить изменение на фронте, если нужно
+                // tag.activity = !newActivity;
+            },
+        }
+    );
+};
+
+/**
+ * Текущая страница пагинации.
+ */
 const currentPage = ref(1);
 
-// Строка поиска
+/**
+ * Строка поискового запроса.
+ */
 const searchQuery = ref('');
 
-// Функция сортировки
+/**
+ * Сортирует массив на основе текущего параметра сортировки.
+ */
 const sortTags = (tags) => {
     if (sortParam.value === 'idAsc') {
         return tags.slice().sort((a, b) => a.id - b.id);
     }
     if (sortParam.value === 'idDesc') {
         return tags.slice().sort((a, b) => b.id - a.id);
+    }
+    if (sortParam.value === 'activity') {
+        return tags.filter(tag => tag.activity);
+    }
+    if (sortParam.value === 'inactive') {
+        return tags.filter(tag => !tag.activity);
     }
     if (sortParam.value === 'locale') {
         // Сортировка по locale в обратном порядке
@@ -86,15 +191,21 @@ const sortTags = (tags) => {
             return 0;
         });
     }
+    // Для просмотров и лайков сортировка по убыванию:
+    if (sortParam.value === 'views') {
+        return tags.slice().sort((a, b) => b[sortParam.value] - a[sortParam.value]);
+    }
     // Для остальных полей — стандартное сравнение:
     return tags.slice().sort((a, b) => {
-        if (a[sortParam.value] < b[sortParam.value]) return -1;
-        if (a[sortParam.value] > b[sortParam.value]) return 1;
-        return 0;
+        if (a[sortParam.value] < b[sortParam.value]) return -1
+        if (a[sortParam.value] > b[sortParam.value]) return 1
+        return 0
     });
 };
 
-// Фильтр поиска
+/**
+ * Вычисляемое свойство, отсортированный список поиска.
+ */
 const filteredTags = computed(() => {
     let filtered = props.tags;
 
@@ -107,23 +218,79 @@ const filteredTags = computed(() => {
     return sortTags(filtered);
 });
 
-// Пагинация
+/**
+ * Вычисляемое свойство пагинации, возвращающее для текущей страницы.
+ */
 const paginatedTags = computed(() => {
     const start = (currentPage.value - 1) * itemsPerPage.value;
     return filteredTags.value.slice(start, start + itemsPerPage.value);
 });
 
+/**
+ * Вычисляемое свойство, возвращающее общее количество страниц пагинации.
+ */
 const totalPages = computed(() => Math.ceil(filteredTags.value.length / itemsPerPage.value));
 
-// Выбранные теги для массовых действий
-const selectedTags = ref([]);
+/**
+ * Обрабатывает событие обновления порядка сортировки от компонента таблицы (Drag and drop).
+ */
+const handleSortOrderUpdate = (orderedIds) => {
+    // console.log('Обработка обновления порядка сортировки:', orderedIds);
 
-// Функции для выбора и отмены выбора всех элементов select
-const toggleAll = (event) => {
-    const isChecked = event.target.checked;
-    selectedTags.value = isChecked ? paginatedTags.value.map(tag => tag.id) : [];
+    // Вычисляем начальное значение sort для этой страницы
+    const startSort = (currentPage.value - 1) * itemsPerPage.value;
+
+    // Подготавливаем данные для отправки: массив объектов { id: X, sort: Y }
+    const sortData = orderedIds.map((id, index) => ({
+        id: id,
+        sort: startSort + index + 1 // Глобальный порядок на основе позиции на странице
+    }));
+
+    // console.log('Отправка данных для сортировки:', sortData);
+
+    // Отправляем ОДИН запрос на сервер для обновления всего порядка
+    router.put(route('admin.actions.tags.updateSortBulk'),
+        {tags: sortData}, // Отправляем массив объектов
+        {
+            preserveScroll: true,
+            preserveState: true, // Сохраняем состояние, т.к. на сервере нет редиректа
+            onSuccess: () => {
+                toast.success("Порядок тегов успешно обновлен.");
+                // Обновляем локальные данные (если нужно, но Inertia должна прислать обновленные props)
+                // Возможно, лучше сделать preserveState: false и дождаться обновления props
+            },
+            onError: (errors) => {
+                console.error("Ошибка обновления сортировки:", errors);
+                toast.error(errors.general || errors.tags || "Не удалось обновить порядок тегов.");
+                // TODO: Откатить порядок на фронтенде? Сложно без сохранения исходного состояния.
+                // Проще сделать preserveState: false или router.reload при ошибке.
+                router.reload({only: ['tags'], preserveScroll: true}); // Перезагружаем данные при ошибке
+            },
+        }
+    );
 };
 
+/**
+ * Массив выбранных ID для массовых действий.
+ */
+const selectedTags = ref([]);
+
+/**
+ * Логика выбора всех для массовых действий.
+ */
+const toggleAll = ({ids, checked}) => {
+    if (checked) {
+        // добавляем текущее множество ids
+        selectedTags.value = [...new Set([...selectedTags.value, ...ids])];
+    } else {
+        // удаляем эти ids из выбранных
+        selectedTags.value = selectedTags.value.filter(id => !ids.includes(id));
+    }
+};
+
+/**
+ * Обрабатывает событие выбора/снятия выбора одной строки.
+ */
 const toggleSelectTag = (tagId) => {
     const index = selectedTags.value.indexOf(tagId);
     if (index > -1) {
@@ -133,30 +300,80 @@ const toggleSelectTag = (tagId) => {
     }
 };
 
-// Функция для массового удаления тегов
-const bulkDelete = () => {
-    axios.delete(route('tags.bulkDestroy'), { data: { ids: selectedTags.value } })
-        .then(response => {
-            selectedTags.value = [];
-            if (response.data.reload) {
-                window.location.reload();
-            }
+/**
+ * Выполняет массовое включение/выключение активности выбранных.
+ */
+const bulkToggleActivity = (newActivity) => {
+    if (!selectedTags.value.length) {
+        toast.warning('Выберите теги для активации/деактивации тегов');
+        return;
+    }
+    axios
+        .put(route('admin.actions.tags.bulkUpdateActivity'), {
+            ids: selectedTags.value,
+            activity: newActivity,
         })
-        .catch(error => {
-            console.error(error.response.data);
-        });
+        .then(() => {
+            toast.success('Активность массово обновлена')
+            // сразу очистим выбор
+            const updatedIds = [...selectedTags.value]
+            selectedTags.value = []
+            // и оптимистично поправим флаг в таблице
+            paginatedTags.value.forEach((a) => {
+                if (updatedIds.includes(a.id)) {
+                    a.activity = newActivity
+                }
+            })
+        })
+        .catch(() => {
+            toast.error('Не удалось обновить активность')
+        })
 };
 
+/**
+ * Выполняет массовое удаление выбранных.
+ */
+const bulkDelete = () => {
+    if (selectedTags.value.length === 0) {
+        toast.warning('Выберите хотя бы один тег для удаления.'); // <--- Используем toast
+        return;
+    }
+    if (!confirm(`Вы уверены, что хотите их удалить ?`)) {
+        return;
+    }
+    router.delete(route('admin.actions.tags.bulkDestroy'), {
+        data: {ids: selectedTags.value},
+        preserveScroll: true,
+        preserveState: false, // Перезагружаем данные страницы
+        onSuccess: (page) => {
+            selectedTags.value = []; // Очищаем выбор
+            toast.success('Массовое удаление тегов успешно завершено.');
+            // console.log('Массовое удаление статей успешно завершено.');
+        },
+        onError: (errors) => {
+            console.error("Ошибка массового удаления:", errors);
+            // Отображаем первую ошибку
+            const errorKey = Object.keys(errors)[0];
+            const errorMessage = errors[errorKey] || 'Произошла ошибка при удалении тегов.';
+            toast.error(errorMessage);
+        },
+    });
+};
+
+/**
+ * Обрабатывает выбор действия в селекте массовых действий.
+ */
 const handleBulkAction = (event) => {
     const action = event.target.value;
     if (action === 'selectAll') {
-        paginatedTags.value.forEach(tag => {
-            if (!selectedTags.value.includes(tag.id)) {
-                selectedTags.value.push(tag.id);
-            }
-        });
+        // Вызываем toggleAll с имитацией события checked: true
+        selectedTags.value = paginatedTags.value.map(r => r.id);
     } else if (action === 'deselectAll') {
         selectedTags.value = [];
+    } else if (action === 'activate') {
+        bulkToggleActivity(true);
+    } else if (action === 'deactivate') {
+        bulkToggleActivity(false);
     } else if (action === 'delete') {
         bulkDelete();
     }
@@ -177,7 +394,7 @@ const handleBulkAction = (event) => {
                         overflow-hidden shadow-lg shadow-gray-500 dark:shadow-slate-400
                         bg-opacity-95 dark:bg-opacity-95">
                 <div class="sm:flex sm:justify-between sm:items-center mb-2">
-                    <DefaultButton :href="route('tags.create')">
+                    <DefaultButton :href="route('admin.tags.create')">
                         <template #icon>
                             <svg class="w-4 h-4 fill-current opacity-50 shrink-0" viewBox="0 0 16 16">
                                 <path
@@ -193,6 +410,8 @@ const handleBulkAction = (event) => {
                 <TagTable
                     :tags="paginatedTags"
                     :selected-tags="selectedTags"
+                    @toggle-activity="toggleActivity"
+                    @update-sort-order="handleSortOrderUpdate"
                     @delete="confirmDelete"
                     @toggle-select="toggleSelectTag"
                     @toggle-all="toggleAll"

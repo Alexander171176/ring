@@ -29,6 +29,9 @@ const emits = defineEmits(['edit', 'delete']);
                         <div class="font-semibold text-left">{{ t('name') }}</div>
                     </th>
                     <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
+                        <div class="font-semibold text-left">{{ t('permissions') }}</div>
+                    </th>
+                    <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
                         <div class="font-semibold text-end">{{ t('actions') }}</div>
                     </th>
                 </tr>
@@ -45,8 +48,22 @@ const emits = defineEmits(['edit', 'delete']);
                         <div class="text-left text-teal-600 dark:text-violet-200">{{ role.name }}</div>
                     </td>
                     <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
+                        <div class="flex flex-wrap gap-1">
+                            <span v-for="perm in role.permissions" :key="perm.id"
+                                class="px-1 py-0 bg-slate-100 dark:bg-slate-800
+                                       border border-dashed border-gray-400
+                                       text-orange-500 dark:text-orange-200 text-xs">
+                                {{ perm.name }}
+                            </span>
+                            <!-- Если у роли нет разрешений, можно показать message -->
+                            <span v-if="role.permissions.length === 0" class="text-xs italic text-gray-500">
+                                —
+                            </span>
+                        </div>
+                    </td>
+                    <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
                         <div class="flex justify-end space-x-2">
-                            <IconEdit :href="route('roles.edit', role.id)" />
+                            <IconEdit :href="route('admin.roles.edit', role.id)"/>
                             <DeleteIconButton @delete="$emit('delete', role.id)"/>
                         </div>
                     </td>

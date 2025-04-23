@@ -3,27 +3,57 @@
 namespace App\Http\Controllers\Admin\Permission;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\Permission\PermissionRequest;
+use App\Http\Requests\Admin\Permission\PermissionRequest; // Используем
 use App\Http\Resources\Admin\Permission\PermissionResource;
+// Модели не нужны напрямую, используем RMB
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB; // Для транзакций (опционально)
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
-use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Permission; // Импортируем модель
+use Spatie\Permission\PermissionRegistrar;
+use Throwable;
 
+/**
+ * Контроллер для управления Разрешениями в административной панели.
+ *
+ * Предоставляет CRUD операции.
+ *
+ * @version 1.1 (Улучшен с RMB, транзакциями, Form Requests)
+ * @author Александр Косолапов <kosolapov1976@gmail.com>
+ * @see \Spatie\Permission\Models\Permission Модель Разрешения
+ * @see \App\Http\Requests\Admin\Permission\PermissionRequest Запрос для создания/обновления
+ */
 class PermissionController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Отображение списка всех Разрешений.
+     * Загружает пагинированный список с сортировкой по настройкам.
+     * Передает данные для отображения и настройки пагинации/сортировки.
+     * Пагинация и сортировка выполняются на фронтенде.
+     *
+     * @return Response
      */
     public function index(): Response
     {
-        $permissions = Permission::all();
-        $permissionsCount = Permission::count();
+        // TODO: Проверка прав $this->authorize('show-permissions', Permission::class);
 
-        // Получаем значение параметра из конфигурации (оно загружается через AppServiceProvider)
-        $adminCountPermissions = config('site_settings.AdminCountPermissions', 10);
-        $adminSortPermissions  = config('site_settings.AdminSortPermissions', 'idDesc');
+        $adminCountPermissions = config('site_settings.AdminCountPermissions', 25); // Больше на страницу
+        $adminSortPermissions  = config('site_settings.AdminSortPermissions', 'nameAsc'); // Сортировка по имени
+
+        try {
+            // Загружаем ВСЕ разрешения
+            $permissions = Permission::all();
+
+            $permissionsCount = $permissions->count(); // Считаем из загруженной коллекции
+
+        } catch (Throwable $e) {
+            Log::error("Ошибка загрузки разрешений для Index: " . $e->getMessage());
+            $permissions = collect(); // Пустая коллекция в случае ошибки
+            $permissionsCount = 0;
+            session()->flash('error', 'Не удалось загрузить список разрешений.');
+        }
 
         return Inertia::render('Admin/Permissions/Index', [
             'permissions' => PermissionResource::collection($permissions),
@@ -34,34 +64,57 @@ class PermissionController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Отображение формы создания нового разрешения.
+     *
+     * @return Response
      */
     public function create(): Response
     {
+        // TODO: Проверка прав $this->authorize('create-permissions', Permission::class);
+
         return Inertia::render('Admin/Permissions/Create');
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Сохранение нового разрешения в базе данных.
+     * Использует PermissionRequest для валидации и авторизации.
+     *
+     * @param PermissionRequest $request
+     * @return RedirectResponse Редирект на список статей с сообщением.
      */
     public function store(PermissionRequest $request): RedirectResponse
     {
+        // authorize() в PermissionRequest
         $data = $request->validated();
-
-        // Создание разрешения
-        $permission = Permission::create(['name' => $data['name']]);
-
-        // Log::info('Разрешение создано: ', $permission->toArray());
-
-        return redirect()->route('permissions.index')->with('success', 'Разрешение успешно создано');
+        try {
+            DB::beginTransaction();
+            Permission::create([
+                'name' => $data['name'],
+                'guard_name' => $data['guard_name'] ?? 'web', // Устанавливаем guard
+            ]);
+            DB::commit();
+            Log::info('Разрешение создано:', ['name' => $data['name']]);
+            app()[PermissionRegistrar::class]->forgetCachedPermissions(); // Очистка кэша Spatie
+            return redirect()->route('admin.permissions.index')
+                ->with('success', 'Разрешение успешно создано.');
+        } catch (Throwable $e) {
+            DB::rollBack();
+            Log::error("Ошибка при создании разрешения: " . $e->getMessage());
+            return back()->withInput()
+                ->withErrors(['general' => 'Произошла ошибка при создании разрешения.']);
+        }
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Отображение формы редактирования существующего разрешения.
+     * Использует Route Model Binding для получения модели.
+     *
+     * @param Permission $permission Модель разрешения, найденная по ID из маршрута.
+     * @return Response
      */
-    public function edit(string $id): Response
+    public function edit(Permission $permission): Response // Используем RMB
     {
-        $permission = Permission::findOrFail($id);
+        // TODO: Проверка прав $this->authorize('edit-permissions', $permission);
 
         return Inertia::render('Admin/Permissions/Edit', [
             'permission' => new PermissionResource($permission),
@@ -69,31 +122,58 @@ class PermissionController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Обновление существующего разрешения в базе данных.
+     * Использует PermissionRequest и Route Model Binding.
+     *
+     * @param PermissionRequest $request Валидированный запрос.
+     * @param Permission $permission Модель разрешения для обновления.
+     * @return RedirectResponse Редирект на список разрешений с сообщением.
      */
-    public function update(PermissionRequest $request, string $id): RedirectResponse
+    public function update(PermissionRequest $request, Permission $permission): RedirectResponse // Используем RMB
     {
-        $permission = Permission::findOrFail($id);
-
+        // authorize() в PermissionRequest
         $data = $request->validated();
-
-        $permission->update(['name' => $data['name']]);
-
-        // Log::info('Разрешение обновлено: ', $permission->toArray());
-
-        return redirect()->route('permissions.index')->with('success', 'Разрешение успешно обновлено');
+        try {
+            DB::beginTransaction();
+            // Обновляем только имя, guard обычно не меняют
+            $permission->update(['name' => $data['name']]);
+            DB::commit();
+            Log::info('Разрешение обновлено:', ['id' => $permission->id, 'name' => $permission->name]);
+            app()[PermissionRegistrar::class]->forgetCachedPermissions(); // Очистка кэша Spatie
+            return redirect()->route('admin.permissions.index')
+                ->with('success', 'Разрешение успешно обновлено.');
+        } catch (Throwable $e) {
+            DB::rollBack();
+            Log::error("Ошибка при обновлении разрешения ID {$permission->id}: " . $e->getMessage());
+            return back()->withInput()
+                ->withErrors(['general' => 'Произошла ошибка при обновлении разрешения.']);
+        }
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Удаление указанного разрешения.
+     * Использует Route Model Binding.
+     *
+     * @param Permission $permission Модель разрешения для удаления.
+     * @return RedirectResponse Редирект на список разрешений с сообщением.
      */
-    public function destroy(string $id): RedirectResponse
+    public function destroy(Permission $permission): RedirectResponse // Используем RMB
     {
-        $permission = Permission::findOrFail($id);
-        $permission->delete();
+        // TODO: Проверка прав $this->authorize('delete-permissions', $permission);
+        // TODO: Добавить проверку, не является ли разрешение базовым/системным?
 
-        // Log::info('Разрешение удалено: ', $permission->toArray());
-
-        return back();
+        try {
+            DB::beginTransaction();
+            $permission->delete(); // Spatie удалит связи из role_has_permissions и model_has_permissions
+            DB::commit();
+            Log::info('Разрешение удалено:', ['id' => $permission->id, 'name' => $permission->name]);
+            app()[PermissionRegistrar::class]->forgetCachedPermissions(); // Очистка кэша Spatie
+            return redirect()->route('admin.permissions.index')->with('success', 'Разрешение успешно удалено.');
+        } catch (Throwable $e) {
+            DB::rollBack();
+            Log::error("Ошибка при удалении разрешения ID {$permission->id}: " . $e->getMessage());
+            return back()->withErrors(['general' => 'Произошла ошибка при удалении разрешения.']);
+        }
     }
+
 }

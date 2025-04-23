@@ -77,7 +77,7 @@ const logout = () => {
 
                             <Link
                                 v-if="$page.props.auth.user"
-                                :href="route('admin')"
+                                :href="route('admin.index')"
                                 class="font-semibold
                                            text-gray-600
                                            text-lg
@@ -197,7 +197,7 @@ const logout = () => {
                         Панель управления
                     </ResponsiveNavLink>
 
-                    <ResponsiveNavLink v-if="$page.props.auth.user" :href="route('admin')">
+                    <ResponsiveNavLink v-if="$page.props.auth.user" :href="route('admin.index')">
                         Панель Администратора
                     </ResponsiveNavLink>
 

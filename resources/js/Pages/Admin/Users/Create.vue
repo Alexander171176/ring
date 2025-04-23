@@ -28,7 +28,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post(route('users.store'), {
+    form.post(route('admin.users.store'), {
         onFinish: () => form.reset('password', 'password_confirmation')
     })
 }
@@ -48,7 +48,7 @@ const submit = () => {
                         bg-opacity-95 dark:bg-opacity-95">
                 <div class="sm:flex sm:justify-between sm:items-center mb-2">
                     <!-- Кнопка назад -->
-                    <DefaultButton :href="route('users.index')">
+                    <DefaultButton :href="route('admin.users.index')">
                         <template #icon>
                             <!-- SVG -->
                             <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">
@@ -151,7 +151,7 @@ const submit = () => {
                     </div>
 
                     <div class="flex items-center justify-center mt-4">
-                        <DefaultButton :href="route('users.index')" class="mb-3">
+                        <DefaultButton :href="route('admin.users.index')" class="mb-3">
                             <template #icon>
                                 <!-- SVG -->
                                 <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">

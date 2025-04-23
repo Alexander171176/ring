@@ -1,5 +1,5 @@
 <script setup>
-import { defineProps, defineEmits } from 'vue';
+import {defineProps, defineEmits, watch, ref} from 'vue';
 import { useI18n } from 'vue-i18n';
 import draggable from 'vuedraggable';
 import LeftToggle from "@/Components/Admin/Buttons/LeftToggle.vue";
@@ -21,23 +21,32 @@ const emits = defineEmits([
     'toggle-activity',
     'edit',
     'delete',
-    'recalculate-sort',
-    'toggle-select'
+    'update-sort-order',
+    'toggle-select',
+    'toggle-all'
 ]);
 
-const recalculateSort = (event) => {
-    emits('recalculate-sort', event);
+// --- Локальная копия для vuedraggable ---
+const localBanners = ref([]);
+
+// --- Следим за изменением props.banners и обновляем локальную копию ---
+watch(() => props.banners, (newVal) => {
+    // Создаем глубокую копию, чтобы избежать мутации props
+    localBanners.value = JSON.parse(JSON.stringify(newVal || []));
+}, { immediate: true, deep: true }); // immediate: true для инициализации
+
+// --- Функция, вызываемая vuedraggable после завершения перетаскивания ---
+const handleDragEnd = () => {
+    // Отправляем НОВЫЙ ПОРЯДОК ID из локального массива
+    const newOrderIds = localBanners.value.map(banner => banner.id);
+    emits('update-sort-order', newOrderIds); // Отправляем массив ID
 };
 
+// --- Логика массовых действий ---
 const toggleAll = (event) => {
-    const isChecked = event.target.checked;
-    props.banners.forEach(banner => {
-        if (isChecked && !props.selectedBanners.includes(banner.id)) {
-            emits('toggle-select', banner.id);
-        } else if (!isChecked && props.selectedBanners.includes(banner.id)) {
-            emits('toggle-select', banner.id);
-        }
-    });
+    const checked = event.target.checked;
+    const ids = localBanners.value.map(r => r.id);
+    emits('toggle-all', { ids, checked });
 };
 
 // Функция для выбора изображения с наименьшим значением order
@@ -89,7 +98,7 @@ const getPrimaryImage = (banner) => {
                     </th>
                 </tr>
                 </thead>
-                <draggable tag="tbody" :list="banners" @end="recalculateSort" itemKey="id">
+                <draggable tag="tbody" v-model="localBanners" @end="handleDragEnd" itemKey="id">
                     <template #item="{ element: banner }">
                         <tr class="text-sm font-semibold border-b-2 hover:bg-slate-100 dark:hover:bg-cyan-800">
                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
@@ -146,7 +155,7 @@ const getPrimaryImage = (banner) => {
                                     <ActivityToggle :isActive="banner.activity"
                                                     @toggle-activity="$emit('toggle-activity', banner)"
                                                     :title="banner.activity ? t('enabled') : t('disabled')"/>
-                                    <IconEdit :href="route('banners.edit', banner.id)" />
+                                    <IconEdit :href="route('admin.banners.edit', banner.id)" />
                                     <DeleteIconButton @delete="$emit('delete', banner.id)"/>
                                 </div>
                             </td>

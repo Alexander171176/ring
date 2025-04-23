@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests\Admin\Video;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Http\UploadedFile; // Для проверки типа файла
 
 class VideoRequest extends FormRequest
 {
@@ -12,156 +14,220 @@ class VideoRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // Обычно true для админки, или добавить логику прав доступа
+        // TODO: Заменить на реальную проверку прав доступа
+        // if ($this->isMethod('POST')) return $this->user()->can('create videos');
+        // if ($this->isMethod('PUT') || $this->isMethod('PATCH')) return $this->user()->can('update', $this->route('video'));
         return true;
     }
 
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
-        // Определяем, это создание или обновление
-        $isCreating = $this->isMethod('POST');
-        $videoId = $this->route('video'); // Получаем ID из маршрута при обновлении
+        $isCreating = $this->isMethod('post');
+        $videoId    = $this->route('video')?->id;
+
+        // условное правило для запрета связывать видео само с собой
+        $relatedExistsRule = Rule::exists('videos', 'id')->where(function($query) use ($videoId) {
+            if ($videoId) {
+                $query->where('id', '!=', $videoId);
+            }
+        });
 
         return [
-            'sort' => 'nullable|integer|min:0',
-            'activity' => 'required|boolean',
-            'left' => 'required|boolean',
-            'main' => 'required|boolean',
-            'right' => 'required|boolean',
-            'locale' => 'required|string|max:2',
-            'title' => 'required|string|max:255',
-            // Уникальность URL проверяем только при создании или если URL изменился при обновлении
-            'url' => [
-                'required',
-                'string',
-                'max:255',
-                'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', // Правило для slug
-                $isCreating
-                    ? Rule::unique('videos', 'url')
-                    : Rule::unique('videos', 'url')->ignore($videoId),
+            'sort'            => 'nullable|integer|min:0',
+            'activity'        => 'required|boolean',
+            'left'            => 'required|boolean',
+            'main'            => 'required|boolean',
+            'right'           => 'required|boolean',
+            'locale'          => ['required', 'string', 'size:2', Rule::in(['ru','en','kz'])],
+            'title'           => [
+                'required','string','max:255',
+                Rule::unique('videos')->where(fn($q)=>$q->where('locale',$this->input('locale')))->ignore($videoId),
             ],
-            'short' => 'nullable|string|max:255',
-            'description' => 'nullable|string',
-            'author' => 'nullable|string|max:255',
-            'published_at' => 'nullable|date',
-            'duration' => 'nullable|integer|min:0',
-            'source_type' => ['required', 'string', Rule::in(['local', 'youtube', 'vimeo', 'code'])],
-            'video_url' => [ // Поле URL теперь необязательно, если тип 'local' и есть файл
-                'nullable',
-                Rule::requiredIf(fn () => !in_array($this->input('source_type'), ['local', 'youtube', 'vimeo'])), // Обязательно для 'code'
-                'string',
-                'max:65535', // Для кода может быть длинным
-                // Можно добавить 'url' валидацию, если нужно, но для кода это не подходит
+            'url'             => [
+                'required','string','max:500','regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
+                Rule::unique('videos')->where(fn($q)=>$q->where('locale',$this->input('locale')))->ignore($videoId),
             ],
-            'external_video_id' => [ // ID/Ссылка для внешних сервисов
-                'nullable',
-                Rule::requiredIf(fn () => in_array($this->input('source_type'), ['youtube', 'vimeo'])),
-                'string',
-                'max:255',
+            'short'           => 'nullable|string|max:255',
+            'description'     => 'nullable|string',
+            'author'          => 'nullable|string|max:255',
+            'published_at'    => 'nullable|date_format:Y-m-d',
+            'duration'        => 'nullable|integer|min:0',
+            'source_type'       => ['required', Rule::in(['local','youtube','vimeo','code'])],
+
+            // для кодового варианта вводим отдельное поле embed_code:
+            'embed_code' => [
+                Rule::requiredIf(fn() => $this->input('source_type') === 'code'),
+                'nullable','string','max:65535', // количество символов кода HTML
             ],
-            'video_file' => [ // Файл для локального видео
+
+            // Для YouTube/Vimeo
+            'external_video_id' => [
                 'nullable',
-                // Обязательно, если тип 'local' И нет ID (т.е. при создании)
-                // или если тип 'local' и нет video_url (если вы решите его использовать для отображения имени файла)
+                Rule::requiredIf(fn() => in_array($this->input('source_type'), ['youtube','vimeo'])),
+                'string',
+                'max:65535',
+            ],
+
+            // для локального: требуем либо файл, либо URL
+            'video_file' => [
+                'nullable',
                 Rule::requiredIf(fn() => $this->input('source_type') === 'local' && $isCreating),
                 'file',
-                'mimes:mp4,mov,ogg,qt,webm,avi', // Укажите разрешенные MIME типы или расширения
-                'max:102400', // Максимальный размер в килобайтах (например, 100MB) - настройте на сервере!
+                'mimes:mp4,mov,ogg,qt,webm,avi,mpeg,wmv',
+                'max:204800', // размер видеофайла
             ],
-            'views' => 'nullable|integer|min:0',
-            'likes' => 'nullable|integer|min:0',
-            'meta_title' => 'nullable|string|max:160',
-            'meta_keywords' => 'nullable|string|max:255',
-            'meta_desc' => 'nullable|string|max:255',
+            // вот это поле — пока просто nullable
+            'video_url'       => ['nullable', 'string', 'max:500'], // количество символов url
 
-            // Дополнительные поля для связей
-            'sections.*.id' => 'sometimes|integer|exists:sections,id',
-            'sections.*.title' => 'sometimes|string', // Добавлено для vue-multiselect
-            'articles' => 'nullable|array',
-            'articles.*.id' => 'sometimes|integer|exists:articles,id',
-            'articles.*.title' => 'sometimes|string', // Добавлено для vue-multiselect
-            'related_videos' => 'nullable|array',
-            'related_videos.*.id' => 'sometimes|integer|exists:videos,id',
-            'related_videos.*.title' => 'sometimes|string', // Добавлено для vue-multiselect
+            'views'           => 'nullable|integer|min:0',
+            'likes'           => 'nullable|integer|min:0',
+            'meta_title'      => 'nullable|string|max:255',
+            'meta_keywords'   => 'nullable|string|max:255',
+            'meta_desc'       => 'nullable|string',
 
-            // Валидация массива изображений в таблице в таблице video_images
-            'images' => 'nullable|array',
-            'images.*.id' => 'nullable|integer|exists:video_images,id',
-            'images.*.file' => 'nullable|required_without:images.*.id|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
-            'images.*.order' => 'nullable|integer',
-            'images.*.alt' => 'nullable|string|max:255',
-            'images.*.caption' => 'nullable|string|max:255',
-            'deletedImages' => 'nullable|array',
-            'deletedImages.*' => 'integer|exists:video_images,id',
+            'sections'        => ['nullable','array'],
+            'sections.*.id'   => ['required_with:sections','integer','exists:sections,id'],
+
+            'articles'        => ['nullable','array'],
+            'articles.*.id'   => ['required_with:articles','integer','exists:articles,id'],
+
+            'related_videos'     => ['nullable','array'],
+            'related_videos.*.id' => ['required_with:related_videos','integer',$relatedExistsRule],
+
+            'images'          => ['nullable','array'],
+            'images.*.id'     => [
+                'nullable','integer',
+                Rule::exists('video_images','id'),
+                Rule::prohibitedIf(fn() => $isCreating),
+            ],
+            'images.*.order'   => ['nullable','integer','min:0'],
+            'images.*.alt'     => ['nullable','string','max:255'],
+            'images.*.caption' => ['nullable','string','max:255'],
+            'images.*.file'    => [
+                'nullable','file','image',
+                'mimes:jpeg,jpg,png,gif,svg,webp','max:10240',
+                'required_without:images.*.id',
+            ],
+
+            'deletedImages'     => ['sometimes','array'],
+            'deletedImages.*'   => ['integer','exists:video_images,id'],
         ];
     }
 
     /**
-     * Get the validation messages that apply to the request.
+     * Get custom messages for validator errors.
+     *
+     * @return array<string, string>
      */
     public function messages(): array
     {
-        return [
+        // Наследуем стандартные + добавляем/переопределяем свои
+        return array_merge(parent::messages(), [
             'locale.required'           => 'Язык видео обязателен.',
-            'locale.string'             => 'Язык должен быть строкой.',
-            'locale.size'               => 'Код языка должен состоять из 2 символов (например, "ru", "en", "kz").',
-            'locale.in'                 => 'Допустимые языки: ru, en, kz.',
+            'locale.size'               => 'Код языка должен состоять из :size символов.',
+            'locale.in'                 => 'Допустимые языки: :values.',
 
-            'title.required'            => 'Название видео обязательно для заполнения.',
-            'title.string'              => 'Название видео должно быть строкой.',
-            'title.max'                 => 'Название видео не должно превышать 255 символов.',
-            'title.unique'              => 'Видео с таким названием уже существует.',
+            'title.required'            => 'Название видео обязательно.',
+            'title.max'                 => 'Название видео не должно превышать :max символов.',
+            'title.unique'              => 'Видео с таким Названием и Языком уже существует.',
 
             'url.required'              => 'URL видео обязателен.',
-            'url.string'                => 'URL видео должен быть строкой.',
-            'url.max'                   => 'URL видео не должен превышать 255 символов.',
-            'url.unique'                => 'Видео с таким URL уже существует.',
+            'url.max'                   => 'URL видео не должен превышать :max символов.',
+            'url.regex'                 => 'URL должен содержать только латинские буквы, цифры и дефисы.',
+            'url.unique'                => 'Видео с таким URL и Языком уже существует.',
 
-            'short.string'              => 'Краткое описание должно быть строкой.',
-            'short.max'                 => 'Краткое описание не должно превышать 255 символов.',
+            'published_at.date_format'  => 'Некорректный формат даты публикации (ожидается ГГГГ-ММ-ДД).',
 
-            'description.string'        => 'Описание должно быть строкой.',
+            'duration.integer'          => 'Длительность видео должна быть целым числом (секунды).',
+            'duration.min'              => 'Длительность видео не может быть отрицательной.',
 
-            'author.string'             => 'Имя автора должно быть строкой.',
-            'author.max'                => 'Имя автора не должно превышать 255 символов.',
+            'source_type.required'      => 'Необходимо выбрать тип источника видео.',
+            'source_type.in'            => 'Выбран недопустимый тип источника видео.',
 
-            'views.integer'             => 'Количество просмотров должно быть числом.',
+            'external_video_id.required' => 'Нужно указать ссылку/ID только для YouTube или Vimeo.',
+            'external_video_id.max'      => 'Поле ID/ссылки/кода слишком длинное (макс. :max символов).',
+
+            'video_file.required'       => 'Необходимо загрузить файл для локального видео.',
+            'video_file.file'           => 'Проблема при загрузке видеофайла.',
+            'video_file.mimes'          => 'Недопустимый формат видеофайла. Разрешены: :values.',
+            'video_file.max'            => 'Видеофайл слишком большой (макс. :max Кб).',
+
+            'video_url.required'        => 'Нужно указать URL для локального видео или вставить код для типа «code».',
+
+            'short.max'                 => 'Краткое описание не должно превышать :max символов.',
+            'description.max'           => 'Описание слишком длинное (макс. :max символов).', // Добавлено, если нужно ограничение
+
+            'author.max'                => 'Имя автора не должно превышать :max символов.',
+
             'views.min'                 => 'Количество просмотров не может быть отрицательным.',
-
-            'likes.integer'             => 'Количество лайков должно быть числом.',
             'likes.min'                 => 'Количество лайков не может быть отрицательным.',
 
-            'meta_title.max'            => 'Meta заголовок не должен превышать 255 символов.',
-            'meta_keywords.max'         => 'Meta ключевые слова не должны превышать 255 символов.',
-            'meta_desc.max'             => 'Meta описание не должно превышать 255 символов.',
+            'meta_title.max'            => 'Meta заголовок не должен превышать :max символов.',
+            'meta_keywords.max'         => 'Meta ключевые слова не должны превышать :max символов.',
+            'meta_desc.max'             => 'Meta описание слишком длинное (макс. :max символов).', // Убрано
 
-            'sort.integer'              => 'Поле сортировки должно быть числом.',
-            'activity.required'         => 'Поле активности обязательно для заполнения.',
-            'activity.boolean'          => 'Поле активности должно быть логическим значением.',
+            'sort.min'                  => 'Поле сортировки не может быть отрицательным.',
+            'activity.required'         => 'Поле активности обязательно.',
+            'left.required'             => 'Поле "В левой колонке" обязательно.',
+            'main.required'             => 'Поле "Главное видео" обязательно.',
+            'right.required'            => 'Поле "В правой колонке" обязательно.',
 
-            'left.required'             => 'Поле видео в левой колонке обязательно для заполнения.',
-            'left.boolean'              => 'Поле видео в левой колонке должно быть логическим значением.',
+            'sections.*.id.required_with' => 'ID секции обязателен.',
+            'sections.*.id.exists'      => 'Выбрана несуществующая секция (ID: :value).', // :value покажет ID
+            'articles.*.id.required_with' => 'ID статьи обязателен.',
+            'articles.*.id.exists'      => 'Выбрана несуществующая статья (ID: :value).',
 
-            'main.required'             => 'Поле главная видео обязательно для заполнения.',
-            'main.boolean'              => 'Поле главная видео должно быть логическим значением.',
+            'related_videos.*.id.required_with' => 'ID связанного видео обязателен.',
+            'related_videos.*.id.exists'      => 'Выбрано несуществующее связанное видео (ID: :value).',
+            'related_videos.*.id.where_not'   => 'Видео не может быть связано само с собой.', // Хотя whereNot не создает сообщение
 
-            'right.required'            => 'Поле видео в правой колонке обязательно для заполнения.',
-            'right.boolean'             => 'Поле видео в правой колонке должно быть логическим значением.',
+            'images.*.id.exists'        => 'Указанного изображения превью не существует (ID: :value).',
+            'images.*.id.prohibited'    => 'ID изображения превью нельзя передавать при создании.',
+            'images.*.order.min'        => 'Порядок изображения превью не может быть отрицательным.',
+            'images.*.file.required'    => 'Файл изображения превью обязателен для новых изображений.',
+            'images.*.file.image'       => 'Файл превью должен быть изображением.',
+            'images.*.file.mimes'       => 'Недопустимый формат файла превью. Разрешены: :values.',
+            'images.*.file.max'         => 'Файл превью слишком большой (макс. :max Кб).',
+            'images.*.file.required_without' => 'Файл изображения обязателен для новых изображений.',
 
-            'sections.array'            => 'Секции должны быть массивом.',
-            'articles.array'            => 'Теги должны быть массивом.',
-            'related_videos.array'      => 'Список связанных статей должен быть массивом.',
+            'deletedImages.*.exists'    => 'Попытка удалить несуществующее изображение превью (ID: :value).',
+        ]);
+    }
 
-            'images.array'              => 'Изображения должны быть массивом.',
-            'images.*.id.exists'        => 'Указанного изображения не существует.',
-            'images.*.file.image'       => 'Файл должен быть изображением.',
-            'images.*.file.mimes'       => 'Файл должен быть формата jpeg, jpg, png или webp.',
-            'images.*.file.max'         => 'Размер файла изображения не должен превышать 10 Мб.',
-        ];
+    /**
+     * Prepare the data for validation.
+     *
+     * @return void
+     */
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'activity' => filter_var($this->input('activity'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false,
+            'left' => filter_var($this->input('left'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false,
+            'main' => filter_var($this->input('main'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false,
+            'right' => filter_var($this->input('right'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false,
+        ]);
+
+        $this->merge([
+            'views' => is_numeric($this->input('views')) ? (int)$this->input('views') : 0,
+            'likes' => is_numeric($this->input('likes')) ? (int)$this->input('likes') : 0,
+        ]);
+
+        parent::prepareForValidation();
+        // Очистим поля в зависимости от source_type
+        if ($this->input('source_type') !== 'code') {
+            $this->merge(['embed_code' => null]);
+        }
+        if (! in_array($this->input('source_type'), ['youtube','vimeo'])) {
+            $this->merge(['external_video_id' => null]);
+        }
+        if ($this->input('source_type') !== 'local') {
+            $this->merge(['video_file' => null, 'video_url' => null]);
+        }
     }
 }

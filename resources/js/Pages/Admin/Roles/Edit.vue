@@ -1,4 +1,10 @@
 <script setup>
+/**
+ * @version PulsarCMS 1.0
+ * @author Александр Косолапов <kosolapov1976@gmail.com>
+ */
+import { useToast } from "vue-toastification";
+import { useI18n } from 'vue-i18n';
 import { defineProps, onMounted, watch } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
@@ -10,10 +16,14 @@ import InputError from '@/Components/Admin/Input/InputError.vue';
 import PrimaryButton from '@/Components/Admin/Buttons/PrimaryButton.vue';
 import DeleteButton from '@/Components/Admin/Buttons/DeleteButton.vue';
 import VueMultiselect from 'vue-multiselect';
-import { useI18n } from 'vue-i18n';
 
+// --- Инициализация ---
+const toast = useToast();
 const { t } = useI18n();
 
+/**
+ * Входные свойства компонента.
+ */
 const props = defineProps({
     role: {
         type: Object,
@@ -22,23 +32,45 @@ const props = defineProps({
     permissions: Array,
 });
 
+/**
+ * Формируем форму редактирования.
+ */
 const form = useForm({
     _method: 'PUT',
     name: props.role?.name ?? '',
     permissions: []
 });
 
+/**
+ * Отправляет данные формы для обновления.
+ */
 const submit = () => {
-    form.put(route('roles.update', props.role.id), {
-        onFinish: () => form.reset(),
+    form.put(route('admin.roles.update', props.role.id), {
+        preserveScroll: true,
+        onSuccess: () => {
+            // Действия при успехе (toast уведомление обычно делается через flash в HandleInertiaRequests)
+            toast.success('Роль успешно обновлена!');
+            // console.log("Форма успешно отправлена.");
+        },
+        onError: (errors) => {
+            console.error("Не удалось отправить форму:", errors);
+            // Можно показать toast с общей ошибкой или первой ошибкой из списка
+            const firstError = errors[Object.keys(errors)[0]];
+            toast.error(firstError || 'Пожалуйста, проверьте правильность заполнения полей.');
+        }
     });
 };
 
-// Инициализация с текущими разрешениями роли
+/**
+ * Инициализация с текущими разрешениями роли
+ */
 onMounted(() => {
     form.permissions = props.role?.permissions; // Инициализируем полные объекты разрешений
 });
 
+/**
+ * Наблюдатель текущих разрешений роли
+ */
 watch(
     () => props.role,
     () => (form.permissions = props.role?.permissions)
@@ -59,7 +91,7 @@ watch(
                         bg-opacity-95 dark:bg-opacity-95">
                 <div class="sm:flex sm:justify-between sm:items-center mb-2">
                     <!-- Кнопка назад -->
-                    <DefaultButton :href="route('roles.index')">
+                    <DefaultButton :href="route('admin.roles.index')">
                         <template #icon>
                             <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">
                                 <path d="M4.3 4.5c1.9-1.9 5.1-1.9 7 0 .7.7 1.2 1.7 1.4 2.7l2-.3c-.2-1.5-.9-2.8-1.9-3.8C10.1.4 5.7.4 2.9 3.1L.7.9 0 7.3l6.4-.7-2.1-2.1zM15.6 8.7l-6.4.7 2.1 2.1c-1.9 1.9-5.1 1.9-7 0-.7-.7-1.2-1.7-1.4-2.7l-2 .3c.2 1.5.9 2.8 1.9 3.8 1.4 1.4 3.1 2 4.9 2 1.8 0 3.6-.7 4.9-2l2.2 2.2.8-6.4z"></path>
@@ -102,7 +134,7 @@ watch(
                         </div>
 
                         <div class="flex items-center justify-center mt-4">
-                            <DefaultButton :href="route('roles.index')" class="mb-3">
+                            <DefaultButton :href="route('admin.roles.index')" class="mb-3">
                                 <template #icon>
                                     <!-- SVG -->
                                     <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">
@@ -160,7 +192,7 @@ watch(
                                     </td>
                                     <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
                                         <div class="flex justify-center">
-                                            <DeleteButton :href="route('roles.permissions.destroy',
+                                            <DeleteButton :href="route('admin.roles.permissions.destroy',
                                             [role.id, rolePermission.id])" />
                                         </div>
                                     </td>

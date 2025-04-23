@@ -1,6 +1,7 @@
 export default {
     accountManagement: 'Тіркелгіні басқару',
     activate: 'Белсенділікті қосу',
+    activated: 'іске қосылды',
     actions: 'Әрекеттер',
     active: 'Белсенді',
     activity: 'Белсенділік',
@@ -96,6 +97,7 @@ export default {
     data: 'Деректер',
     dataUploaded: 'деректер жүктеледі...',
     deactivate: 'Белсенділікті өшіру',
+    deactivated: 'өшірілген',
     defaultImageAlt: 'Әдепкі сурет',
     defaultImageTitle: 'Сурет орнатылмаған',
     delete: 'Жою',

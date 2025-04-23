@@ -7,72 +7,70 @@ use Illuminate\Validation\Rule;
 
 class SettingRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
+        // TODO: Проверка прав
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
+        $settingId = $this->route('setting')?->id ?? null;
+        // Получаем предполагаемый тип из запроса для условной валидации 'value'
+        $type = $this->input('type');
+
         return [
-            'type' => 'nullable|string|max:255',
+            // Добавляем Rule::in для известных типов
+            'type' => ['nullable', 'string', 'max:255',
+                Rule::in(['string', 'text', 'number', 'integer', 'float', 'boolean', 'checkbox', 'json', 'array', 'select'])], // TODO: Дополнить список типов
             'option' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('settings', 'option')->ignore($this->route('parameter')),
+                'required','string','max:255',
+                Rule::unique('settings', 'option')->ignore($settingId),
             ],
-            'value' => 'nullable|string',
+            // Основное правило - nullable, остальное проверяем в зависимости от 'type'
+            'value' => [
+                'nullable',
+                // Добавляем условные правила
+                Rule::when($type === 'number' || $type === 'integer' || $type === 'float', ['numeric']),
+                Rule::when($type === 'boolean' || $type === 'checkbox', ['boolean']), // Laravel сам обработает '1','0','true','false'
+                Rule::when($type === 'json' || $type === 'array', ['json']), // Проверяет строку на валидность JSON
+                // Для string/text/select дополнительные правила не нужны, кроме nullable
+            ],
             'constant' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('settings', 'constant')->ignore($this->route('parameter')),
+                'required','string','max:255','regex:/^[A-Z_]+$/',
+                Rule::unique('settings', 'constant')->ignore($settingId),
             ],
             'category' => 'nullable|string|max:255',
-            'description' => 'nullable|string',
-            'activity' => 'boolean',
+            'description' => 'nullable|string|max:65535',
+            'activity' => 'required|boolean',
         ];
     }
 
-    /**
-     * Get custom messages for validator errors.
-     *
-     * @return array
-     */
     public function messages(): array
     {
-        return [
-            'type.string' => 'Тип должен быть строкой.',
-            'type.max' => 'Тип не должен превышать 255 символов.',
-
-            'option.required' => 'Опция обязательна для заполнения.',
-            'option.string' => 'Опция должна быть строкой.',
-            'option.max' => 'Опция не должна превышать 255 символов.',
+        return array_merge(parent::messages(), [
+            'type.in' => 'Выбран недопустимый тип поля.',
+            'option.required' => 'Опция обязательна.',
             'option.unique' => 'Настройка с такой опцией уже существует.',
-
-            'value.string' => 'Значение должно быть строкой.',
-
-            'constant.required' => 'Константа обязательна для заполнения.',
-            'constant.string' => 'Константа должна быть строкой.',
-            'constant.max' => 'Константа не должна превышать 255 символов.',
+            'value.numeric' => 'Значение должно быть числом для выбранного типа.',
+            'value.boolean' => 'Значение должно быть Да/Нет (1/0) для выбранного типа.',
+            'value.json' => 'Значение должно быть корректной JSON строкой для выбранного типа.',
+            'constant.required' => 'Константа обязательна.',
             'constant.unique' => 'Настройка с такой константой уже существует.',
-
-            'category.string' => 'Категория должна быть строкой.',
-            'category.max' => 'Категория не должна превышать 255 символов.',
-
-            'description.string' => 'Описание должно быть строкой.',
-
-            'activity.boolean' => 'Поле активности должно быть логическим значением.',
-        ];
+            'constant.regex' => 'Константа должна содержать только БОЛЬШИЕ латинские буквы и подчеркивания.',
+            'activity.required' => 'Поле активности обязательно.',
+        ]);
     }
 
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'activity' => filter_var($this->input('activity'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false,
+        ]);
+        // Если тип 'boolean' или 'checkbox' и значение пришло как 'on' (от стандартного checkbox), преобразуем в true
+        if (($this->input('type') === 'boolean' || $this->input('type') === 'checkbox') && $this->input('value') === 'on') {
+            $this->merge(['value' => true]);
+        }
+        // Можно добавить другую подготовку, если нужно
+    }
 }

@@ -1,6 +1,7 @@
 export default {
     accountManagement: 'Account Management',
     activate: 'Activate',
+    activated: 'activated',
     actions: 'Actions',
     active: 'Active',
     activity: 'Activity',
@@ -96,6 +97,7 @@ export default {
     data: 'Data',
     dataUploaded: 'the data is being uploaded...',
     deactivate: 'Deactivate',
+    deactivated: 'deactivated',
     defaultImageAlt: 'Default Image',
     defaultImageTitle: 'Image Not Set',
     delete: 'Delete',

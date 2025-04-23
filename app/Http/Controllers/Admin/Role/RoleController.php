@@ -3,27 +3,59 @@
 namespace App\Http\Controllers\Admin\Role;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\Role\RoleRequest;
+use App\Http\Requests\Admin\Role\RoleRequest; // Используем
 use App\Http\Resources\Admin\Permission\PermissionResource;
 use App\Http\Resources\Admin\Role\RoleResource;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB; // Для транзакций
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
+use Throwable;
 
+/**
+ * Контроллер для управления Ролями в административной панели.
+ *
+ * Предоставляет CRUD операции.
+ *
+ * @version 1.1 (Улучшен с RMB, транзакциями, Form Requests)
+ * @author Александр Косолапов <kosolapov1976@gmail.com>
+ * @see \Spatie\Permission\Models\Role Модель Роли
+ * @see \App\Http\Requests\Admin\Role\RoleRequest Запрос для создания/обновления
+ */
 class RoleController extends Controller
 {
+    /**
+     * Отображение списка всех Ролей.
+     * Загружает пагинированный список с сортировкой по настройкам.
+     * Передает данные для отображения и настройки пагинации/сортировки.
+     * Пагинация и сортировка выполняются на фронтенде.
+     *
+     * @return Response
+     */
     public function index(): Response
     {
-        // Прямое получение ролей и их подсчёт без кэширования
-        $roles = Role::with('permissions')->get();
-        $rolesCount = Role::count();
+        // TODO: Проверка прав $this->authorize('show-roles', Role::class);
 
-        // Получаем значение параметра из конфигурации (оно загружается через AppServiceProvider)
-        $adminCountRoles = config('site_settings.AdminCountRoles', 10);
-        $adminSortRoles  = config('site_settings.AdminSortRoles', 'idDesc');
+        $adminCountRoles = config('site_settings.AdminCountRoles', 15);
+        $adminSortRoles  = config('site_settings.AdminSortRoles', 'nameAsc'); // Сортировка по имени по умолчанию
+
+        try {
+            // Загружаем ВСЕ роли с разрешениями
+            $roles = Role::with('permissions')->get();
+
+            $rolesCount = $roles->count(); // Считаем из загруженной коллекции
+
+        } catch (Throwable $e) {
+            Log::error("Ошибка загрузки ролей для Index: " . $e->getMessage());
+            $roles = collect(); // Пустая коллекция в случае ошибки
+            $rolesCount = 0;
+            session()->flash('error', 'Не удалось загрузить список ролей.');
+        }
 
         return Inertia::render('Admin/Roles/Index', [
             'roles' => RoleResource::collection($roles),
@@ -33,60 +65,150 @@ class RoleController extends Controller
         ]);
     }
 
+    /**
+     * Отображение формы создания новой роли.
+     *
+     * @return Response
+     */
     public function create(): Response
     {
-        // Прямое получение разрешений без кэширования
-        $permissions = Permission::all();
+        // TODO: Проверка прав $this->authorize('create-roles', Role::class);
+
+        // Загружаем только ID и имя разрешений
+        $permissions = Permission::select('id', 'name')->orderBy('name')->get();
 
         return Inertia::render('Admin/Roles/Create', [
-            'permissions' => PermissionResource::collection($permissions),
+            // Передаем коллекцию объектов (Resource не нужен для простого списка)
+            'permissions' => $permissions,
         ]);
     }
 
+    /**
+     * Сохранение новой роли в базе данных.
+     * Использует PermissionRequest для валидации и авторизации.
+     *
+     * @param RoleRequest $request
+     * @return RedirectResponse Редирект на список статей с сообщением.
+     */
     public function store(RoleRequest $request): RedirectResponse
     {
+        // authorize() в RoleRequest
         $data = $request->validated();
-        $role = Role::create(['name' => $data['name']]);
-        if ($request->filled('permissions')) {
-            $role->syncPermissions($request->input('permissions'));
-        }
+        // Получаем ID разрешений (реквест уже проверил их существование)
+        $permissionIds = collect($data['permissions'] ?? [])->pluck('id')->toArray();
 
-        return redirect()->route('roles.index')
-            ->with('success', 'Роль успешно создана.');
+        try {
+            // Транзакция не строго обязательна, но не помешает
+            DB::beginTransaction();
+
+            $role = Role::create([
+                'name' => $data['name'],
+                // Устанавливаем guard по умолчанию или из запроса, если валидировали
+                'guard_name' => $data['guard_name'] ?? 'web'
+            ]);
+            $role->syncPermissions($permissionIds); // Синхронизируем по ID
+
+            DB::commit();
+            Log::info('Роль успешно создана:', ['id' => $role->id, 'name' => $role->name]);
+            return redirect()->route('admin.roles.index')->with('success', 'Роль успешно создана.');
+
+        } catch (Throwable $e) {
+            DB::rollBack();
+            Log::error("Ошибка при создании роли: " . $e->getMessage());
+            return back()->withInput()->withErrors(['general' => 'Произошла ошибка при создании роли.']);
+        }
     }
 
-    public function edit(string $id): Response
+    /**
+     * Отображение формы редактирования существующей роли.
+     * Использует Route Model Binding для получения модели.
+     *
+     * @param Role $role Модель роли, найденная по ID из маршрута.
+     * @return Response
+     */
+    public function edit(Role $role): Response // Используем RMB
     {
-        // Получаем роль и разрешения напрямую, без кэша
-        $role = Role::with('permissions')->findOrFail($id);
-        $permissions = Permission::all();
+        // TODO: Проверка прав $this->authorize('edit-roles', $role);
+
+        // Загружаем разрешения, назначенные этой роли
+        $role->load('permissions:id,name'); // Загружаем только id и name
+
+        // Загружаем все разрешения для списка выбора
+        $permissions = Permission::select('id', 'name')->orderBy('name')->get();
 
         return Inertia::render('Admin/Roles/Edit', [
             'role' => new RoleResource($role),
-            'permissions' => PermissionResource::collection($permissions),
+            'permissions' => $permissions, // Передаем коллекцию для выбора
         ]);
     }
 
-    public function update(RoleRequest $request, string $id): RedirectResponse
+    /**
+     * Обновление существующей роли в базе данных.
+     * Использует RoleRequest и Route Model Binding.
+     *
+     * @param RoleRequest $request Валидированный запрос.
+     * @param Role $role Модель разрешения для обновления.
+     * @return RedirectResponse Редирект на список разрешений с сообщением.
+     */
+    public function update(RoleRequest $request, Role $role): RedirectResponse // Используем RMB
     {
-        $role = Role::findById($id);
-        $validatedData = $request->validated();
-        $role->update(['name' => $validatedData['name']]);
-        if ($request->filled('permissions')) {
-            $role->syncPermissions($request->input('permissions'));
+        // authorize() в RoleRequest
+        $data = $request->validated();
+        $permissionIds = collect($data['permissions'] ?? null)->pluck('id')->toArray();
+
+        try {
+            // Транзакция не строго обязательна
+            $role->update(['name' => $data['name']]); // Обновляем только имя (guard обычно не меняют)
+
+            // Синхронизируем разрешения, только если массив permissions передан
+            if ($request->has('permissions')) {
+                $role->syncPermissions($permissionIds);
+            }
+
+            Log::info('Роль обновлена:', ['id' => $role->id, 'name' => $role->name]);
+            // Очищаем кэш разрешений Spatie
+            app()[PermissionRegistrar::class]->forgetCachedPermissions();
+            return redirect()->route('admin.roles.index')->with('success', 'Роль успешно обновлена.');
+
+        } catch (Throwable $e) {
+            Log::error("Ошибка при обновлении роли ID {$role->id}: " . $e->getMessage());
+            return back()->withInput()->withErrors(['general' => 'Произошла ошибка при обновлении роли.']);
         }
-
-        return redirect()->route('roles.index')
-            ->with('success', 'Роль успешно обновлена.');
     }
 
-    public function destroy(string $id): RedirectResponse
+    /**
+     * Удаление указанной роли.
+     * Использует Route Model Binding.
+     *
+     * @param Role $role Модель роли для удаления.
+     * @return RedirectResponse Редирект на список ролей с сообщением.
+     */
+    public function destroy(Role $role): RedirectResponse // Используем RMB
     {
-        $role = Role::findById($id);
-        $role->delete();
+        // TODO: Проверка прав $this->authorize('delete-roles', $role);
+        // TODO: Добавить проверку, нельзя ли удалить базовые роли (super-admin)
 
-        // Log::info('Role deleted:', $role->toArray());
+        if (in_array($role->name, ['super-admin', 'admin'])) { // Пример запрета удаления
+            return redirect()->route('admin.roles.index')
+                ->with('error', 'Запрещено удалять базовые роли.');
+        }
+        // TODO: Проверить, назначена ли роль пользователям? Запретить удаление или отсоединить?
+        // if ($role->users()->count() > 0) { ... }
 
-        return back();
+        try {
+            DB::beginTransaction();
+            $role->delete(); // Spatie удалит связи в role_has_permissions и model_has_roles
+            DB::commit();
+            Log::info('Роль удалена:', ['id' => $role->id, 'name' => $role->name]);
+            // Очищаем кэш разрешений Spatie
+            app()[PermissionRegistrar::class]->forgetCachedPermissions();
+            return redirect()->route('admin.roles.index')
+                ->with('success', 'Роль успешно удалена.');
+        } catch (Throwable $e) {
+            DB::rollBack();
+            Log::error("Ошибка при удалении роли ID {$role->id}: " . $e->getMessage());
+            return back()->withErrors(['general' => 'Произошла ошибка при удалении роли.']);
+        }
     }
+
 }

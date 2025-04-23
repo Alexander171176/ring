@@ -1,7 +1,12 @@
 <script setup>
+/**
+ * @version PulsarCMS 1.0
+ * @author Александр Косолапов <kosolapov1976@gmail.com>
+ */
+import { useToast } from "vue-toastification";
+import { useI18n } from 'vue-i18n';
+import { transliterate } from '@/utils/transliteration';
 import {defineProps, onMounted, ref} from 'vue';
-import {transliterate} from '@/utils/transliteration';
-import {useI18n} from 'vue-i18n';
 import {useForm} from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import TitlePage from '@/Components/Admin/Headlines/TitlePage.vue';
@@ -23,18 +28,27 @@ import VueMultiselect from 'vue-multiselect';
 // Импорт двух отдельных компонентов для работы с изображениями:
 import MultiImageUpload from '@/Components/Admin/Image/MultiImageUpload.vue'; // для загрузки новых изображений
 import MultiImageEdit from '@/Components/Admin/Image/MultiImageEdit.vue';
-import VideoSourceFields from "@/Components/Admin/Video/Upload/VideoSourceFields.vue"; // для редактирования существующих
 
+import VideoSourceFields from "@/Components/Admin/Video/Upload/VideoSourceFields.vue"; // для видео
+
+// --- Инициализация ---
+const toast = useToast();
 const { t } = useI18n();
 
+/**
+ * Входные свойства компонента.
+ */
 const props = defineProps({
     video: { type: Object, required: true },
+    video_url: String,
     sections: Array,
     articles: Array,
     related_videos: { type: Array, default: () => [] } // задаём дефолтное значение
 });
 
-// Формируем форму редактирования статьи
+/**
+ * Формируем форму редактирования.
+ */
 const form = useForm({
     _method: 'PUT',
     sort: props.video.sort ?? 0,
@@ -49,10 +63,8 @@ const form = useForm({
         : '',
     duration: props.video.duration ?? '',
     source_type: props.video.source_type ?? '',
-    video_url: props.video.video_url ?? '',
-    external_video_id: props.video.external_video_id ?? '',
-    views: props.video.views ?? '',
-    likes: props.video.likes ?? '',
+    views: props.video.views ?? 0,
+    likes: props.video.likes ?? 0,
     meta_title: props.video.meta_title ?? '',
     meta_keywords: props.video.meta_keywords ?? '',
     meta_desc: props.video.meta_desc ?? '',
@@ -64,7 +76,10 @@ const form = useForm({
     articles: props.video.articles ?? [],
     related_videos: props.video.related_videos ?? [],
     deletedImages: [],// массив для хранения ID удалённых изображений
-    video_file: null
+    embed_code: props.video.source_type === 'code' ? props.video.embed_code : '',
+    video_url: props.video_url ?? '',
+    external_video_id: props.video.external_video_id ?? '',
+    video_file: null,
 });
 
 // Функция форматирования даты
@@ -75,54 +90,26 @@ const formatDate = (dateStr) => {
     return date.toISOString().split('T')[0];
 };
 
+/**
+ * Монтируем формат даты.
+ */
 onMounted(() => {
     if (form.published_at) {
         form.published_at = formatDate(form.published_at);
     }
 });
 
+/**
+ * загрузчик локального видео.
+ */
 const handleVideoFileUpload = (event) => {
     // Сохраняем файл в форме (при необходимости добавьте поле video_file в useForm)
     form.video_file = event.target.files[0];
 };
 
-// автоматическое заполнение поля url
-const handleUrlInputFocus = () => {
-    if (form.title) {
-        form.url = transliterate(form.title.toLowerCase());
-    }
-};
-
-// количество символов в поле при генерации SEO
-const truncateText = (text, maxLength, addEllipsis = false) => {
-    if (text.length <= maxLength) return text;
-    const truncated = text.substr(0, text.lastIndexOf(' ', maxLength));
-    return addEllipsis ? `${truncated}...` : truncated;
-};
-
-// очистка мета-тегов
-const clearMetaFields = () => {
-    form.meta_title = '';
-    form.meta_keywords = '';
-    form.meta_desc = '';
-};
-
-// автоматическая генерация мета-тегов
-const generateMetaFields = () => {
-    if (form.title && !form.meta_title) {
-        form.meta_title = truncateText(form.title, 160);
-    }
-    if (form.short && !form.meta_keywords) {
-        // Убираем HTML-теги, разбиваем строку на слова и объединяем через запятую
-        const stripped = form.short.replace(/(<([^>]+)>)/gi, "");
-        form.meta_keywords = stripped.split(/\s+/).filter(word => word.length > 0).join(', ');
-    }
-    if (form.description && !form.meta_desc) {
-        form.meta_desc = truncateText(form.description.replace(/(<([^>]+)>)/gi, ""), 255, true);
-    }
-};
-
-// Массив для существующих изображений
+/**
+ * Массив существующих изображений.
+ */
 const existingImages = ref(
     (props.video.images || [])
         .filter(img => img.url) // фильтруем изображения, у которых есть URL
@@ -136,15 +123,21 @@ const existingImages = ref(
         }))
 );
 
-// Массив для новых изображений (будут содержать свойство file)
+/**
+ * Массив для новых изображений (будут содержать свойство file).
+ */
 const newImages = ref([]);
 
-// Обработчик обновления существующих изображений, приходящих из компонента MultiImageEdit
+/**
+ * Обработчик обновления существующих изображений, приходящих из компонента MultiImageEdit.
+ */
 const handleExistingImagesUpdate = (images) => {
     existingImages.value = images;
 };
 
-// Обработчик удаления изображения из существующего списка
+/**
+ * Обработчик удаления изображения из существующего списка.
+ */
 const handleDeleteExistingImage = (deletedId) => {
     if (!form.deletedImages.includes(deletedId)) {
         form.deletedImages.push(deletedId);
@@ -154,12 +147,61 @@ const handleDeleteExistingImage = (deletedId) => {
     // console.log("Remaining images:", existingImages.value);
 };
 
-// Обработчик обновления новых изображений из компонента MultiImageUpload
+/**
+ * Обработчик обновления новых изображений из компонента MultiImageUpload.
+ */
 const handleNewImagesUpdate = (images) => {
     newImages.value = images;
 };
 
-// метод сохранения
+/**
+ * Автоматически генерирует URL из поля title, если URL пуст.
+ */
+const handleUrlInputFocus = () => {
+    if (form.title) {
+        form.url = transliterate(form.title.toLowerCase());
+    }
+};
+
+/**
+ * Обрезает текст до заданной длины, стараясь не разрывать слова при генерации мета-тегов.
+ */
+const truncateText = (text, maxLength, addEllipsis = false) => {
+    if (text.length <= maxLength) return text;
+    const truncated = text.substr(0, text.lastIndexOf(' ', maxLength));
+    return addEllipsis ? `${truncated}...` : truncated;
+};
+
+/**
+ * очистка мета-тегов.
+ */
+const clearMetaFields = () => {
+    form.meta_title = '';
+    form.meta_keywords = '';
+    form.meta_desc = '';
+};
+
+/**
+ * Генерирует значения для мета-полей (title, keywords, description),
+ * если они не были заполнены вручную.
+ */
+const generateMetaFields = () => {
+    if (form.title && !form.meta_title) {
+        form.meta_title = truncateText(form.title, 160);
+    }
+    if (form.short && !form.meta_keywords) {
+        // Убираем HTML-теги, разбиваем строку на слова и объединяем через запятую
+        const stripped = form.short.replace(/(<([^>]+)>)/gi, "");
+        form.meta_keywords = stripped.split(/\s+/).filter(word => word.length > 0).join(', ');
+    }
+    if (form.short && !form.meta_desc) {
+        form.meta_desc = truncateText(form.short.replace(/(<([^>]+)>)/gi, ""), 255, true);
+    }
+};
+
+/**
+ * Отправляет данные формы для обновления.
+ */
 const submitForm = () => {
     // Используем transform для объединения данных формы с массивами новых и существующих изображений
     form.transform((data) => ({
@@ -185,14 +227,17 @@ const submitForm = () => {
         deletedImages: form.deletedImages
     }));
 
-    form.post(route('videos.update', props.video.id), {
+    form.post(route('admin.videos.update', props.video.id), {
         preserveScroll: true,
         forceFormData: true, // Принудительно отправляем как FormData
         onSuccess: (page) => {
             //console.log("Edit.vue onSuccess:", page);
+            toast.success('Видео успешно обновлено!');
         },
         onError: (errors) => {
             console.error("❌ Ошибка при обновлении статьи:", errors);
+            const firstError = errors[Object.keys(errors)[0]];
+            toast.error(firstError || 'Пожалуйста, проверьте правильность заполнения полей.')
         }
     });
 };
@@ -211,7 +256,7 @@ const submitForm = () => {
                         bg-opacity-95 dark:bg-opacity-95">
                 <div class="sm:flex sm:justify-between sm:items-center mb-2">
                     <!-- Кнопка назад -->
-                    <DefaultButton :href="route('videos.index')">
+                    <DefaultButton :href="route('admin.videos.index')">
                         <template #icon>
                             <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">
                                 <path d="M4.3 4.5c1.9-1.9 5.1-1.9 7 0 .7.7 1.2 1.7 1.4 2.7l2-.3c-.2-1.5-.9-2.8-1.9-3.8C10.1.4 5.7.4 2.9 3.1L.7.9 0 7.3l6.4-.7-2.1-2.1zM15.6 8.7l-6.4.7 2.1 2.1c-1.9 1.9-5.1 1.9-7 0-.7-.7-1.2-1.7-1.4-2.7l-2 .3c.2 1.5.9 2.8 1.9 3.8 1.4 1.4 3.1 2 4.9 2 1.8 0 3.6-.7 4.9-2l2.2 2.2.8-6.4z"></path>
@@ -419,8 +464,26 @@ const submitForm = () => {
                             v-model="form.source_type"
                             v-model:video-url="form.video_url"
                             v-model:external-video-id="form.external_video_id"
-                            v-model:video-file="form.video_file" />
-                        <InputError class="mt-2" :message="form.errors.external_video_id"/>
+                            v-model:video-file="form.video_file"
+                            v-model:embed-code="form.embed_code" />
+                        <InputError v-if="form.errors.embed_code"
+                                    class="mt-2"
+                                    :message="form.errors.embed_code"/>
+                        <InputError v-if="form.errors.external_video_id"
+                                    class="mt-2"
+                                    :message="form.errors.external_video_id"/>
+                    </div>
+
+                    <!-- Блок просмотра кода видео -->
+                    <div v-if="form.source_type === 'code' && form.embed_code"
+                         class="mt-4">
+
+                        <LabelInput :value="t('view')" class="mb-1"/>
+
+                        <!-- тут рендерим чистый HTML-код -->
+                        <div v-html="form.embed_code"
+                             class="border rounded p-4 bg-white dark:bg-slate-800">
+                        </div>
                     </div>
 
                     <!-- Мультиселект для связанных видео -->
@@ -547,7 +610,7 @@ const submitForm = () => {
 
                     <!-- кнопка сохранения -->
                     <div class="flex items-center justify-center mt-4">
-                        <DefaultButton :href="route('videos.index')" class="mb-3">
+                        <DefaultButton :href="route('admin.videos.index')" class="mb-3">
                             <template #icon>
                                 <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">
                                     <path d="M4.3 4.5c1.9-1.9 5.1-1.9 7 0 .7.7 1.2 1.7 1.4 2.7l2-.3c-.2-1.5-.9-2.8-1.9-3.8C10.1.4 5.7.4 2.9 3.1L.7.9 0 7.3l6.4-.7-2.1-2.1zM15.6 8.7l-6.4.7 2.1 2.1c-1.9 1.9-5.1 1.9-7 0-.7-.7-1.2-1.7-1.4-2.7l-2 .3c-.2 1.5.9 2.8 1.9 3.8 1.4 1.4 3.1 2 4.9 2 1.8 0 3.6-.7 4.9-2l2.2 2.2 .8-6.4z"></path>

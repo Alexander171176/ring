@@ -1,4 +1,10 @@
 <script setup>
+/**
+ * @version PulsarCMS 1.0
+ * @author Александр Косолапов <kosolapov1976@gmail.com>
+ */
+import { useToast } from "vue-toastification";
+import { useI18n } from 'vue-i18n';
 import { defineProps } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
@@ -8,10 +14,14 @@ import LabelInput from '@/Components/Admin/Input/LabelInput.vue';
 import InputText from '@/Components/Admin/Input/InputText.vue';
 import InputError from '@/Components/Admin/Input/InputError.vue';
 import PrimaryButton from '@/Components/Admin/Buttons/PrimaryButton.vue';
-import { useI18n } from 'vue-i18n';
 
+// --- Инициализация ---
+const toast = useToast();
 const { t } = useI18n();
 
+/**
+ * Входные свойства компонента.
+ */
 const props = defineProps({
     permission: {
         type: Object,
@@ -19,13 +29,30 @@ const props = defineProps({
     },
 });
 
+/**
+ * Формируем форму редактирования.
+ */
 const form = useForm({
     name: props.permission?.name,
 });
 
+/**
+ * Отправляет данные формы для обновления.
+ */
 const submit = () => {
-    form.put(route('permissions.update', props.permission.id), {
-        onFinish: () => form.reset(),
+    form.put(route('admin.permissions.update', props.permission.id), {
+        preserveScroll: true,
+        onSuccess: () => {
+            // Действия при успехе (toast уведомление обычно делается через flash в HandleInertiaRequests)
+            toast.success('Разрешение успешно обновлено!');
+            // console.log("Форма успешно отправлена.");
+        },
+        onError: (errors) => {
+            console.error("Не удалось отправить форму:", errors);
+            // Можно показать toast с общей ошибкой или первой ошибкой из списка
+            const firstError = errors[Object.keys(errors)[0]];
+            toast.error(firstError || 'Пожалуйста, проверьте правильность заполнения полей.');
+        }
     });
 };
 </script>
@@ -44,7 +71,7 @@ const submit = () => {
                         bg-opacity-95 dark:bg-opacity-95">
                 <div class="sm:flex sm:justify-between sm:items-center mb-2">
                     <!-- Кнопка назад -->
-                    <DefaultButton :href="route('permissions.index')">
+                    <DefaultButton :href="route('admin.permissions.index')">
                         <template #icon>
                             <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">
                                 <path
@@ -75,7 +102,7 @@ const submit = () => {
                     </div>
 
                     <div class="flex items-center justify-center mt-4">
-                        <DefaultButton :href="route('permissions.index')" class="mb-3">
+                        <DefaultButton :href="route('admin.permissions.index')" class="mb-3">
                             <template #icon>
                                 <!-- SVG -->
                                 <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">

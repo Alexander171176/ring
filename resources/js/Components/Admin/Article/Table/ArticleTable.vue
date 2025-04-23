@@ -1,5 +1,5 @@
 <script setup>
-import { defineProps, defineEmits } from 'vue';
+import {defineProps, defineEmits, watch, ref} from 'vue';
 import { useI18n } from 'vue-i18n';
 import draggable from 'vuedraggable';
 import LeftToggle from "@/Components/Admin/Buttons/LeftToggle.vue";
@@ -25,24 +25,45 @@ const emits = defineEmits([
     'toggle-activity',
     'edit',
     'delete',
-    'recalculate-sort',
+    'update-sort-order',
     'clone',
-    'toggle-select'
+    'toggle-select',
+    'toggle-all'
 ]);
 
-const recalculateSort = (event) => {
-    emits('recalculate-sort', event);
+// Функция форматирования даты
+const formatDate = (dateStr) => {
+    if (!dateStr) return ''
+    const d = new Date(dateStr)
+    if (isNaN(d)) return ''
+    return d.toLocaleDateString('ru-RU', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    })
+}
+
+// --- Локальная копия для vuedraggable ---
+const localArticles = ref([]);
+
+// --- Следим за изменением props.articles и обновляем локальную копию ---
+watch(() => props.articles, (newVal) => {
+    // Создаем глубокую копию, чтобы избежать мутации props
+    localArticles.value = JSON.parse(JSON.stringify(newVal || []));
+}, { immediate: true, deep: true }); // immediate: true для инициализации
+
+// --- Функция, вызываемая vuedraggable после завершения перетаскивания ---
+const handleDragEnd = () => {
+    // Отправляем НОВЫЙ ПОРЯДОК ID из локального массива
+    const newOrderIds = localArticles.value.map(article => article.id);
+    emits('update-sort-order', newOrderIds); // Отправляем массив ID
 };
 
+// --- Логика массовых действий ---
 const toggleAll = (event) => {
-    const isChecked = event.target.checked;
-    props.articles.forEach(article => {
-        if (isChecked && !props.selectedArticles.includes(article.id)) {
-            emits('toggle-select', article.id);
-        } else if (!isChecked && props.selectedArticles.includes(article.id)) {
-            emits('toggle-select', article.id);
-        }
-    });
+    const checked = event.target.checked;
+    const ids = localArticles.value.map(r => r.id);
+    emits('toggle-all', { ids, checked });
 };
 
 // Функция для выбора изображения с наименьшим значением order
@@ -112,7 +133,7 @@ const getPrimaryImage = (article) => {
                     </th>
                 </tr>
                 </thead>
-                <draggable tag="tbody" :list="articles" @end="recalculateSort" itemKey="id">
+                <draggable tag="tbody" v-model="localArticles" @end="handleDragEnd" itemKey="id">
                     <template #item="{ element: article }">
                         <tr class="text-sm font-semibold border-b-2 hover:bg-slate-100 dark:hover:bg-cyan-800">
                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
@@ -143,7 +164,10 @@ const getPrimaryImage = (article) => {
                                 </div>
                             </td>
                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
-                                <div class="text-left text-teal-600 dark:text-violet-200">{{ article.title }}</div>
+                                <div class="text-left text-teal-600 dark:text-violet-200"
+                                     :title="formatDate(article.published_at)">
+                                    {{ article.title }}
+                                </div>
                             </td>
                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
                                 <div class="text-left">
@@ -181,7 +205,7 @@ const getPrimaryImage = (article) => {
                                                     @toggle-activity="$emit('toggle-activity', article)"
                                                     :title="article.activity ? t('enabled') : t('disabled')"/>
                                     <CloneIconButton @clone="$emit('clone', article)"/>
-                                    <IconEdit :href="route('articles.edit', article.id)" />
+                                    <IconEdit :href="route('admin.articles.edit', article.id)" />
                                     <DeleteIconButton @delete="$emit('delete', article.id)"/>
                                 </div>
                             </td>

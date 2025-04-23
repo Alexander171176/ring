@@ -7,10 +7,13 @@ import DeleteIconButton from '@/Components/Admin/Buttons/DeleteIconButton.vue';
 const {t} = useI18n();
 
 const props = defineProps({
-    users: Array
+    users: Array,
+    roles: Array,
+    permissions: Array,
 });
 
 const emits = defineEmits(['edit', 'delete']);
+
 </script>
 
 <template>
@@ -30,6 +33,9 @@ const emits = defineEmits(['edit', 'delete']);
                     </th>
                     <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
                         <div class="font-semibold text-left">{{ t('email') }}</div>
+                    </th>
+                    <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
+                        <div class="font-semibold text-left">{{ t('roles') }}</div>
                     </th>
                     <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
                         <div class="font-semibold text-end">{{ t('actions') }}</div>
@@ -54,7 +60,7 @@ const emits = defineEmits(['edit', 'delete']);
                     </td>
                     <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
                         <div class="flex justify-end space-x-2">
-                            <IconEdit :href="route('users.edit', user.id)" />
+                            <IconEdit :href="route('admin.users.edit', user.id)"/>
                             <DeleteIconButton @delete="$emit('delete', user.id)"/>
                         </div>
                     </td>

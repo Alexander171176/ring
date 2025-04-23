@@ -1,7 +1,12 @@
 <script setup>
-import {defineProps, onMounted} from 'vue';
-import {transliterate} from '@/utils/transliteration';
+/**
+ * @version PulsarCMS 1.0
+ * @author Александр Косолапов <kosolapov1976@gmail.com>
+ */
+import {useToast} from "vue-toastification";
 import {useI18n} from 'vue-i18n';
+import {transliterate} from '@/utils/transliteration';
+import {defineProps, onMounted} from 'vue';
 import {useForm} from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import TitlePage from '@/Components/Admin/Headlines/TitlePage.vue';
@@ -21,9 +26,13 @@ import MultiImageUpload from "@/Components/Admin/Image/MultiImageUpload.vue";
 import VueMultiselect from 'vue-multiselect';
 import VideoSourceFields from "@/Components/Admin/Video/Upload/VideoSourceFields.vue";
 
+// --- Инициализация ---
+const toast = useToast();
 const {t} = useI18n();
 
-// пустой массив рубрик
+/**
+ * Входные свойства компонента.
+ */
 defineProps({
     sections: Array,
     articles: Array,
@@ -31,7 +40,9 @@ defineProps({
     related_videos: {type: Array, default: () => []} // задаём дефолтное значение
 })
 
-// пустая форма
+/**
+ * Форма для создания.
+ */
 const form = useForm({
     sort: 0,
     locale: '',
@@ -41,12 +52,8 @@ const form = useForm({
     description: '',
     author: '',
     published_at: '',     // дата публикации
-    duration: '',         // длительность видео (в секундах)
-    source_type: 'local', // тип источника (по умолчанию local)
-    video_url: '',        // URL файла локального видео (если применяется)
-    external_video_id: '',// идентификатор видео из внешнего сервиса
-    views: '',
-    likes: '',
+    views: 0,
+    likes: 0,
     meta_title: '',
     meta_keywords: '',
     meta_desc: '',
@@ -58,10 +65,17 @@ const form = useForm({
     articles: [],
     related_videos: [],
     images: [], // Добавляем массив для загруженных изображений
-    video_file: null
+    embed_code: '',
+    source_type: 'local', // тип источника (по умолчанию local)
+    duration: '',         // длительность видео (в секундах)
+    external_video_id: '',// идентификатор видео из внешнего сервиса
+    video_url: '',        // URL файла локального видео (если применяется)
+    video_file: null,
 });
 
-// Функция форматирования даты
+/**
+ * Функция форматирования даты.
+ */
 const formatDate = (dateStr) => {
     if (!dateStr) return '';
     const date = new Date(dateStr);
@@ -69,32 +83,45 @@ const formatDate = (dateStr) => {
     return date.toISOString().split('T')[0];
 };
 
+/**
+ * Монтируем формат даты.
+ */
 onMounted(() => {
     if (form.published_at) {
         form.published_at = formatDate(form.published_at);
     }
 });
 
+/**
+ * загрузчик локального видео.
+ */
 const handleVideoFileUpload = (event) => {
     // Сохраняем файл в форме (при необходимости добавьте поле video_file в useForm)
     form.video_file = event.target.files[0];
 };
 
-// автоматическое заполнение поля url
+/**
+ * Автоматически генерирует URL из поля title, если URL пуст.
+ */
 const handleUrlInputFocus = () => {
     if (form.title) {
         form.url = transliterate(form.title.toLowerCase());
     }
 };
 
-// количество символов в поле при генерации SEO
+/**
+ * Обрезает текст до заданной длины, стараясь не разрывать слова при генерации мета-тегов.
+ */
 const truncateText = (text, maxLength, addEllipsis = false) => {
     if (text.length <= maxLength) return text;
     const truncated = text.substr(0, text.lastIndexOf(' ', maxLength));
     return addEllipsis ? `${truncated}...` : truncated;
 };
 
-// автоматическая генерация мета-тегов
+/**
+ * Генерирует значения для мета-полей (title, keywords, description),
+ * если они не были заполнены вручную.
+ */
 const generateMetaFields = () => {
     if (form.title && !form.meta_title) {
         form.meta_title = truncateText(form.title, 160);
@@ -104,14 +131,16 @@ const generateMetaFields = () => {
         const stripped = form.short.replace(/(<([^>]+)>)/gi, "");
         form.meta_keywords = stripped.split(/\s+/).filter(word => word.length > 0).join(', ');
     }
-    if (form.description && !form.meta_desc) {
-        form.meta_desc = truncateText(form.description.replace(/(<([^>]+)>)/gi, ""), 255, true);
+    if (form.short && !form.meta_desc) {
+        form.meta_desc = truncateText(form.short.replace(/(<([^>]+)>)/gi, ""), 255, true);
     }
 };
 
-// метод сохранения
+/**
+ * Отправляет данные формы для создания.
+ */
 const submitForm = () => {
-    //console.log("📌 Отправляемые изображения перед трансформацией:", form.images);
+    //console.log("Отправляемые изображения перед трансформацией:", form.images);
 
     form.transform((data) => ({
         ...data,
@@ -122,23 +151,28 @@ const submitForm = () => {
 
         images: form.images.map(image => {
             if (image.file) {
-                return {file: image.file, order: image.order, alt: image.alt, caption: image.caption}; // ✅ Новое изображение
+                return {file: image.file, order: image.order, alt: image.alt, caption: image.caption}; // Новое изображение
             }
             if (image.id) {
-                return {id: Number(image.id), order: image.order, alt: image.alt, caption: image.caption}; // ✅ Существующее изображение
+                return {id: Number(image.id), order: image.order, alt: image.alt, caption: image.caption}; // Существующее изображение
             }
-        }).filter(Boolean) // ❌ Убираем undefined/null
+        }).filter(Boolean), // Убираем undefined/null
     }));
 
-    //console.log("✅ Отправляемые изображения после трансформации:", form.images);
+    //console.log("Отправляемые изображения после трансформации:", form.images);
 
-    form.post(route('videos.store'), {
+    form.post(route('admin.videos.store'), {
         preserveScroll: true,
         onSuccess: () => {
-            //console.log("✔️ Форма успешно отправлена.");
+            // Действия при успехе (toast уведомление обычно делается через flash в HandleInertiaRequests)
+            toast.success('Видео успешно создано!');
+            // console.log("Форма успешно отправлена.");
         },
         onError: (errors) => {
-            console.error("❌ Ошибка при отправке формы:", errors);
+            console.error("Не удалось отправить форму:", errors);
+            // Можно показать toast с общей ошибкой или первой ошибкой из списка
+            const firstError = errors[Object.keys(errors)[0]];
+            toast.error(firstError || 'Пожалуйста, проверьте правильность заполнения полей.');
         }
     });
 };
@@ -159,7 +193,7 @@ const submitForm = () => {
                         bg-opacity-95 dark:bg-opacity-95">
                 <div class="sm:flex sm:justify-between sm:items-center mb-2">
                     <!-- Кнопка назад -->
-                    <DefaultButton :href="route('videos.index')">
+                    <DefaultButton :href="route('admin.videos.index')">
                         <template #icon>
                             <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">
                                 <path
@@ -368,8 +402,26 @@ const submitForm = () => {
                             v-model="form.source_type"
                             v-model:video-url="form.video_url"
                             v-model:external-video-id="form.external_video_id"
-                            v-model:video-file="form.video_file" />
-                        <InputError class="mt-2" :message="form.errors.external_video_id"/>
+                            v-model:video-file="form.video_file"
+                            v-model:embed-code="form.embed_code" />
+                        <InputError v-if="form.errors.embed_code"
+                                    class="mt-2"
+                                    :message="form.errors.embed_code"/>
+                        <InputError v-if="form.errors.external_video_id"
+                                    class="mt-2"
+                                    :message="form.errors.external_video_id"/>
+                    </div>
+
+                    <!-- Блок просмотра кода видео -->
+                    <div v-if="form.source_type === 'code' && form.embed_code"
+                         class="mt-4">
+
+                        <LabelInput :value="t('view')" class="mb-1"/>
+
+                        <!-- тут рендерим чистый HTML-код -->
+                        <div v-html="form.embed_code"
+                             class="border rounded p-4 bg-white dark:bg-slate-800">
+                        </div>
                     </div>
 
                     <!-- Мультиселект для связанных видео -->
@@ -392,7 +444,7 @@ const submitForm = () => {
                             <InputNumber
                                 id="views"
                                 type="number"
-                                v-model="form.views"
+                                v-model.number="form.views"
                                 autocomplete="views"
                             />
                             <InputError class="mt-2" :message="form.errors.views"/>
@@ -403,7 +455,7 @@ const submitForm = () => {
                             <InputNumber
                                 id="likes"
                                 type="number"
-                                v-model="form.likes"
+                                v-model.number="form.likes"
                                 autocomplete="likes"
                             />
                             <InputError class="mt-2" :message="form.errors.likes"/>
@@ -476,7 +528,7 @@ const submitForm = () => {
 
                     <!-- кнопка сохранения -->
                     <div class="flex items-center justify-center mt-4">
-                        <DefaultButton :href="route('videos.index')" class="mb-3">
+                        <DefaultButton :href="route('admin.videos.index')" class="mb-3">
                             <template #icon>
                                 <!-- SVG -->
                                 <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">

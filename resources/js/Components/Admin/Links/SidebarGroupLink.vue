@@ -14,8 +14,8 @@ const {t} = useI18n();
 </script>
 
 <template>
-    <SidebarLink :href="route('admin')"
-                 :active="route().current('admin')"
+    <SidebarLink :href="route('admin.index')"
+                 :active="route().current('admin.index')"
                  :expanded="props.expanded">
         <template #default>
             <svg class="shrink-0 h-6 w-6" viewBox="0 0 24 24">

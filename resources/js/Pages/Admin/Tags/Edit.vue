@@ -1,4 +1,9 @@
 <script setup>
+/**
+ * @version PulsarCMS 1.0
+ * @author Александр Косолапов <kosolapov1976@gmail.com>
+ */
+import { useToast } from 'vue-toastification';
 import { useI18n } from 'vue-i18n';
 import {transliterate} from '@/utils/transliteration';
 import { defineProps } from 'vue';
@@ -14,9 +19,18 @@ import SelectLocale from "@/Components/Admin/Select/SelectLocale.vue";
 import MetaDescTextarea from "@/Components/Admin/Textarea/MetaDescTextarea.vue";
 import MetatagsButton from "@/Components/Admin/Buttons/MetatagsButton.vue";
 import ClearMetaButton from "@/Components/Admin/Buttons/ClearMetaButton.vue";
+import LabelCheckbox from "@/Components/Admin/Checkbox/LabelCheckbox.vue";
+import ActivityCheckbox from "@/Components/Admin/Checkbox/ActivityCheckbox.vue";
+import InputNumber from "@/Components/Admin/Input/InputNumber.vue";
+import CKEditor from "@/Components/Admin/CKEditor/CKEditor.vue";
 
+// --- Инициализация ---
+const toast = useToast();
 const { t } = useI18n();
 
+/**
+ * Входные свойства компонента.
+ */
 const props = defineProps({
     tag: {
         type: Object,
@@ -24,8 +38,12 @@ const props = defineProps({
     },
 });
 
+/**
+ * Формируем форму редактирования.
+ */
 const form = useForm({
     _method: 'PUT',
+    sort: props.tag.sort ?? 0,
     name: props.tag?.name,
     locale: props.tag.locale ?? '',
     slug: props.tag.slug ?? '',
@@ -34,58 +52,103 @@ const form = useForm({
     meta_title: props.tag.meta_title ?? '',
     meta_keywords: props.tag.meta_keywords ?? '',
     meta_desc: props.tag.meta_desc ?? '',
+    activity: Boolean(props.tag.activity ?? false),
 });
 
-// автоматическое заполнение поля slug
+/**
+ * Автоматически генерирует slug из поля title, если slug пуст.
+ */
 const handleUrlInputFocus = () => {
     if (form.name) {
         form.slug = transliterate(form.name.toLowerCase());
     }
 };
 
-// количество символов в поле
+/**
+ * Обрезает текст до заданной длины, стараясь не разрывать слова при генерации мета-тегов.
+ */
 const truncateText = (text, maxLength, addEllipsis = false) => {
     if (text.length <= maxLength) return text;
     const truncated = text.substr(0, text.lastIndexOf(' ', maxLength));
     return addEllipsis ? `${truncated}...` : truncated;
 };
 
-// очистка мета-тегов
+/**
+ * очистка мета-тегов.
+ */
 const clearMetaFields = () => {
     form.meta_title = '';
     form.meta_keywords = '';
     form.meta_desc = '';
 };
 
-// автоматическая генерация мета-тегов
+/**
+ * Генерирует значения для мета-полей (title, keywords, description),
+ * если они не были заполнены вручную.
+ */
 const generateMetaFields = () => {
+    // Генерация meta_title
     if (form.name && !form.meta_title) {
-        form.meta_title = truncateText(form.name, 160);
+        form.meta_title = truncateText(form.name, 160); // Используем вашу функцию truncateText
     }
 
-    if (form.short && !form.meta_keywords) {
-        // Разбиваем строку по запятым или пробелам, удаляем лишние пробелы
-        const tagNames = form.short.split(/,\s*|\s+/).join(', ');
-        form.meta_keywords = truncateText(tagNames, 200);
+    // Генерация meta_keywords из form.short
+    if (!form.meta_keywords && form.short) {
+        // 1. Удаляем HTML-теги (на случай, если они есть в form.short)
+        let text = form.short.replace(/(<([^>]+)>)/gi, "");
+
+        // 2. Удаляем знаки препинания, кроме дефисов внутри слов (опционально)
+        //    Оставляем буквы (включая кириллицу/другие языки), цифры, дефисы и пробелы
+        text = text.replace(/[.,!?;:()\[\]{}"'«»]/g, ''); // Удаляем основную пунктуацию
+        // text = text.replace(/[^\p{L}\p{N}\s-]/gu, ''); // Более строгий вариант: оставить только буквы, цифры, пробелы, дефис
+
+        // 3. Разбиваем текст на слова по пробелам
+        const words = text.split(/\s+/)
+            // 4. Фильтруем пустые строки и короткие слова (например, менее 3 символов), если нужно
+            .filter(word => word && word.length >= 3)
+            // 5. Приводим к нижнему регистру (стандартно для ключевых слов)
+            .map(word => word.toLowerCase())
+            // 6. Удаляем дубликаты слов
+            .filter((value, index, self) => self.indexOf(value) === index);
+
+        // 7. Объединяем слова через запятую и пробел
+        const keywords = words.join(', ');
+
+        // 8. Обрезаем результат до максимальной длины (если нужно)
+        form.meta_keywords = truncateText(keywords, 255); // Используем вашу функцию truncateText
     }
 
+    // Генерация meta_desc из form.short
     if (form.short && !form.meta_desc) {
-        form.meta_desc = truncateText(form.short.replace(/(<([^>]+)>)/gi, ""), 255, true);
+        // Убираем HTML-теги для описания
+        const descText = form.short.replace(/(<([^>]+)>)/gi, "");
+        form.meta_desc = truncateText(descText, 200, true); // Используем другую длину и добавление ...
     }
 };
 
+/**
+ * Отправляет данные формы для обновления.
+ */
 const submit = () => {
-    form.put(route('tags.update', props.tag.id), {
+    form.transform((data) => ({
+        ...data,
+        activity: data.activity ? 1 : 0,
+    }));
+    form.put(route('admin.tags.update', props.tag.id), {
         errorBag: 'editTag',
         preserveScroll: true,
         onSuccess: () => {
             // console.log("Форма успешно отправлена.");
+            toast.success('Тег успешно обновлен!'); // Можно добавить, если нужно кастомное
         },
         onError: (errors) => {
             console.error("Не удалось отправить форму:", errors);
+            const firstError = errors[Object.keys(errors)[0]];
+            toast.error(firstError || 'Пожалуйста, проверьте правильность заполнения полей.')
         }
     });
 };
+
 </script>
 
 <template>
@@ -95,14 +158,14 @@ const submit = () => {
                 {{ t('editTag') }} ID:{{ props.tag.id }}
             </TitlePage>
         </template>
-        <div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-xl mx-auto">
+        <div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-12xl mx-auto">
             <div class="p-4 bg-slate-50 dark:bg-slate-700
                         border border-blue-400 dark:border-blue-200
                         shadow-lg shadow-gray-500 dark:shadow-slate-400
                         bg-opacity-95 dark:bg-opacity-95">
                 <div class="sm:flex sm:justify-between sm:items-center mb-2">
                     <!-- Кнопка назад -->
-                    <DefaultButton :href="route('tags.index')">
+                    <DefaultButton :href="route('admin.tags.index')">
                         <template #icon>
                             <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">
                                 <path
@@ -119,12 +182,33 @@ const submit = () => {
                 </div>
                 <form @submit.prevent="submit" class="p-3 w-full">
 
-                    <div class="mb-3 flex justify-start items-center">
+                    <div class="mb-3 flex justify-between flex-col lg:flex-row items-center gap-4">
+
+                        <!-- Активность -->
+                        <div class="flex flex-row items-center gap-2">
+                            <ActivityCheckbox v-model="form.activity"/>
+                            <LabelCheckbox for="activity" :text="t('activity')" class="text-sm h-8 flex items-center"/>
+                        </div>
 
                         <!-- Локализация -->
                         <div class="flex flex-row items-center w-auto">
                             <SelectLocale v-model="form.locale" :errorMessage="form.errors.locale"/>
                             <InputError class="mt-2 lg:mt-0" :message="form.errors.locale"/>
+                        </div>
+
+                        <!-- Сортировка -->
+                        <div class="flex flex-row items-center gap-2">
+                            <div class="h-8 flex items-center">
+                                <LabelInput for="sort" :value="t('sort')" class="text-sm"/>
+                            </div>
+                            <InputNumber
+                                id="sort"
+                                type="number"
+                                v-model="form.sort"
+                                autocomplete="sort"
+                                class="w-full lg:w-28"
+                            />
+                            <InputError class="mt-2 lg:mt-0" :message="form.errors.sort"/>
                         </div>
 
                     </div>
@@ -172,8 +256,14 @@ const submit = () => {
                                 {{ form.short.length }} / 255 {{ t('characters') }}
                             </div>
                         </div>
-                        <MetaDescTextarea maxlength="255" v-model="form.short" class="w-full"/>
+                        <MetaDescTextarea v-model="form.short" class="w-full"/>
                         <InputError class="mt-2" :message="form.errors.short"/>
+                    </div>
+
+                    <div class="mb-3 flex flex-col items-start">
+                        <LabelInput for="description" :value="t('description')"/>
+                        <CKEditor v-model="form.description" class="w-full"/>
+                        <InputError class="mt-2" :message="form.errors.description"/>
                     </div>
 
                     <div class="mb-3 flex flex-col items-start">
@@ -243,7 +333,7 @@ const submit = () => {
                     </div>
 
                     <div class="flex items-center justify-center mt-4">
-                        <DefaultButton :href="route('tags.index')" class="mb-3">
+                        <DefaultButton :href="route('admin.tags.index')" class="mb-3">
                             <template #icon>
                                 <!-- SVG -->
                                 <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">

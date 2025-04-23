@@ -64,7 +64,7 @@ const clearCache = async () => {
                 {{ t('allRightsReserved') }}
             </div>
 
-            <Link v-if="auth.user" :href="route('admin')" :title="t('administer')"
+            <Link v-if="auth.user" :href="route('admin.index')" :title="t('administer')"
                   class="flex items-center px-3 py-1 text-md
                          font-semibold text-orange-400 hover:text-rose-300
                          dark:text-violet-400 dark:hover:text-white

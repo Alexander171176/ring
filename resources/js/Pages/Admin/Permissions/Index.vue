@@ -1,7 +1,12 @@
 <script setup>
+/**
+ * @version PulsarCMS 1.0
+ * @author Александр Косолапов <kosolapov1976@gmail.com>
+ */
 import {defineProps, ref, computed, watch} from 'vue';
-import {useForm} from '@inertiajs/vue3';
+import {useToast} from 'vue-toastification';
 import { useI18n } from 'vue-i18n';
+import {router} from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import TitlePage from '@/Components/Admin/Headlines/TitlePage.vue';
 import DefaultButton from "@/Components/Admin/Buttons/DefaultButton.vue";
@@ -13,63 +18,132 @@ import CountTable from '@/Components/Admin/Count/CountTable.vue';
 import ItemsPerPageSelect from "@/Components/Admin/Select/ItemsPerPageSelect.vue";
 import SortSelect from "@/Components/Admin/Permission/Sort/SortSelect.vue";
 
-const { t } = useI18n();
-const props = defineProps(['permissions', 'permissionsCount', 'adminCountPermissions', 'adminSortPermissions']);
-const form = useForm({});
+// --- Инициализация экземпляр i18n, toast ---
+const {t} = useI18n();
+const toast = useToast();
 
-// Используем значение из props для начального количества элементов на странице
-const itemsPerPage = ref(props.adminCountPermissions)
+/**
+ * Входные свойства компонента.
+ */
+const props = defineProps([
+    'permissions',
+    'permissionsCount',
+    'adminCountPermissions',
+    'adminSortPermissions'
+]);
 
-// чтобы при изменении itemsPerPage автоматически обновлялся параметр в базе,
+/**
+ * Реактивная переменная для хранения текущего количества элементов на странице.
+ */
+const itemsPerPage = ref(props.adminCountPermissions); // Используем значение из props
+
+/**
+ * Наблюдатель за изменением количества элементов на странице.
+ */
 watch(itemsPerPage, (newVal) => {
-    axios.put(route('settings.updateAdminCountPermissions'), { value: newVal.toString() })
-        .then(response => {
-            // console.log('Количество элементов на странице обновлено:', response.data.value)
-        })
-        .catch(error => {
-            console.error('Ошибка обновления настройки:', error.response.data)
-        })
-})
+    router.put(route('admin.settings.updateAdminCountPermissions'), {value: newVal}, {
+        preserveScroll: true,
+        preserveState: true, // Не перезагружаем все props
+        onSuccess: () => toast.info(`Показ ${newVal} элементов на странице.`),
+        onError: (errors) => toast.error(errors.value || 'Ошибка обновления кол-ва элементов.'),
+    });
+});
 
-// параметр сортировки по умолчанию, устанавливаем из props
-const sortParam = ref(props.adminSortPermissions)
+/**
+ * Реактивная переменная для хранения текущего параметра сортировки.
+ */
+const sortParam = ref(props.adminSortPermissions); // Используем значение из props
+
+/**
+ * Наблюдатель за изменением параметра сортировки.
+ */
 watch(sortParam, (newVal) => {
-    axios.put(route('settings.updateAdminSortPermissions'), { value: newVal })
-        .then(response => {
-            // console.log('Сортировка обновлена:', response.data.value)
-        })
-        .catch(error => {
-            console.error('Ошибка обновления сортировки:', error.response.data)
-        })
-})
+    router.put(route('admin.settings.updateAdminSortPermissions'), {value: newVal}, {
+        preserveScroll: true,
+        preserveState: true,
+        // onSuccess: () => toast.info(`Сортировка изменена на ${newVal}.`), // TODO: добавить перевод для newVal
+        onSuccess: () => toast.info('Сортировка успешно изменена'),
+        onError: (errors) => toast.error(errors.value || 'Ошибка обновления сортировки.'),
+    });
+});
 
-// Модальное окно удаления
+/**
+ * Флаг отображения модального окна подтверждения удаления.
+ */
 const showConfirmDeleteModal = ref(false);
+
+/**
+ * ID для удаления.
+ */
 const permissionToDeleteId = ref(null);
-const confirmDelete = (id) => {
+
+/**
+ * Название для отображения в модальном окне.
+ */
+const permissionToDeleteName = ref('');
+
+/**
+ * Открывает модальное окно подтверждения удаления с входными переменными.
+ */
+const confirmDelete = (id, name) => {
     permissionToDeleteId.value = id;
+    permissionToDeleteName.value = name;
     showConfirmDeleteModal.value = true;
 };
+
+/**
+ * Закрывает модальное окно подтверждения и сбрасывает связанные переменные.
+ */
 const closeModal = () => {
     showConfirmDeleteModal.value = false;
+    permissionToDeleteId.value = null;
+    permissionToDeleteName.value = '';
 };
 
-// Удаление разрешения
+/**
+ * Отправляет запрос на удаление.
+ */
 const deletePermission = () => {
-    if (permissionToDeleteId.value !== null) {
-        form.delete(route('permissions.destroy', permissionToDeleteId.value), {
-            onSuccess: () => closeModal()
-        });
-    }
+    if (permissionToDeleteId.value === null) return;
+
+    const idToDelete = permissionToDeleteId.value; // Сохраняем ID во временную переменную
+    const nameToDelete = permissionToDeleteName.value; // Сохраняем name во временную переменную
+
+    router.delete(route('admin.permissions.destroy', {permission: idToDelete}), { // Используем временную переменную
+        preserveScroll: true,
+        preserveState: false,
+        onSuccess: (page) => {
+            closeModal(); // Закрываем модалку
+            toast.success(`Разрешение "${nameToDelete || 'ID: ' + idToDelete}" удалено.`);
+            // console.log('Удаление успешно.');
+        },
+        onError: (errors) => {
+            closeModal();
+            const errorMsg = errors.general || errors[Object.keys(errors)[0]] || 'Произошла ошибка при удалении.';
+            toast.error(`${errorMsg} (Разрешение: ${nameToDelete || 'ID: ' + idToDelete})`);
+            console.error('Ошибка удаления:', errors);
+        },
+        onFinish: () => {
+            // console.log('Запрос на удаление завершен.');
+            permissionToDeleteId.value = null;
+            permissionToDeleteName.value = '';
+        }
+    });
 };
 
-// Пагинация
+/**
+ * Текущая страница пагинации.
+ */
 const currentPage = ref(1);
 
-// Строка поиска
+/**
+ * Строка поискового запроса.
+ */
 const searchQuery = ref('');
 
-// Функция сортировки
+/**
+ * Сортирует массив на основе текущего параметра сортировки.
+ */
 const sortPermissions = (permissions) => {
     // Добавляем сортировку по id в двух направлениях:
     if (sortParam.value === 'idAsc') {
@@ -86,7 +160,9 @@ const sortPermissions = (permissions) => {
     });
 };
 
-// Фильтр поиска
+/**
+ * Вычисляемое свойство, отсортированный список поиска.
+ */
 const filteredPermissions = computed(() => {
     let filtered = props.permissions;
 
@@ -99,13 +175,19 @@ const filteredPermissions = computed(() => {
     return sortPermissions(filtered);
 });
 
-// Пагинация
+/**
+ * Вычисляемое свойство пагинации, возвращающее для текущей страницы.
+ */
 const paginatedPermissions = computed(() => {
     const start = (currentPage.value - 1) * itemsPerPage.value;
     return filteredPermissions.value.slice(start, start + itemsPerPage.value);
 });
 
+/**
+ * Вычисляемое свойство, возвращающее общее количество страниц пагинации.
+ */
 const totalPages = computed(() => Math.ceil(filteredPermissions.value.length / itemsPerPage.value));
+
 </script>
 
 <template>
@@ -120,7 +202,7 @@ const totalPages = computed(() => Math.ceil(filteredPermissions.value.length / i
                         overflow-hidden shadow-lg shadow-gray-500 dark:shadow-slate-400
                         bg-opacity-95 dark:bg-opacity-95">
                 <div class="sm:flex sm:justify-between sm:items-center mb-2">
-                    <DefaultButton :href="route('permissions.create')">
+                    <DefaultButton :href="route('admin.permissions.create')">
                         <template #icon>
                             <svg class="w-4 h-4 fill-current opacity-50 shrink-0" viewBox="0 0 16 16">
                                 <path

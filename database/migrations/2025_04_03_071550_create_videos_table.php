@@ -24,14 +24,12 @@ return new class extends Migration
             $table->string('short', 255)->nullable(); // string
             $table->text('description')->nullable();
             $table->string('author')->nullable();
-            $table->timestamp('published_at')->nullable()->index(); // index
+            $table->date('published_at')->nullable()->index(); // index
             $table->unsignedInteger('duration')->nullable()->comment('Длительность видео в секундах'); // unsigned
 
             $table->enum('source_type', ['local', 'youtube', 'vimeo', 'code'])->default('local')->index(); // index
 
-            // Убираем это поле, т.к. Spatie управляет путем для 'local'
-            // $table->text('video_url')->nullable();
-
+            $table->text('embed_code')->nullable(); // Поле для 'code'
             $table->string('external_video_id')->nullable(); // Для youtube/vimeo ID или для code (iframe)
 
             $table->unsignedBigInteger('views')->default(0)->index(); // index

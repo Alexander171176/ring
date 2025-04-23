@@ -76,7 +76,7 @@ class Article extends Model
         'left' => 'boolean',
         'main' => 'boolean',
         'right' => 'boolean',
-        'published_at' => 'datetime', // Используем datetime, если в БД timestamp, или 'date' если date
+        'published_at' => 'date', // Используем datetime, если в БД timestamp, или 'date' если date
         'views' => 'integer',
         'likes' => 'integer',
     ];
@@ -90,6 +90,15 @@ class Article extends Model
     {
         // Имя сводной таблицы 'article_has_section' - ВЕРНО
         return $this->belongsToMany(Section::class, 'article_has_section');
+    }
+
+    /**
+     * Связь: Статья - Теги (многие ко многим)
+     */
+    public function tags(): BelongsToMany
+    {
+        // Имя сводной таблицы 'article_has_tag' и ключи - ВЕРНО
+        return $this->belongsToMany(Tag::class, 'article_has_tag', 'article_id', 'tag_id');
     }
 
     // --- НОВАЯ ПОЛИМОРФНАЯ СВЯЗЬ ---
@@ -113,15 +122,6 @@ class Article extends Model
     }
 
     /**
-     * Связь: Статья - Теги (многие ко многим)
-     */
-    public function tags(): BelongsToMany
-    {
-        // Имя сводной таблицы 'article_has_tag' и ключи - ВЕРНО
-        return $this->belongsToMany(Tag::class, 'article_has_tag', 'article_id', 'tag_id');
-    }
-
-    /**
      * Связь: Статья - Изображения (многие ко многим через ArticleImage)
      */
     public function images(): BelongsToMany
@@ -130,7 +130,7 @@ class Article extends Model
         // Добавляем withPivot и orderBy, как обсуждали
         return $this->belongsToMany(ArticleImage::class, 'article_has_images', 'article_id', 'image_id')
             ->withPivot('order')
-            ->orderBy('pivot_order', 'asc');
+            ->orderBy('article_has_images.order', 'asc');
     }
 
     /**

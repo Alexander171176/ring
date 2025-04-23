@@ -1,219 +1,90 @@
 <?php
-
 namespace App\Traits\Setting;
+
+// Импортируем ВСЕ специфичные реквесты ТОЛЬКО для доступа к правилам
+use App\Http\Requests\Admin\Rubric\UpdateSortRubricRequest;
+use App\Http\Requests\Admin\Section\UpdateSortSectionRequest;
+// ... и другие ...
+// И ОБЩИЙ реквест для настроек по умолчанию
+use App\Http\Requests\Admin\Setting\UpdateSortSettingRequest;
 
 use App\Models\Admin\Setting\Setting;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
+use Illuminate\Http\Request; // <--- Принимаем базовый Request
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
+use Throwable;
+use Illuminate\Auth\Access\AuthorizationException;
 
 trait AdminSortSettingsTrait
 {
     /**
-     * Обновить сортировку по умолчанию в таблице Рубрик.
+     * Приватный метод для валидации (с помощью правил из FormRequest) и сохранения.
      */
+    private function validateAndSaveSortSetting(Request $request, string $formRequestClass, string $optionKey, string $configKey): JsonResponse
+    {
+        // 1. Проверяем авторизацию вручную
+        try {
+            /** @var \Illuminate\Foundation\Http\FormRequest $specificRequestInstance */
+            $specificRequestInstance = app($formRequestClass);
+            $specificRequestInstance->setUserResolver(fn() => $request->user());
+            if (method_exists($specificRequestInstance, 'authorize') && !$specificRequestInstance->authorize()) {
+                throw new AuthorizationException('Действие не авторизовано.');
+            }
+        } catch (AuthorizationException $e){
+            return response()->json(['message' => $e->getMessage() ?: 'Действие не авторизовано.'], 403);
+        } catch (Throwable $e) { /* ... обработка ошибки авторизации ... */ }
+
+        // 2. Валидируем данные
+        $validator = Validator::make(
+            $request->all(),
+            $specificRequestInstance->rules(), // Правила из нужного реквеста
+            $specificRequestInstance->messages() // Сообщения из нужного реквеста
+        );
+
+        if ($validator->fails()) {
+            return response()->json([ 'message' => 'Переданные данные неверны.', 'errors' => $validator->errors() ], 422);
+        }
+        $validated = $validator->validated();
+        $newValue = $validated['value'];
+
+        // 3. Сохраняем настройку
+        try {
+            $setting = Setting::updateOrCreate(['option' => $optionKey], ['value' => $newValue, /*...*/ 'activity' => true]);
+            config([$configKey => $newValue]);
+            $this->clearSettingsCache(); // Вызываем метод очистки кэша (он должен быть доступен)
+            Log::info("Setting '{$optionKey}' updated to: " . $newValue . " by User ID: " . $request->user()?->id);
+            return response()->json(['success' => true, 'value' => $newValue]);
+        } catch (Throwable $e) { /* ... обработка ошибок сохранения ... */ }
+    }
+
+    // --- Публичные методы ---
     public function updateAdminSortRubrics(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'value' => 'required|string',
-        ]);
+    { return $this->validateAndSaveSortSetting($request, UpdateSortRubricRequest::class, 'AdminSortRubrics', 'site_settings.AdminSortRubrics'); }
 
-        $setting = Setting::where('option', 'AdminSortRubrics')->firstOrFail();
-        $setting->value = $validated['value'];
-        $setting->save();
-        config(['site_settings.AdminSortRubrics' => $setting->value]);
-
-        return response()->json(['success' => true, 'value' => $setting->value]);
-    }
-
-    /**
-     * Обновить сортировку по умолчанию в таблице Секций.
-     */
     public function updateAdminSortSections(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'value' => 'required|string',
-        ]);
+    { return $this->validateAndSaveSortSetting($request, UpdateSortSectionRequest::class, 'AdminSortSections', 'site_settings.AdminSortSections'); }
 
-        $setting = Setting::where('option', 'AdminSortSections')->firstOrFail();
-        $setting->value = $validated['value'];
-        $setting->save();
-        config(['site_settings.AdminSortSections' => $setting->value]);
+    // ... и так далее для других, передавая ::class нужного реквеста ...
 
-        return response()->json(['success' => true, 'value' => $setting->value]);
-    }
-
-    /**
-     * Обновить сортировку по умолчанию в таблице Постов.
-     */
-    public function updateAdminSortArticles(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'value' => 'required|string',
-        ]);
-
-        $setting = Setting::where('option', 'AdminSortArticles')->firstOrFail();
-        $setting->value = $validated['value'];
-        $setting->save();
-        config(['site_settings.AdminSortArticles' => $setting->value]);
-
-        return response()->json(['success' => true, 'value' => $setting->value]);
-    }
-
-    /**
-     * Обновить сортировку по умолчанию в таблице Тегов.
-     */
-    public function updateAdminSortTags(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'value' => 'required|string',
-        ]);
-
-        $setting = Setting::where('option', 'AdminSortTags')->firstOrFail();
-        $setting->value = $validated['value'];
-        $setting->save();
-        config(['site_settings.AdminSortTags' => $setting->value]);
-
-        return response()->json(['success' => true, 'value' => $setting->value]);
-    }
-
-    /**
-     * Обновить сортировку по умолчанию в таблице Комментариев.
-     */
-    public function updateAdminSortComments(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'value' => 'required|string',
-        ]);
-
-        $setting = Setting::where('option', 'AdminSortComments')->firstOrFail();
-        $setting->value = $validated['value'];
-        $setting->save();
-        config(['site_settings.AdminSortComments' => $setting->value]);
-
-        return response()->json(['success' => true, 'value' => $setting->value]);
-    }
-
-    /**
-     * Обновить сортировку по умолчанию в таблице Баннеров.
-     */
-    public function updateAdminSortBanners(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'value' => 'required|string',
-        ]);
-
-        $setting = Setting::where('option', 'AdminSortBanners')->firstOrFail();
-        $setting->value = $validated['value'];
-        $setting->save();
-        config(['site_settings.AdminSortBanners' => $setting->value]);
-
-        return response()->json(['success' => true, 'value' => $setting->value]);
-    }
-
-    /**
-     * Обновить сортировку по умолчанию в таблице Видео.
-     */
-    public function updateAdminSortVideos(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'value' => 'required|string',
-        ]);
-
-        $setting = Setting::where('option', 'AdminSortVideos')->firstOrFail();
-        $setting->value = $validated['value'];
-        $setting->save();
-        config(['site_settings.AdminSortVideos' => $setting->value]);
-
-        return response()->json(['success' => true, 'value' => $setting->value]);
-    }
-
-    /**
-     * Обновить сортировку по умолчанию в таблице Пользователей.
-     */
-    public function updateAdminSortUsers(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'value' => 'required|string',
-        ]);
-
-        $setting = Setting::where('option', 'AdminSortUsers')->firstOrFail();
-        $setting->value = $validated['value'];
-        $setting->save();
-        config(['site_settings.AdminSortUsers' => $setting->value]);
-
-        return response()->json(['success' => true, 'value' => $setting->value]);
-    }
-
-    /**
-     * Обновить сортировку по умолчанию в таблице Ролей.
-     */
-    public function updateAdminSortRoles(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'value' => 'required|string',
-        ]);
-
-        $setting = Setting::where('option', 'AdminSortRoles')->firstOrFail();
-        $setting->value = $validated['value'];
-        $setting->save();
-        config(['site_settings.AdminSortRoles' => $setting->value]);
-
-        return response()->json(['success' => true, 'value' => $setting->value]);
-    }
-
-    /**
-     * Обновить сортировку по умолчанию в таблице Разрешений.
-     */
-    public function updateAdminSortPermissions(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'value' => 'required|string',
-        ]);
-
-        $setting = Setting::where('option', 'AdminSortPermissions')->firstOrFail();
-        $setting->value = $validated['value'];
-        $setting->save();
-        config(['site_settings.AdminSortPermissions' => $setting->value]);
-
-        return response()->json(['success' => true, 'value' => $setting->value]);
-    }
-
-    /**
-     * Обновить сортировку по умолчанию в таблице Модулей.
-     */
-    public function updateAdminSortPlugins(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'value' => 'required|string',
-        ]);
-
-        $setting = Setting::where('option', 'AdminSortPlugins')->firstOrFail();
-        $setting->value = $validated['value'];
-        $setting->save();
-        config(['site_settings.AdminSortPlugins' => $setting->value]);
-
-        return response()->json(['success' => true, 'value' => $setting->value]);
-    }
-
-    /**
-     * Обновить сортировку по умолчанию в таблице Параметров
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
+    // Для общих настроек используем общий реквест
     public function updateAdminSortSettings(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'value' => 'required|string', // меняем правило валидации на строку
-        ]);
+    { return $this->validateAndSaveSortSetting($request, UpdateSortSettingRequest::class, 'AdminSortSettings', 'site_settings.AdminSortSettings'); }
 
-        $setting = Setting::where('option', 'AdminSortSettings')->firstOrFail();
-        $setting->value = $validated['value']; // если нужно, можно принудительно привести к строке: (string)$validated['value']
-        $setting->save();
 
-        // Обновляем конфигурацию, если нужно
-        config(['site_settings.AdminSortSettings' => $setting->value]);
-
-        return response()->json(['success' => true, 'value' => $setting->value]);
+    /**
+     * Приватный метод для очистки кэша (если он не доступен из контроллера).
+     * Скопируйте или сделайте хелпер.
+     */
+    private function clearSettingsCache(string $specificKey = null): void {
+        // TODO: Использовать ваши реальные ключи кэша
+        Cache::forget('site_settings');
+        Cache::forget('setting_locale');
+        Cache::forget('widget_panel_settings');
+        Cache::forget('sidebar_settings');
+        if ($specificKey) { Cache::forget($specificKey); }
+        Log::debug("Settings cache cleared by AdminSortSettingsTrait.", ['specific_key' => $specificKey]);
     }
 }

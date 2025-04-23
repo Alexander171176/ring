@@ -70,6 +70,14 @@ class HandleInertiaRequests extends Middleware
                 'location' => $request->url(),
             ],
             'locale' => App::getLocale(), // Добавляем текущую локаль
+
+            'flash' => [
+                'success' => fn () => $request->session()->get('success'),
+                'error'   => fn () => $request->session()->get('error'),
+                'warning' => fn () => $request->session()->get('warning'),
+                'info'    => fn () => $request->session()->get('info'),
+                // Добавьте другие ключи flash, если используете
+            ],
         ];
     }
 }

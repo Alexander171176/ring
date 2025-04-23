@@ -56,26 +56,28 @@ const {t} = useI18n();
 const {props: pageProps} = usePage();
 
 const linkInfo = {
-    admin: {label: t('adminPanel'), route: 'admin'},
+    admin: {label: t('adminPanel'), route: 'admin.index'}, // Уже исправлено
+    // Для API токенов и команд используем стандартные имена Jetstream/Fortify
     apiTokens: {label: t('apiTokens'), route: 'api-tokens.index'},
     teamSettings: {label: t('teamSettings'), route: 'teams.show', params: {team: pageProps.auth.user.current_team}},
-    users: {label: t('users'), route: 'users.index'},
-    roles: {label: t('roles'), route: 'roles.index'},
-    permissions: {label: t('permissions'), route: 'permissions.index'},
-    rubrics: {label: t('rubrics'), route: 'rubrics.index'},
-    sections: {label: t('sections'), route: 'sections.index'},
-    articles: {label: t('posts'), route: 'articles.index'},
-    tags: {label: t('tags'), route: 'tags.index'},
-    comments: {label: t('comments'), route: 'comments.index'},
-    banners: {label: t('banners'), route: 'banners.index'},
-    videos: {label: t('videos'), route: 'videos.index'},
-    reports: {label: t('reports'), route: 'reports.index'},
-    charts: {label: t('charts'), route: 'charts.index'},
-    diagrams: {label: t('diagrams'), route: 'diagrams.index'},
-    settings: {label: t('settings'), route: 'settings.index'},
-    parameters: {label: t('parameters'), route: 'parameters.index'},
-    components: {label: t('components'), route: 'components.index'},
-    plugins: {label: t('plugins'), route: 'plugins.index'},
+    // Добавляем префикс 'admin.' к остальным маршрутам
+    users: {label: t('users'), route: 'admin.users.index'},           // ИЗМЕНЕНО
+    roles: {label: t('roles'), route: 'admin.roles.index'},           // ИЗМЕНЕНО
+    permissions: {label: t('permissions'), route: 'admin.permissions.index'}, // ИЗМЕНЕНО
+    rubrics: {label: t('rubrics'), route: 'admin.rubrics.index'},       // ИЗМЕНЕНО
+    sections: {label: t('sections'), route: 'admin.sections.index'},     // ИЗМЕНЕНО <--- Вот это исправит вашу текущую ошибку
+    articles: {label: t('posts'), route: 'admin.articles.index'},      // ИЗМЕНЕНО
+    tags: {label: t('tags'), route: 'admin.tags.index'},             // ИЗМЕНЕНО
+    comments: {label: t('comments'), route: 'admin.comments.index'},     // ИЗМЕНЕНО
+    banners: {label: t('banners'), route: 'admin.banners.index'},       // ИЗМЕНЕНО
+    videos: {label: t('videos'), route: 'admin.videos.index'},        // ИЗМЕНЕНО
+    reports: {label: t('reports'), route: 'admin.reports.index'},       // ИЗМЕНЕНО
+    charts: {label: t('charts'), route: 'admin.charts.index'},        // ИЗМЕНЕНО
+    diagrams: {label: t('diagrams'), route: 'admin.diagrams.index'},     // ИЗМЕНЕНО
+    settings: {label: t('settings'), route: 'admin.settings.index'},     // ИЗМЕНЕНО
+    parameters: {label: t('parameters'), route: 'admin.parameters.index'}, // ИЗМЕНЕНО
+    components: {label: t('components'), route: 'admin.components.index'}, // ИЗМЕНЕНО
+    plugins: {label: t('plugins'), route: 'admin.plugins.index'},       // ИЗМЕНЕНО
 };
 
 const link = computed(() => linkInfo[props.id]);

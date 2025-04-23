@@ -23,11 +23,12 @@ use App\Http\Controllers\Admin\Role\RoleController;
 use App\Http\Controllers\Admin\Rubric\RubricController;
 use App\Http\Controllers\Admin\Section\SectionController;
 use App\Http\Controllers\Admin\Setting\SettingController;
+use App\Http\Controllers\Admin\System\SystemController; // Добавил импорт для clearCache
 use App\Http\Controllers\Admin\Tag\TagController;
 use App\Http\Controllers\Admin\User\UserController;
 use App\Http\Controllers\Admin\Video\VideoController;
 use App\Http\Middleware\CheckDowntime;
-use App\Models\Admin\Setting\Setting;
+// use App\Models\Admin\Setting\Setting; // Не используется напрямую здесь
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -38,172 +39,110 @@ use Inertia\Inertia;
 |--------------------------------------------------------------------------
 | Web Routes
 |--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| contains the "web" middleware group. Now create something great!
-|
 */
 
-// Маршруты для определения языка приложения
+// --- Глобальные настройки и публичные маршруты ---
+
 Route::get('/settings/locale', [SettingController::class, 'getLocaleSetting']);
 Route::post('/settings/locale', [SettingController::class, 'updateLocaleSetting']);
 
-// Получаем значения параметров системы, по умолчанию
-$localePrefix = config('site_settings.locale', 'ru');
+// Используем замыкание для получения настроек один раз
 $siteLayout = config('site_settings.siteLayout', 'Default');
 
-// Маршрут очищает весь кэш
-Route::post('/admin/cache/clear', [App\Http\Controllers\Admin\System\SystemController::class, 'clearCache'])
-    ->name('cache.clear');
+Route::post('/admin/cache/clear', [SystemController::class, 'clearCache']) // Исправлен неймспейс
+->middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']) // Защищаем маршрут кэша
+->name('cache.clear');
 
+// Обработка 404 и режима обслуживания вынесена до основной группы
 Route::fallback(function (Request $request) {
-    if (config('site_settings.downtimeSite', 'false') === 'true') {
+    if (config('site_settings.downtimeSite', 'false') === 'true' && !$request->is('admin/*') && !$request->user()?->can('access maintenance mode')) { // Добавим условие для админки
+        // TODO: Реализовать проверку права 'access maintenance mode'
         return Inertia::render('Maintenance');
     }
-    // Возвращаем компонент NotFound.vue с HTTP-статусом 404
     return Inertia::render('NotFound')->toResponse($request)->setStatusCode(404);
 });
 
+// Публичная часть сайта
 Route::middleware([CheckDowntime::class])->group(function () use ($siteLayout) {
 
-// Главная страница
-    Route::get('/', fn() => Inertia::render('Public/' . $siteLayout . '/Index'));
+    Route::get('/', fn() => Inertia::render('Public/' . $siteLayout . '/Index'))->name('home'); // Добавим имя
 
-
-// Отображение конкретной рубрики
     $publicRubricController = "App\\Http\\Controllers\\Public\\{$siteLayout}\\RubricController";
-    Route::get('/rubrics/{url}', [$publicRubricController, 'show'])
-        ->where('url', '.*');
+    Route::get('/rubrics/{url}', [$publicRubricController, 'show'])->where('url', '.*')->name('public.rubrics.show');
 
-// Отображение конкретной статьи
     $publicArticleController = "App\\Http\\Controllers\\Public\\{$siteLayout}\\ArticleController";
-    Route::get('/articles/{url}', [$publicArticleController, 'show'])
-        ->where('url', '.*');
+    Route::get('/articles/{url}', [$publicArticleController, 'show'])->where('url', '.*')->name('public.articles.show');
+    Route::post('/articles/{article}/like', [$publicArticleController, 'like'])->name('articles.like'); // Параметр {article} уже здесь
 
-// Лайк статьи
-    Route::post('/articles/{article}/like', [$publicArticleController, 'like'])
-        ->name('articles.like');
-
-// Отображение конкретного тега
     $publicTagController = "App\\Http\\Controllers\\Public\\{$siteLayout}\\TagController";
-    Route::get('/tags/{url}', [$publicTagController, 'show'])
-        ->where('url', '.*');
+    Route::get('/tags/{url}', [$publicTagController, 'show'])->where('url', '.*')->name('public.tags.show');
 
-// Отображение конкретного видео
-$publicVideoController = "App\\Http\\Controllers\\Public\\{$siteLayout}\\VideoController";
-Route::get('/videos/{url}', [$publicVideoController, 'show'])
-    ->where('url', '.*');
+    $publicVideoController = "App\\Http\\Controllers\\Public\\{$siteLayout}\\VideoController";
+    Route::get('/videos/{url}', [$publicVideoController, 'show'])->where('url', '.*')->name('public.videos.show');
 
+    // TODO: Добавить другие публичные маршруты (поиск, контакты и т.д.)
 });
 
-// Профиль Пользователя
-Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',])->group(function () {
-    Route::get('/dashboard', function () {
+// --- Маршруты аутентификации и профиля пользователя ---
+
+// Профиль Пользователя (стандартные маршруты Jetstream/Fortify обычно регистрируются пакетами)
+Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])->group(function () {
+    Route::get('/dashboard', function () { // Пользовательский дашборд
         return Inertia::render('Dashboard');
-    })
-        ->name('dashboard');
+    })->name('dashboard');
+
+    // Могут быть и другие маршруты профиля здесь...
 });
 
 
-// Главная Панели Администратора
-Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',])->group(function () {
-    Route::get('/admin', function () {
-        return Inertia::render('Admin');
-    })
-        ->name('admin');
-});
+// --- Маршруты Панели Администратора ---
 
-// Все маршруты Административной части
-Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])
+Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified', /* TODO: Добавить middleware проверки прав админа, например 'role:admin' */])
     ->prefix('admin')
+    ->name('admin.') // Добавляем префикс имени для удобства
     ->group(function () {
 
-        // количество сущностей на странице Index
-        Route::put('/settings/update-admin-count-rubrics',
-            [SettingController::class, 'updateAdminCountRubrics'])
-            ->name('settings.updateAdminCountRubrics');
-        Route::put('/settings/update-admin-count-sections',
-            [SettingController::class, 'updateAdminCountSections'])
-            ->name('settings.updateAdminCountSections');
-        Route::put('/settings/update-admin-count-articles',
-            [SettingController::class, 'updateAdminCountArticles'])
-            ->name('settings.updateAdminCountArticles');
-        Route::put('/settings/update-admin-count-tags',
-            [SettingController::class, 'updateAdminCountTags'])
-            ->name('settings.updateAdminCountTags');
-        Route::put('/settings/update-admin-count-tags',
-            [SettingController::class, 'updateAdminCountComments'])
-            ->name('settings.updateAdminCountComments');
-        Route::put('/settings/update-admin-count-banners',
-            [SettingController::class, 'updateAdminCountBanners'])
-            ->name('settings.updateAdminCountBanners');
-        Route::put('/settings/update-admin-count-videos',
-            [SettingController::class, 'updateAdminCountVideos'])
-            ->name('settings.updateAdminCountVideos');
-        Route::put('/settings/update-admin-count-users',
-            [SettingController::class, 'updateAdminCountUsers'])
-            ->name('settings.updateAdminCountUsers');
-        Route::put('/settings/update-admin-count-roles',
-            [SettingController::class, 'updateAdminCountRoles'])
-            ->name('settings.updateAdminCountRoles');
-        Route::put('/settings/update-admin-count-permissions',
-            [SettingController::class, 'updateAdminCountPermissions'])
-            ->name('settings.updateAdminCountPermissions');
-        Route::put('/settings/update-admin-count-plugins',
-            [SettingController::class, 'updateAdminCountPlugins'])
-            ->name('settings.updateAdminCountPlugins');
-        Route::put('/settings/update-admin-count-settings',
-            [SettingController::class, 'updateAdminCountSettings'])
-            ->name('settings.updateAdminCountSettings');
+        // Главная страница админки
+        Route::get('/', function () { return Inertia::render('Admin'); })->name('index');
 
-        // тип сортировки сущностей на странице Index
-        Route::put('/settings/update-admin-sort-rubrics',
-            [SettingController::class, 'updateAdminSortRubrics'])
-            ->name('settings.updateAdminSortRubrics');
-        Route::put('/settings/update-admin-sort-sections',
-            [SettingController::class, 'updateAdminSortSections'])
-            ->name('settings.updateAdminSortSections');
-        Route::put('/settings/update-admin-sort-articles',
-            [SettingController::class, 'updateAdminSortArticles'])
-            ->name('settings.updateAdminSortArticles');
-        Route::put('/settings/update-admin-sort-tags',
-            [SettingController::class, 'updateAdminSortTags'])
-            ->name('settings.updateAdminSortTags');
-        Route::put('/settings/update-admin-sort-comments',
-            [SettingController::class, 'updateAdminSortComments'])
-            ->name('settings.updateAdminSortComments');
-        Route::put('/settings/update-admin-sort-banners',
-            [SettingController::class, 'updateAdminSortBanners'])
-            ->name('settings.updateAdminSortBanners');
-        Route::put('/settings/update-admin-sort-videos',
-            [SettingController::class, 'updateAdminSortVideos'])
-            ->name('settings.updateAdminSortVideos');
-        Route::put('/settings/update-admin-sort-users',
-            [SettingController::class, 'updateAdminSortUsers'])
-            ->name('settings.updateAdminSortUsers');
-        Route::put('/settings/update-admin-sort-roles',
-            [SettingController::class, 'updateAdminSortRoles'])
-            ->name('settings.updateAdminSortRoles');
-        Route::put('/settings/update-admin-sort-permissions',
-            [SettingController::class, 'updateAdminSortPermissions'])
-            ->name('settings.updateAdminSortPermissions');
-        Route::put('/settings/update-admin-sort-plugins',
-            [SettingController::class, 'updateAdminSortPlugins'])
-            ->name('settings.updateAdminSortPlugins');
-        Route::put('/settings/update-admin-sort-settings',
-            [SettingController::class, 'updateAdminSortSettings'])
-            ->name('settings.updateAdminSortSettings');
+        // --- Настройки отображения в админке ---
+        Route::prefix('settings')->name('settings.')->group(function () {
+            // Количество на странице
+            Route::put('/update-count/rubrics', [SettingController::class, 'updateAdminCountRubrics'])->name('updateAdminCountRubrics');
+            Route::put('/update-count/sections', [SettingController::class, 'updateAdminCountSections'])->name('updateAdminCountSections');
+            Route::put('/update-count/articles', [SettingController::class, 'updateAdminCountArticles'])->name('updateAdminCountArticles');
+            Route::put('/update-count/tags', [SettingController::class, 'updateAdminCountTags'])->name('updateAdminCountTags');
+            // Дублирование имени маршрута для comments, исправим
+            Route::put('/update-count/comments', [SettingController::class, 'updateAdminCountComments'])->name('updateAdminCountComments'); // Исправлено имя
+            Route::put('/update-count/banners', [SettingController::class, 'updateAdminCountBanners'])->name('updateAdminCountBanners');
+            Route::put('/update-count/videos', [SettingController::class, 'updateAdminCountVideos'])->name('updateAdminCountVideos');
+            Route::put('/update-count/users', [SettingController::class, 'updateAdminCountUsers'])->name('updateAdminCountUsers');
+            Route::put('/update-count/roles', [SettingController::class, 'updateAdminCountRoles'])->name('updateAdminCountRoles');
+            Route::put('/update-count/permissions', [SettingController::class, 'updateAdminCountPermissions'])->name('updateAdminCountPermissions');
+            Route::put('/update-count/plugins', [SettingController::class, 'updateAdminCountPlugins'])->name('updateAdminCountPlugins');
+            Route::put('/update-count/settings', [SettingController::class, 'updateAdminCountSettings'])->name('updateAdminCountSettings');
 
-        // Ресурсный маршрут для настроек – ограничиваем параметр id только числами без конфликтов
-        Route::resource('/settings', SettingController::class)
-            ->where(['setting' => '[0-9]+']);
+            // Тип сортировки
+            Route::put('/update-sort/rubrics', [SettingController::class, 'updateAdminSortRubrics'])->name('updateAdminSortRubrics');
+            Route::put('/update-sort/sections', [SettingController::class, 'updateAdminSortSections'])->name('updateAdminSortSections');
+            Route::put('/update-sort/articles', [SettingController::class, 'updateAdminSortArticles'])->name('updateAdminSortArticles');
+            Route::put('/update-sort/tags', [SettingController::class, 'updateAdminSortTags'])->name('updateAdminSortTags');
+            Route::put('/update-sort/comments', [SettingController::class, 'updateAdminSortComments'])->name('updateAdminSortComments');
+            Route::put('/update-sort/banners', [SettingController::class, 'updateAdminSortBanners'])->name('updateAdminSortBanners');
+            Route::put('/update-sort/videos', [SettingController::class, 'updateAdminSortVideos'])->name('updateAdminSortVideos');
+            Route::put('/update-sort/users', [SettingController::class, 'updateAdminSortUsers'])->name('updateAdminSortUsers');
+            Route::put('/update-sort/roles', [SettingController::class, 'updateAdminSortRoles'])->name('updateAdminSortRoles');
+            Route::put('/update-sort/permissions', [SettingController::class, 'updateAdminSortPermissions'])->name('updateAdminSortPermissions');
+            Route::put('/update-sort/plugins', [SettingController::class, 'updateAdminSortPlugins'])->name('updateAdminSortPlugins');
+            Route::put('/update-sort/settings', [SettingController::class, 'updateAdminSortSettings'])->name('updateAdminSortSettings');
+        });
 
-        Route::put('/admin/settings/{id}', [SettingController::class, 'update'])
-            ->name('settings.update');
-
+        // --- Основные CRUD Ресурсы ---
+        // Laravel автоматически использует правильные имена параметров для RMB:
+        // {setting}, {parameter}, {user}, {role}, {permission}, {rubric}, {section}, {article}, {tag}, {banner}, {video}, {comment}, {component}, {diagram}, {plugin}
+        Route::resource('/settings', SettingController::class);
+        // Route::put('/admin/settings/{id}', ...) - Этот маршрут дублируется ресурсным update, УДАЛИТЬ?
         Route::resource('/parameters', ParameterController::class);
-
         Route::resource('/users', UserController::class);
         Route::resource('/roles', RoleController::class);
         Route::resource('/permissions', PermissionController::class);
@@ -213,204 +152,137 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::resource('/tags', TagController::class);
         Route::resource('/banners', BannerController::class);
         Route::resource('/videos', VideoController::class);
-        Route::resource('/charts', ChartController::class);
-        Route::resource('/reports', ReportController::class)
-            ->only(['index']);
-
-        // Основные CRUD операции для комментариев
-        Route::resource('/comments', CommentController::class);
-        // Основные CRUD операции для компонентов
+        Route::resource('/charts', ChartController::class)->except(['show']);
+        Route::resource('/reports', ReportController::class)->only(['index']);
+        Route::resource('/comments', CommentController::class)->except(['create', 'store', 'show']); // Админ обычно не создает комменты с нуля
         Route::resource('/components', ComponentController::class);
-        Route::post('/components/save', [ComponentController::class, 'save'])->name('components.save');
-        // Основные CRUD операции для диаграмм
+        Route::post('/components/save', [ComponentController::class, 'save'])->name('components.save'); // Выносим отдельно, т.к. не ресурсный
         Route::resource('/diagrams', DiagramController::class);
-        // Основные CRUD операции для модулей
         Route::resource('/plugins', PluginController::class);
-        // Маршрут для загрузки отчётов
-        Route::get('/reports/download', [ReportController::class, 'download']);
+        Route::get('/reports/download', [ReportController::class, 'download'])->name('reports.download'); // Выносим отдельно
 
-        // Группа маршрутов для удаления опций у которых связь многие ко многим
-        Route::delete('/roles/{role}/permissions/{permission}',
-            RemovePermissionFromRoleController::class)
-            ->name('roles.permissions.destroy');
+        // --- Маршруты удаления связей ManyToMany ---
+        // Имена параметров уже корректны для RMB
+        Route::delete('/roles/{role}/permissions/{permission}', RemovePermissionFromRoleController::class)->name('roles.permissions.destroy');
+        Route::delete('/users/{user}/roles/{role}', RemoveRoleFromUserController::class)->name('users.roles.destroy');
+        Route::delete('/users/{user}/permissions/{permission}', RemovePermissionFromUserController::class)->name('users.permissions.destroy');
+        Route::delete('/rubrics/{rubric}/sections/{section}', RemoveRubricFromSectionController::class)->name('rubrics.sections.destroy');
+        Route::delete('/sections/{section}/articles/{article}', RemoveArticleFromSectionController::class)->name('sections.articles.destroy');
+        Route::delete('/sections/{section}/banners/{banner}', RemoveBannerFromSectionController::class)->name('sections.banners.destroy');
+        Route::delete('/articles/{article}/tags/{tag}', RemoveArticleFromTagController::class)->name('articles.tags.destroy');
+        Route::delete('/sections/{section}/videos/{video}', RemoveSectionFromVideoController::class)->name('sections.videos.destroy');
+        Route::delete('/articles/{article}/videos/{video}', RemoveArticleFromVideoController::class)->name('articles.videos.destroy');
 
-        Route::delete('/users/{user}/roles/{role}',
-            RemoveRoleFromUserController::class)
-            ->name('users.roles.destroy');
+        // --- Маршруты для дополнительных действий ---
+        Route::prefix('actions')->name('actions.')->group(function () { // Группируем доп. действия
+            // Клонирование (Используем имена моделей для параметров RMB)
+            Route::post('/rubrics/{rubric}/clone', [RubricController::class, 'clone'])->name('rubrics.clone');
+            Route::post('/sections/{section}/clone', [SectionController::class, 'clone'])->name('sections.clone');
+            Route::post('/articles/{article}/clone', [ArticleController::class, 'clone'])->name('articles.clone');
+            // Route::post('/videos/{video}/clone', [VideoController::class, 'clone'])->name('videos.clone'); // Добавить маршрут для видео
 
-        Route::delete('/users/{user}/permissions/{permission}',
-            RemovePermissionFromUserController::class)
-            ->name('users.permissions.destroy');
+            // Переключение активности (Используем имена моделей для параметров RMB)
+            Route::put('/rubrics/{rubric}/activity', [RubricController::class, 'updateActivity'])->name('rubrics.updateActivity');
+            Route::put('/sections/{section}/activity', [SectionController::class, 'updateActivity'])->name('sections.updateActivity');
+            Route::put('/articles/{article}/activity', [ArticleController::class, 'updateActivity'])->name('articles.updateActivity');
+            Route::put('/tags/{tag}/activity', [TagController::class, 'updateActivity'])->name('tags.updateActivity');
+            Route::put('/banners/{banner}/activity', [BannerController::class, 'updateActivity'])->name('banners.updateActivity');
+            Route::put('/videos/{video}/activity', [VideoController::class, 'updateActivity'])->name('videos.updateActivity');
+            Route::put('/settings/{setting}/activity', [SettingController::class, 'updateActivity'])->name('settings.updateActivity');
+            Route::put('/plugins/{plugin}/activity', [PluginController::class, 'updateActivity'])->name('plugins.updateActivity');
+            Route::put('/comments/{comment}/activity', [CommentController::class, 'updateActivity'])->name('comments.updateActivity');
 
-        Route::delete('/rubrics/{rubric}/sections/{section}',
-            RemoveRubricFromSectionController::class)
-            ->name('rubrics.sections.destroy');
+            // Переключение активности массово
+            Route::put('/admin/actions/rubrics/bulk-activity', [RubricController::class, 'bulkUpdateActivity'])
+                ->name('rubrics.bulkUpdateActivity');
+            Route::put('/admin/actions/sections/bulk-activity', [SectionController::class, 'bulkUpdateActivity'])
+                ->name('sections.bulkUpdateActivity');
+            Route::put('/admin/actions/articles/bulk-activity', [ArticleController::class, 'bulkUpdateActivity'])
+                ->name('articles.bulkUpdateActivity');
+            Route::put('/admin/actions/tags/bulk-activity', [TagController::class, 'bulkUpdateActivity'])
+                ->name('tags.bulkUpdateActivity');
+            Route::put('/admin/actions/banners/bulk-activity', [BannerController::class, 'bulkUpdateActivity'])
+                ->name('banners.bulkUpdateActivity');
+            Route::put('/admin/actions/videos/bulk-activity', [VideoController::class, 'bulkUpdateActivity'])
+                ->name('videos.bulkUpdateActivity');
 
-        Route::delete('/sections/{section}/articles/{article}',
-            RemoveArticleFromSectionController::class)
-            ->name('sections.articles.destroy');
+            // Переключение Left/Main/Right (Используем имена моделей для параметров RMB)
+            Route::put('/articles/{article}/left', [ArticleController::class, 'updateLeft'])->name('articles.updateLeft');
+            Route::put('/articles/{article}/main', [ArticleController::class, 'updateMain'])->name('articles.updateMain');
+            Route::put('/articles/{article}/right', [ArticleController::class, 'updateRight'])->name('articles.updateRight');
+            Route::put('/banners/{banner}/left', [BannerController::class, 'updateLeft'])->name('banners.updateLeft');
+            Route::put('/banners/{banner}/right', [BannerController::class, 'updateRight'])->name('banners.updateRight');
+            Route::put('/videos/{video}/left', [VideoController::class, 'updateLeft'])->name('videos.updateLeft');
+            Route::put('/videos/{video}/main', [VideoController::class, 'updateMain'])->name('videos.updateMain');
+            Route::put('/videos/{video}/right', [VideoController::class, 'updateRight'])->name('videos.updateRight');
 
-        Route::delete('/sections/{section}/banners/{banner}',
-            RemoveBannerFromSectionController::class)
-            ->name('sections.banners.destroy');
+            // Переключение активности в левой колонке массово
+            Route::put('/admin/actions/articles/bulk-left', [ArticleController::class, 'bulkUpdateLeft'])
+                ->name('articles.bulkUpdateLeft');
+            Route::put('/admin/actions/banners/bulk-left', [BannerController::class, 'bulkUpdateLeft'])
+                ->name('banners.bulkUpdateLeft');
+            Route::put('/admin/actions/videos/bulk-left', [VideoController::class, 'bulkUpdateLeft'])
+                ->name('videos.bulkUpdateLeft');
 
-        Route::delete('/articles/{article}/tags/{tag}',
-            RemoveArticleFromTagController::class)
-            ->name('articles.tags.destroy');
+            // Переключение активности в главном массово
+            Route::put('/admin/actions/articles/bulk-main', [ArticleController::class, 'bulkUpdateMain'])
+                ->name('articles.bulkUpdateMain');
+            Route::put('/admin/actions/videos/bulk-main', [VideoController::class, 'bulkUpdateMain'])
+                ->name('videos.bulkUpdateMain');
 
-        Route::delete('/sections/{section}/videos/{video}',
-            RemoveSectionFromVideoController::class)
-            ->name('sections.videos.destroy');
+            // Переключение активности в правой колонке массово
+            Route::put('/admin/actions/articles/bulk-right', [ArticleController::class, 'bulkUpdateRight'])
+                ->name('articles.bulkUpdateRight');
+            Route::put('/admin/actions/banners/bulk-right', [BannerController::class, 'bulkUpdateRight'])
+                ->name('banners.bulkUpdateRight');
+            Route::put('/admin/actions/videos/bulk-right', [VideoController::class, 'bulkUpdateRight'])
+                ->name('videos.bulkUpdateRight');
 
-        Route::delete('/articles/{article}/videos/{video}',
-            RemoveArticleFromVideoController::class)
-            ->name('articles.videos.destroy');
+            // Обновление сортировки для Drag and Drop
+            Route::put('/rubrics/update-sort-bulk', [RubricController::class, 'updateSortBulk'])->name('rubrics.updateSortBulk');
+            Route::put('/sections/update-sort-bulk', [SectionController::class, 'updateSortBulk'])->name('sections.updateSortBulk');
+            Route::put('/articles/update-sort-bulk', [ArticleController::class, 'updateSortBulk'])->name('articles.updateSortBulk');
+            Route::put('/tags/update-sort-bulk', [TagController::class, 'updateSortBulk'])->name('tags.updateSortBulk');
+            Route::put('/banners/update-sort-bulk', [BannerController::class, 'updateSortBulk'])->name('banners.updateSortBulk');
+            Route::put('/videos/update-sort-bulk', [VideoController::class, 'updateSortBulk'])->name('videos.updateSortBulk');
 
-        // Группа маршрутов для клонирования сущности
-        Route::post('/rubrics/clone/{id}',
-            [RubricController::class, 'clone'])
-            ->name('rubrics.clone');
+            // Обновление сортировки (Имена параметров уже были правильные)
+            Route::put('/rubrics/{rubric}/sort', [RubricController::class, 'updateSort'])->name('rubrics.updateSort');
+            Route::put('/sections/{section}/sort', [SectionController::class, 'updateSort'])->name('sections.updateSort');
+            Route::put('/articles/{article}/sort', [ArticleController::class, 'updateSort'])->name('articles.updateSort');
+            Route::put('/banners/{banner}/sort', [BannerController::class, 'updateSort'])->name('banners.updateSort');
+            Route::put('/videos/{video}/sort', [VideoController::class, 'updateSort'])->name('videos.updateSort');
 
-        Route::post('/sections/clone/{id}',
-            [SectionController::class, 'clone'])
-            ->name('sections.clone');
+            // Одобрение комментария (Используем имя модели для параметра RMB)
+            Route::put('/comments/{comment}/approve', [CommentController::class, 'approve'])->name('comments.approve');
 
-        Route::post('/articles/clone/{id}',
-            [ArticleController::class, 'clone'])
-            ->name('articles.clone');
+            // Массовое удаление
+            Route::delete('/rubrics/bulk-delete', [RubricController::class, 'bulkDestroy'])->name('rubrics.bulkDestroy');
+            Route::delete('/sections/bulk-delete', [SectionController::class, 'bulkDestroy'])->name('sections.bulkDestroy');
+            Route::delete('/articles/bulk-delete', [ArticleController::class, 'bulkDestroy'])->name('articles.bulkDestroy');
+            Route::delete('/tags/bulk-delete', [TagController::class, 'bulkDestroy'])->name('tags.bulkDestroy');
+            Route::delete('/banners/bulk-delete', [BannerController::class, 'bulkDestroy'])->name('banners.bulkDestroy');
+            Route::delete('/videos/bulk-delete', [VideoController::class, 'bulkDestroy'])->name('videos.bulkDestroy');
+            Route::delete('/comments/bulk-delete', [CommentController::class, 'bulkDestroy'])->name('comments.bulkDestroy');
+        }); // Конец группы actions
 
-        // Группа маршрутов для переключения активности
-        Route::put('/rubrics/{id}/updateActivity',
-            [RubricController::class, 'updateActivity'])
-            ->name('rubrics.updateActivity');
+    }); // Конец группы admin
 
-        Route::put('/sections/{id}/updateActivity',
-            [SectionController::class, 'updateActivity'])
-            ->name('sections.updateActivity');
-
-        Route::put('/articles/{id}/updateActivity',
-            [ArticleController::class, 'updateActivity'])
-            ->name('articles.updateActivity');
-
-        Route::put('/banners/{id}/updateActivity',
-            [BannerController::class, 'updateActivity'])
-            ->name('banners.updateActivity');
-
-        Route::put('/videos/{id}/updateActivity',
-            [VideoController::class, 'updateActivity'])
-            ->name('videos.updateActivity');
-
-        Route::put('/settings/{id}/updateActivity',
-            [ParameterController::class, 'updateActivity'])
-            ->name('settings.updateActivity');
-
-        Route::put('/plugins/{id}/updateActivity',
-            [PluginController::class, 'updateActivity'])
-            ->name('plugins.updateActivity');
-
-        Route::put('/comments/{id}/updateActivity',
-            [CommentController::class, 'updateActivity'])
-            ->name('comments.updateActivity');
-
-        // Группа маршрутов для переключения Статей как главными и в левом и правом сайдбарах
-        Route::put('/articles/{id}/updateLeft',
-            [ArticleController::class, 'updateLeft'])
-            ->name('articles.updateLeft');
-
-        Route::put('/articles/{id}/updateMain',
-            [ArticleController::class, 'updateMain'])
-            ->name('articles.updateMain');
-
-        Route::put('/articles/{id}/updateRight',
-            [ArticleController::class, 'updateRight'])
-            ->name('articles.updateRight');
-
-        // Группа маршрутов для переключения Статей в левом и правом сайдбарах
-        Route::put('/banners/{id}/updateLeft',
-            [BannerController::class, 'updateLeft'])
-            ->name('banners.updateLeft');
-
-        Route::put('/banners/{id}/updateRight',
-            [BannerController::class, 'updateRight'])
-            ->name('banners.updateRight');
-
-        // Группа маршрутов для переключения Видео в центре, левом и правом сайдбарах
-        Route::put('/videos/{id}/updateLeft',
-            [VideoController::class, 'updateLeft'])
-            ->name('videos.updateLeft');
-
-        Route::put('/videos/{id}/updateMain',
-            [VideoController::class, 'updateMain'])
-            ->name('videos.updateMain');
-
-        Route::put('/videos/{id}/updateRight',
-            [VideoController::class, 'updateRight'])
-            ->name('videos.updateRight');
-
-        // Группа маршрутов для обновления сортировки
-        Route::put('/rubrics/{rubric}/updateSort',
-            [RubricController::class, 'updateSort'])
-            ->name('rubrics.updateSort');
-
-        Route::put('/sections/{section}/updateSort',
-            [SectionController::class, 'updateSort'])
-            ->name('sections.updateSort');
-
-        Route::put('/articles/{article}/updateSort',
-            [ArticleController::class, 'updateSort'])
-            ->name('articles.updateSort');
-
-        Route::put('/banners/{banner}/updateSort',
-            [BannerController::class, 'updateSort'])
-            ->name('banners.updateSort');
-
-        Route::put('/videos/{video}/updateSort',
-            [VideoController::class, 'updateSort'])
-            ->name('videos.updateSort');
-
-        // Группа маршрутов для массового удаления сущностей
-        Route::delete('/admin/rubrics/bulk-delete',
-            [RubricController::class, 'bulkDestroy'])
-            ->name('rubrics.bulkDestroy');
-
-        Route::delete('/admin/sections/bulk-delete',
-            [SectionController::class, 'bulkDestroy'])
-            ->name('sections.bulkDestroy');
-
-        Route::delete('/admin/articles/bulk-delete',
-            [ArticleController::class, 'bulkDestroy'])
-            ->name('articles.bulkDestroy');
-
-        Route::delete('/admin/tags/bulk-delete',
-            [TagController::class, 'bulkDestroy'])
-            ->name('tags.bulkDestroy');
-
-        Route::delete('/admin/banners/bulk-delete',
-            [BannerController::class, 'bulkDestroy'])
-            ->name('banners.bulkDestroy');
-
-        Route::delete('/admin/videos/bulk-delete',
-            [VideoController::class, 'bulkDestroy'])
-            ->name('videos.bulkDestroy');
-
-        Route::delete('/comments/bulk-delete',
-            [CommentController::class, 'bulkDestroy'])
-            ->name('comments.bulkDestroy');
-
-        // Маршрут для модерации комментария
-        Route::put('/comments/{id}/approve',
-            [CommentController::class, 'approve'])
-            ->name('comments.approve');
-
-    });
-
-// Laravel File Manager для загрузки изображений
+// --- Остальные маршруты (Filemanager, Redis test) ---
 Route::group(['prefix' => 'laravel-filemanager', 'middleware' => ['web', 'auth']], function () {
     \UniSharp\LaravelFilemanager\Lfm::routes();
 });
 
-// Проверка Redis
 Route::get('/redis-test', function () {
-    Cache::put('key', 'value', 10);
-    return Cache::get('key');
+    try {
+        Cache::put('redis_test_key', 'redis_test_value', 10);
+        $value = Cache::get('redis_test_key');
+        if ($value === 'redis_test_value') {
+            return 'Redis connection successful!';
+        } else {
+            return 'Could not retrieve value from Redis.';
+        }
+    } catch (Throwable $e) {
+        return 'Redis connection failed: ' . $e->getMessage();
+    }
 });

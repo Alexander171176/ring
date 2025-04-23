@@ -5,6 +5,7 @@ namespace App\Http\Resources\Admin\Article;
 // use App\Http\Resources\Admin\Section\SectionResource; // Не нужен здесь
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Http\Resources\MissingValue;
 
 class ArticleSharedResource extends JsonResource
 {
@@ -20,15 +21,20 @@ class ArticleSharedResource extends JsonResource
         // или null, если не было загружено
         $firstImage = $this->whenLoaded('images', fn() => $this->resource->images->first());
 
+        // Проверяем, не является ли $firstImage объектом MissingValue
+        $thumbnailUrl = !($firstImage instanceof MissingValue) && $firstImage
+            ? $firstImage->thumb_url // Получаем URL, если images загружены и не пусты
+            : null;                 // null во всех остальных случаях
+
         return [
             'id'            => $this->id,
             'locale'        => $this->locale,
             'title'         => $this->title,
             'url'           => $this->url,
             'activity'      => $this->activity, // boolean
-            'published_at'  => $this->published_at?->toDateString(), // Пример формата YYYY-MM-DD
+            'published_at'  => $this->published_at?->toDateString(), // YYYY-MM-DD
             // Можно добавить URL первого изображения (превью)
-            'thumbnail_url' => $firstImage ? $firstImage->thumb_url : null, // Используем аксессор из ArticleImageResource
+            'thumbnail_url' => $thumbnailUrl, // <--- Используем результат проверки
 
             // 'sort'          => $this->sort, // Возможно, сортировка не нужна в shared
             // 'short'         => $this->short, // Возможно, краткое описание не нужно

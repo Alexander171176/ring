@@ -9,68 +9,80 @@ class ArticleRequest extends FormRequest
 {
     public function authorize(): bool
     {
+        // TODO: Добавить проверку прав доступа (например, $this->user()->can('create articles') или 'update articles')
         return true;
     }
 
     public function rules(): array
     {
+        // Получаем ID статьи из маршрута, если это обновление
+        $articleId = $this->route('article')?->id ?? null; // Используем null safe оператор и null coalescing
+
         return [
-            'sort' => 'nullable|integer',
-            'activity' => 'required|boolean',
-            'left' => 'required|boolean',
-            'main' => 'required|boolean',
-            'right' => 'required|boolean',
-            'locale' => [
-                'required',
-                'string',
-                'size:2',
-                Rule::in(['ru', 'en', 'kz']),
+            'sort'               => 'nullable|integer|min:0',
+            'activity'           => 'required|boolean',
+            'left'               => 'required|boolean',
+            'main'               => 'required|boolean',
+            'right'              => 'required|boolean',
+            'locale'             => [
+                'required','string','size:2',
+                Rule::in(['ru','en','kz']),
             ],
-            'title' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('articles', 'title')->ignore($this->route('article')),
+            'title'              => [
+                'required','string','max:255',
+                Rule::unique('articles')->where(fn($q) => $q->where('locale', $this->input('locale')))
+                    ->ignore($articleId),
             ],
-            'url' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('articles', 'url')->ignore($this->route('article')),
+            'url'                => [
+                'required','string','max:500',
+                'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
+                Rule::unique('articles')->where(fn($q) => $q->where('locale', $this->input('locale')))
+                    ->ignore($articleId),
             ],
-            'short' => 'nullable|string|max:255',
-            'description' => 'nullable|string',
-            'author' => 'nullable|string|max:255',
-            'views' => 'nullable|integer|min:0',
-            'likes' => 'nullable|integer|min:0',
+            'short'              => 'nullable|string|max:255',
+            'description'        => 'nullable|string',
+            'author'             => 'nullable|string|max:255',
+            'published_at'       => 'nullable|date',
+            'views'              => 'nullable|integer|min:0',
+            'likes'              => 'nullable|integer|min:0',
 
-            'meta_title' => 'nullable|string|max:255',
-            'meta_keywords' => 'nullable|string|max:255',
-            'meta_desc' => 'nullable|string|max:255',
+            'meta_title'         => 'nullable|string|max:255',
+            'meta_keywords'      => 'nullable|string|max:255',
+            'meta_desc'          => 'nullable|string',
 
-            // Связи
-            'sections' => ['sometimes', 'array'],
-            'tags' => ['sometimes', 'array'],
-            'related_articles' => ['sometimes', 'array'],
+            'sections'           => ['nullable','array'],
+            'sections.*.id'      => ['required_with:sections','integer','exists:sections,id'],
 
-            // Валидация массива изображений в таблице в таблице article_images
-            'images' => ['sometimes', 'array'],
-            'images.*.id' => ['nullable', 'integer', 'exists:article_images,id'],
-            'images.*.order' => ['nullable', 'integer'],
-            'images.*.alt' => ['nullable', 'string', 'max:255'],
-            'images.*.caption' => ['nullable', 'string', 'max:255'],
-            'images.*.file' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:10240'], // 10MB
+            'tags'               => ['nullable','array'],
+            'tags.*.id'          => ['required_with:tags','integer','exists:tags,id'],
 
-            // Если файла и ID нет одновременно, то ошибка:
-            'images.*' => ['array', function ($attr, $value, $fail) {
-                if (empty($value['id']) && empty($value['file'])) {
-                    $fail("Изображение должно иметь либо загруженный файл, либо ID существующего изображения.");
-                }
-            }],
+            'related_articles'   => ['nullable','array'],
+            'related_articles.*.id' => ['required_with:related_articles','integer','exists:articles,id'],
+
+            'images'             => ['nullable','array'],
+            'images.*.id'        => [
+                'nullable','integer',
+                Rule::exists('article_images','id'),
+                Rule::prohibitedIf(fn() => $this->isMethod('POST')),
+            ],
+            'images.*.order'     => ['nullable','integer','min:0'],
+            'images.*.alt'       => ['nullable','string','max:255'],
+            'images.*.caption'   => ['nullable','string','max:255'],
+            'images.*.file'      => [
+                'nullable',
+                'required_without:images.*.id',
+                'file',
+                'image',
+                'mimes:jpeg,jpg,png,gif,svg,webp',
+                'max:10240',
+            ],
+
+            'deletedImages'      => ['sometimes','array'],
+            'deletedImages.*'    => ['integer','exists:article_images,id'],
         ];
     }
 
-    // сообщения валидации полей
+    // Сообщения валидации полей (оставляем ваши, но можно добавить для published_at, связей, deletedImages)
     public function messages(): array
     {
         return [
@@ -82,12 +94,15 @@ class ArticleRequest extends FormRequest
             'title.required' => 'Название статьи обязательно для заполнения.',
             'title.string' => 'Название статьи должно быть строкой.',
             'title.max' => 'Название статьи не должно превышать 255 символов.',
-            'title.unique' => 'Статья с таким Названием уже существует.',
+            'title.unique' => 'Статья с таким Названием и Языком уже существует.', // Уточнено
 
             'url.required' => 'URL статьи обязателен.',
             'url.string' => 'URL статьи должен быть строкой.',
-            'url.max' => 'URL статьи не должен превышать 255 символов.',
-            'url.unique' => 'Статья с таким URL уже существует.',
+            'url.max' => 'URL статьи не должен превышать 500 символов.', // Исправлено
+            'url.regex' => 'URL должен содержать только латинские буквы, цифры и дефисы.', // Добавлено
+            'url.unique' => 'Статья с таким URL и Языком уже существует.', // Уточнено
+
+            'published_at.date' => 'Некорректный формат даты публикации.', // Добавлено
 
             'short.string' => 'Краткое описание должно быть строкой.',
             'short.max' => 'Краткое описание не должно превышать 255 символов.',
@@ -105,30 +120,83 @@ class ArticleRequest extends FormRequest
 
             'meta_title.max' => 'Meta заголовок не должен превышать 255 символов.',
             'meta_keywords.max' => 'Meta ключевые слова не должны превышать 255 символов.',
-            'meta_desc.max' => 'Meta описание не должно превышать 255 символов.',
+            'meta_desc.string' => 'Meta описание должно быть строкой.', // Исправлено
 
             'sort.integer' => 'Поле сортировки должно быть числом.',
+            'sort.min' => 'Поле сортировки не может быть отрицательным.', // Добавлено
             'activity.required' => 'Поле активности обязательно для заполнения.',
             'activity.boolean' => 'Поле активности должно быть логическим значением.',
 
-            'left.required' => 'Поле новость в левой колонке обязательно для заполнения.',
-            'left.boolean' => 'Поле новость в левой колонке должно быть логическим значением.',
+            'left.required' => 'Поле "В левой колонке" обязательно для заполнения.', // Уточнено
+            'left.boolean' => 'Поле "В левой колонке" должно быть логическим значением.',
 
-            'main.required' => 'Поле главная новость обязательно для заполнения.',
-            'main.boolean' => 'Поле главная новость должно быть логическим значением.',
+            'main.required' => 'Поле "Главная новость" обязательно для заполнения.', // Уточнено
+            'main.boolean' => 'Поле "Главная новость" должно быть логическим значением.',
 
-            'right.required' => 'Поле новость в правой колонке обязательно для заполнения.',
-            'right.boolean' => 'Поле новость в правой колонке должно быть логическим значением.',
+            'right.required' => 'Поле "В правой колонке" обязательно для заполнения.', // Уточнено
+            'right.boolean' => 'Поле "В правой колонке" должно быть логическим значением.',
 
             'sections.array' => 'Секции должны быть массивом.',
+            'sections.*.id.required_with' => 'ID секции обязателен.',
+            'sections.*.id.integer' => 'ID секции должен быть числом.',
+            'sections.*.id.exists' => 'Выбрана несуществующая секция.',
+
             'tags.array' => 'Теги должны быть массивом.',
+            'tags.*.id.required_with' => 'ID тега обязателен.',
+            'tags.*.id.integer' => 'ID тега должен быть числом.',
+            'tags.*.id.exists' => 'Выбран несуществующий тег.',
+
             'related_articles.array' => 'Список связанных статей должен быть массивом.',
+            'related_articles.*.id.required_with' => 'ID связанной статьи обязателен.',
+            'related_articles.*.id.integer' => 'ID связанной статьи должен быть числом.',
+            'related_articles.*.id.exists' => 'Выбрана несуществующая связанная статья.',
 
             'images.array' => 'Изображения должны быть массивом.',
+            'images.*.id.integer' => 'ID изображения должен быть числом.',
             'images.*.id.exists' => 'Указанного изображения не существует.',
+            'images.*.id.prohibited' => 'ID изображения нельзя передавать при создании.', // Добавлено
+            'images.*.order.integer' => 'Порядок изображения должен быть числом.',
+            'images.*.order.min' => 'Порядок изображения не может быть отрицательным.',
+            'images.*.alt.string' => 'Alt текст изображения должен быть строкой.',
+            'images.*.alt.max' => 'Alt текст не должен превышать 255 символов.',
+            'images.*.caption.string' => 'Подпись изображения должен быть строкой.',
+            'images.*.caption.max' => 'Подпись не должен превышать 255 символов.',
+            'images.*.file.required' => 'Файл изображения обязателен для новых изображений.', // Добавлено
+            'images.*.file.file' => 'Проблема с загрузкой файла изображения.', // Добавлено
             'images.*.file.image' => 'Файл должен быть изображением.',
-            'images.*.file.mimes' => 'Файл должен быть формата jpeg, jpg, png или webp.',
+            'images.*.file.mimes' => 'Файл должен быть формата jpeg, jpg, png, gif, svg или webp.', // Добавлены форматы
             'images.*.file.max' => 'Размер файла изображения не должен превышать 10 Мб.',
+            'images.*.file.required_without' => 'Файл изображения обязателен для новых изображений.',
+
+            'deletedImages.array' => 'Список удаляемых изображений должен быть массивом.',
+            'deletedImages.*.integer' => 'ID удаляемого изображения должен быть числом.',
+            'deletedImages.*.exists' => 'Попытка удалить несуществующее изображение.',
         ];
+    }
+
+    /**
+     * Prepare the data for validation.
+     *
+     * @return void
+     */
+    protected function prepareForValidation(): void
+    {
+        // Преобразуем значения чекбоксов, если они приходят как 'true'/'false' или on/off
+        $this->merge([
+            'activity' => filter_var($this->input('activity'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false,
+            'left' => filter_var($this->input('left'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false,
+            'main' => filter_var($this->input('main'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false,
+            'right' => filter_var($this->input('right'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false,
+        ]);
+
+        // Автоматическая генерация URL, если он пуст и есть title
+        if (empty($this->input('url')) && !empty($this->input('title'))) {
+            // TODO: Убедиться, что функция transliterate подключена или использовать Str::slug
+            // $this->merge(['url' => Str::slug($this->input('title'))]);
+            // $this->merge(['url' => transliterate($this->input('title'))]);
+        } else if (!empty($this->input('url'))) {
+            // Очищаем URL от лишнего, если он введен вручную
+            // $this->merge(['url' => Str::slug($this->input('url'))]);
+        }
     }
 }

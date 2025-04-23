@@ -1,7 +1,12 @@
 <script setup>
-import {useI18n} from 'vue-i18n';
-import {transliterate} from '@/utils/transliteration';
-import {useForm} from '@inertiajs/vue3';
+/**
+ * @version PulsarCMS 1.0
+ * @author Александр Косолапов <kosolapov1976@gmail.com>
+ */
+import { useI18n } from 'vue-i18n';
+import { useToast } from 'vue-toastification';
+import { transliterate } from '@/utils/transliteration';
+import { useForm } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import TitlePage from '@/Components/Admin/Headlines/TitlePage.vue';
 import DefaultButton from '@/Components/Admin/Buttons/DefaultButton.vue';
@@ -18,9 +23,13 @@ import InputError from '@/Components/Admin/Input/InputError.vue';
 import CKEditor from "@/Components/Admin/CKEditor/CKEditor.vue";
 import SelectLocale from "@/Components/Admin/Select/SelectLocale.vue";
 
+// --- Инициализация ---
 const {t} = useI18n();
+const toast = useToast();
 
-// пустая форма
+/**
+ * Форма для создания.
+ */
 const form = useForm({
     sort: '0',
     icon: '',
@@ -28,43 +37,82 @@ const form = useForm({
     title: '',
     url: '',
     short: '',
+    description: '',
     meta_title: '',
     meta_keywords: '',
     meta_desc: '',
     activity: false,
 });
 
-// автоматическое заполнение поля url
+/**
+ * Автоматически генерирует URL из поля title, если URL пуст.
+ */
 const handleUrlInputFocus = () => {
     if (form.title) {
         form.url = transliterate(form.title.toLowerCase());
     }
 };
 
-// автоматическая генерация мета-тегов
+/**
+ * Обрезает текст до заданной длины, стараясь не разрывать слова при генерации мета-тегов.
+ */
 const truncateText = (text, maxLength, addEllipsis = false) => {
     if (!text) return ''; // Защита от пустых значений
     if (text.length <= maxLength) return text;
+    // Ищем последний пробел ДО максимальной длины
     const lastSpaceIndex = text.lastIndexOf(' ', maxLength);
+    // Если пробел не найден или текст очень короткий, режем по maxLength
     const truncated = lastSpaceIndex === -1 ? text.substr(0, maxLength) : text.substr(0, lastSpaceIndex);
     return addEllipsis ? `${truncated}...` : truncated;
 };
 
+/**
+ * Генерирует значения для мета-полей (title, keywords, description),
+ * если они не были заполнены вручную.
+ */
 const generateMetaFields = () => {
+    // Генерация meta_title
     if (form.title && !form.meta_title) {
-        form.meta_title = truncateText(form.title, 160);
+        form.meta_title = truncateText(form.title, 160); // Используем вашу функцию truncateText
     }
 
-    if (!form.meta_keywords && form.title) {
-        form.meta_keywords = truncateText(form.title, 200); // Используем title вместо tags
+    // Генерация meta_keywords из form.short
+    if (!form.meta_keywords && form.short) {
+        // 1. Удаляем HTML-теги (на случай, если они есть в form.short)
+        let text = form.short.replace(/(<([^>]+)>)/gi, "");
+
+        // 2. Удаляем знаки препинания, кроме дефисов внутри слов (опционально)
+        //    Оставляем буквы (включая кириллицу/другие языки), цифры, дефисы и пробелы
+        text = text.replace(/[.,!?;:()\[\]{}"'«»]/g, ''); // Удаляем основную пунктуацию
+        // text = text.replace(/[^\p{L}\p{N}\s-]/gu, ''); // Более строгий вариант: оставить только буквы, цифры, пробелы, дефис
+
+        // 3. Разбиваем текст на слова по пробелам
+        const words = text.split(/\s+/)
+            // 4. Фильтруем пустые строки и короткие слова (например, менее 3 символов), если нужно
+            .filter(word => word && word.length >= 3)
+            // 5. Приводим к нижнему регистру (стандартно для ключевых слов)
+            .map(word => word.toLowerCase())
+            // 6. Удаляем дубликаты слов
+            .filter((value, index, self) => self.indexOf(value) === index);
+
+        // 7. Объединяем слова через запятую и пробел
+        const keywords = words.join(', ');
+
+        // 8. Обрезаем результат до максимальной длины (если нужно)
+        form.meta_keywords = truncateText(keywords, 255); // Используем вашу функцию truncateText
     }
 
+    // Генерация meta_desc из form.short
     if (form.short && !form.meta_desc) {
-        form.meta_desc = truncateText(form.short.replace(/(<([^>]+)>)/gi, ""), 255, true);
+        // Убираем HTML-теги для описания
+        const descText = form.short.replace(/(<([^>]+)>)/gi, "");
+        form.meta_desc = truncateText(descText, 200, true); // Используем другую длину и добавление ...
     }
 };
 
-// метод сохранения
+/**
+ * Отправляет данные формы для создания.
+ */
 const submitForm = () => {
 
     form.transform((data) => ({
@@ -74,17 +122,23 @@ const submitForm = () => {
 
     // console.log("Форма для отправки заполнена:", form.data());
 
-    form.post(route('rubrics.store'), {
-        errorBag: 'createRubric',
-        preserveScroll: true,
+    form.post(route('admin.rubrics.store'), {
+        errorBag: 'createRubric', // Имя для ошибок валидации
+        preserveScroll: true, // Сохранять позицию скролла
         onSuccess: () => {
+            // Действия при успехе (toast уведомление обычно делается через flash в HandleInertiaRequests)
+            toast.success('Рубрика успешно создана!');
             // console.log("Форма успешно отправлена.");
         },
         onError: (errors) => {
             console.error("Не удалось отправить форму:", errors);
+            // Можно показать toast с общей ошибкой или первой ошибкой из списка
+            const firstError = errors[Object.keys(errors)[0]];
+            toast.error(firstError || 'Пожалуйста, проверьте правильность заполнения полей.');
         }
     });
 };
+
 </script>
 
 <template>
@@ -101,7 +155,7 @@ const submitForm = () => {
                         bg-opacity-95 dark:bg-opacity-95">
                 <div class="sm:flex sm:justify-between sm:items-center mb-2">
                     <!-- Кнопка назад -->
-                    <DefaultButton :href="route('rubrics.index')">
+                    <DefaultButton :href="route('admin.rubrics.index')">
                         <template #icon>
                             <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">
                                 <path d="M4.3 4.5c1.9-1.9 5.1-1.9 7 0 .7.7 1.2 1.7 1.4 2.7l2-.3c-.2-1.5-.9-2.8-1.9-3.8C10.1.4 5.7.4 2.9 3.1L.7.9 0 7.3l6.4-.7-2.1-2.1zM15.6 8.7l-6.4.7 2.1 2.1c-1.9 1.9-5.1 1.9-7 0-.7-.7-1.2-1.7-1.4-2.7l-2 .3c.2 1.5.9 2.8 1.9 3.8 1.4 1.4 3.1 2 4.9 2 1.8 0 3.6-.7 4.9-2l2.2 2.2.8-6.4z"></path>
@@ -186,9 +240,20 @@ const submitForm = () => {
                     </div>
 
                     <div class="mb-3 flex flex-col items-start">
-                        <LabelInput for="short" :value="t('description')"/>
-                        <CKEditor v-model="form.short" class="w-full"/>
+                        <div class="flex justify-between w-full">
+                            <LabelInput for="short" :value="t('shortDescription')"/>
+                            <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
+                                {{ form.short.length }} / 255 {{ t('characters') }}
+                            </div>
+                        </div>
+                        <MetaDescTextarea v-model="form.short" class="w-full"/>
                         <InputError class="mt-2" :message="form.errors.short"/>
+                    </div>
+
+                    <div class="mb-3 flex flex-col items-start">
+                        <LabelInput for="description" :value="t('description')"/>
+                        <CKEditor v-model="form.description" class="w-full"/>
+                        <InputError class="mt-2" :message="form.errors.description"/>
                     </div>
 
                     <div class="mb-3 flex flex-col items-start">
@@ -249,7 +314,7 @@ const submitForm = () => {
                     </div>
 
                     <div class="flex items-center justify-center mt-4">
-                        <DefaultButton :href="route('rubrics.index')" class="mb-3">
+                        <DefaultButton :href="route('admin.rubrics.index')" class="mb-3">
                             <template #icon>
                                 <!-- SVG -->
                                 <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">

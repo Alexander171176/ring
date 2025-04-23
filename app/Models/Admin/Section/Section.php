@@ -104,7 +104,6 @@ class Section extends Model
 
     // --- Конец связей ---
 
-
     /**
      * Опционально: Очистка кэша, связанного с секциями (например, для меню или списков).
      */
@@ -114,14 +113,14 @@ class Section extends Model
             // TODO: Заменить 'sections_cache_key' на реальные ключи кэша
             // Cache::forget('sections_list_' . $section->locale);
             // Cache::forget('menu_structure'); // Если секции влияют на меню
-            Log::info("Section saved, potentially clearing cache: " . $section->title);
+            Log::info("Секция сохранена, что может привести к очистке кэша: " . $section->title);
         });
 
         static::deleted(function (Section $section) {
             // TODO: Заменить 'sections_cache_key' на реальные ключи кэша
             // Cache::forget('sections_list_' . $section->locale);
             // Cache::forget('menu_structure');
-            Log::info("Section deleted, potentially clearing cache: " . $section->title);
+            Log::info("Секция удалена, что может привести к очистке кэша: " . $section->title);
         });
     }
 
@@ -134,19 +133,4 @@ class Section extends Model
     {
         return $this->activity;
     }
-
-    /**
-     * Опционально: Аксессор для URL (если вы добавили поле 'url' в миграцию).
-     * Генерирует URL на основе роута.
-     *
-     * @return string
-     */
-    /*
-    public function getSectionUrlAttribute(): string
-    {
-        // Замените 'public.sections.show' на имя вашего реального роута для показа секции
-        // и убедитесь, что у секции есть поле 'url' или 'slug'
-        return route('public.sections.show', ['url' => $this->url]);
-    }
-    */
 }

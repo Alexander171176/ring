@@ -115,8 +115,8 @@ class Tag extends Model
     /**
      * Опционально: Аксессор для URL тега.
      */
-    public function getTagUrlAttribute(): string
-    {
-        return route('public.tags.show', ['slug' => $this->slug]);
-    }
+//    public function getTagUrlAttribute(): string
+//    {
+//        return route('public.tags.show', ['slug' => $this->slug]);
+//    }
 }

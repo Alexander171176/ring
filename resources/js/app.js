@@ -8,6 +8,18 @@ import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 import { initI18n } from './utils/i18n.js'; // Обновленный импорт i18n
 import { createHead } from '@vueuse/head';
 
+// --- Toastification ИМПОРТЫ ---
+import Toast, { POSITION } from "vue-toastification";
+import "vue-toastification/dist/index.css";
+// --- Конец импорта ---
+
+// --- FontAwesome (если используете) ---
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { fas } from '@fortawesome/free-solid-svg-icons'; //Импорт solid иконок
+library.add(fas); // Добавление solid иконок в библиотеку
+// --- Конец FontAwesome ---
+
 import '@vue-flow/core/dist/style.css';
 import '@vue-flow/core/dist/theme-default.css';
 import '@vue-flow/controls/dist/style.css';
@@ -25,9 +37,26 @@ createInertiaApp({
                 .use(plugin)
                 .use(ZiggyVue)
                 .use(i18n) // Подключаем i18n после его инициализации
+                .use(Toast, toastOptions) // <--- ДОБАВЛЯЕМ РЕГИСТРАЦИЮ TOAST
                 .use(createHead())
                 .mount(el);
         });
+        // --- Настройки Toastification ---
+        const toastOptions = {
+            position: POSITION.TOP_RIGHT,
+            timeout: 3000,
+            closeOnClick: true,
+            pauseOnFocusLoss: true,
+            pauseOnHover: true,
+            draggable: true,
+            draggablePercent: 0.6,
+            showCloseButtonOnHover: false,
+            hideProgressBar: false,
+            closeButton: "button",
+            icon: true,
+            rtl: false
+        };
+        // --- Конец настроек ---
     },
     progress: {
         color: '#4B5563',

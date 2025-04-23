@@ -1,4 +1,8 @@
 <script setup>
+/**
+ * @version PulsarCMS 1.0
+ * @author Александр Косолапов <kosolapov1976@gmail.com>
+ */
 import {defineProps} from 'vue';
 import {useI18n} from 'vue-i18n';
 import {useForm} from '@inertiajs/vue3';
@@ -16,14 +20,23 @@ import LabelInput from '@/Components/Admin/Input/LabelInput.vue';
 import CKEditor from "@/Components/Admin/CKEditor/CKEditor.vue";
 import SelectLocale from "@/Components/Admin/Select/SelectLocale.vue";
 import VueMultiselect from "vue-multiselect";
+import {useToast} from "vue-toastification";
 
-const {t} = useI18n();
+// --- Инициализация ---
+const toast = useToast();
+const { t } = useI18n();
 
+/**
+ * Входные свойства компонента.
+ */
 const props = defineProps({
     section: { type: Object, required: true },
     rubrics: Array,
 });
 
+/**
+ * Формируем форму редактирования.
+ */
 const form = useForm({
     _method: 'PUT',
     sort: props.section.sort ?? 0,
@@ -31,26 +44,35 @@ const form = useForm({
     locale: props.section.locale ?? '',
     title: props.section.title ?? '',
     short: props.section.short ?? '',
+    description: props.section.description ?? '',
     activity: Boolean(props.section.activity ?? false),
     rubrics: props.section.rubrics ?? [],
 });
 
+/**
+ * Отправляет данные формы для обновления.
+ */
 const submitForm = async () => {
     form.transform((data) => ({
         ...data,
         activity: data.activity ? 1 : 0,
     }));
 
-    form.post(route('sections.update', props.section.id), {
+    form.post(route('admin.sections.update', props.section.id), {
         errorBag: 'editSection',
         preserveScroll: true,
         onSuccess: () => {
+            // Сообщение об успехе будет показано через flash из HandleInertiaRequests
+            toast.success('Секция успешно обновлена!'); // Можно добавить, если нужно кастомное
         },
         onError: (errors) => {
-            console.error("Не удалось обновить форму:", errors);
+            // console.error("Ошибка обновления рубрики:", errors);
+            const firstError = errors[Object.keys(errors)[0]];
+            toast.error(firstError || 'Пожалуйста, проверьте правильность заполнения полей.')
         }
     });
 };
+
 </script>
 
 <template>
@@ -67,7 +89,7 @@ const submitForm = async () => {
                         bg-opacity-95 dark:bg-opacity-95">
                 <div class="sm:flex sm:justify-between sm:items-center mb-2">
                     <!-- Кнопка назад -->
-                    <DefaultButton :href="route('sections.index')">
+                    <DefaultButton :href="route('admin.sections.index')">
                         <template #icon>
                             <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">
                                 <path d="M4.3 4.5c1.9-1.9 5.1-1.9 7 0 .7.7 1.2 1.7 1.4 2.7l2-.3c-.2-1.5-.9-2.8-1.9-3.8C10.1.4 5.7.4 2.9 3.1L.7.9 0 7.3l6.4-.7-2.1-2.1zM15.6 8.7l-6.4.7 2.1 2.1c-1.9 1.9-5.1 1.9-7 0-.7-.7-1.2-1.7-1.4-2.7l-2 .3c.2 1.5.9 2.8 1.9 3.8 1.4 1.4 3.1 2 4.9 2 1.8 0 3.6-.7 4.9-2l2.2 2.2.8-6.4z"></path>
@@ -135,17 +157,23 @@ const submitForm = async () => {
 
                     <div class="mb-3 flex flex-col items-start">
                         <div class="flex justify-between w-full">
-                            <LabelInput for="meta_desc" :value="t('shortDescription')" />
+                            <LabelInput for="short" :value="t('shortDescription')"/>
                             <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
                                 {{ form.short.length }} / 255 {{ t('characters') }}
                             </div>
                         </div>
-                        <MetaDescTextarea v-model="form.short" class="w-full" />
-                        <InputError class="mt-2" :message="form.errors.short" />
+                        <MetaDescTextarea v-model="form.short" class="w-full"/>
+                        <InputError class="mt-2" :message="form.errors.short"/>
+                    </div>
+
+                    <div class="mb-3 flex flex-col items-start">
+                        <LabelInput for="description" :value="t('description')"/>
+                        <CKEditor v-model="form.description" class="w-full"/>
+                        <InputError class="mt-2" :message="form.errors.description"/>
                     </div>
 
                     <div class="flex items-center justify-center mt-4">
-                        <DefaultButton :href="route('sections.index')" class="mb-3">
+                        <DefaultButton :href="route('admin.sections.index')" class="mb-3">
                             <template #icon>
                                 <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">
                                     <path

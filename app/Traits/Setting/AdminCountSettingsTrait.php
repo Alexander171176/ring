@@ -2,274 +2,86 @@
 
 namespace App\Traits\Setting;
 
+use App\Http\Requests\Admin\UpdateCountSettingRequest;
 use App\Models\Admin\Setting\Setting;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+use Throwable;
+
+// <--- Используем новый Request
+// Добавляем Cache
+// Добавляем Log
+// Добавляем Throwable
 
 trait AdminCountSettingsTrait
 {
     /**
-     * Обновляем количество рубрик в таблице на странице
-     *
-     * @param Request $request
-     * @return JsonResponse
+     * Общий метод для обновления настроек количества.
      */
-    public function updateAdminCountRubrics(Request $request): JsonResponse
+    private function updateCountSetting(UpdateCountSettingRequest $request, string $optionKey, string $configKey): JsonResponse
     {
-        $validated = $request->validate([
-            'value' => 'required|string', // меняем правило валидации на строку
-        ]);
+        // Авторизация и валидация в UpdateCountSettingRequest
+        $validated = $request->validated();
+        $newValue = $validated['value']; // Уже integer
 
-        $setting = Setting::where('option', 'AdminCountRubrics')->firstOrFail();
-        $setting->value = $validated['value']; // если нужно, можно принудительно привести к строке: (string)$validated['value']
-        $setting->save();
+        try {
+            // Используем firstOrFail для поиска или ошибки 404
+            $setting = Setting::where('option', $optionKey)->firstOrFail();
+            $setting->value = (string)$newValue; // Сохраняем как строку, если БД ожидает строку
+            // Или $setting->value = $newValue; если БД/каст обработают integer
+            $setting->save();
 
-        // Обновляем конфигурацию, если нужно
-        config(['site_settings.AdminCountRubrics' => $setting->value]);
+            // Обновляем конфигурацию для текущего запроса
+            config([$configKey => $newValue]);
 
-        return response()->json(['success' => true, 'value' => $setting->value]);
+            // Очищаем общий кэш настроек
+            Cache::forget('site_settings'); // TODO: Использовать правильный ключ
+            Log::info("Setting '{$optionKey}' updated to: " . $newValue);
+
+            // Возвращаем успех и новое значение
+            return response()->json(['success' => true, 'value' => $newValue]);
+
+        } catch (Throwable $e) {
+            Log::error("Ошибка обновления настройки '{$optionKey}': " . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Ошибка обновления настройки.'], 500);
+        }
     }
 
-    /**
-     * Обновляем количество секций в таблице на странице
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function updateAdminCountSections(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'value' => 'required|string', // меняем правило валидации на строку
-        ]);
+    // Используем общий метод в публичных методах
+    public function updateAdminCountRubrics(UpdateCountSettingRequest $request): JsonResponse
+    { return $this->updateCountSetting($request, 'AdminCountRubrics', 'site_settings.AdminCountRubrics'); }
 
-        $setting = Setting::where('option', 'AdminCountSections')->firstOrFail();
-        $setting->value = $validated['value']; // если нужно, можно принудительно привести к строке: (string)$validated['value']
-        $setting->save();
+    public function updateAdminCountSections(UpdateCountSettingRequest $request): JsonResponse
+    { return $this->updateCountSetting($request, 'AdminCountSections', 'site_settings.AdminCountSections'); }
 
-        // Обновляем конфигурацию, если нужно
-        config(['site_settings.AdminCountSections' => $setting->value]);
+    public function updateAdminCountArticles(UpdateCountSettingRequest $request): JsonResponse
+    { return $this->updateCountSetting($request, 'AdminCountArticles', 'site_settings.AdminCountArticles'); }
 
-        return response()->json(['success' => true, 'value' => $setting->value]);
-    }
+    public function updateAdminCountTags(UpdateCountSettingRequest $request): JsonResponse
+    { return $this->updateCountSetting($request, 'AdminCountTags', 'site_settings.AdminCountTags'); }
 
-    /**
-     * Обновляем количество постов в таблице на странице
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function updateAdminCountArticles(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'value' => 'required|string', // меняем правило валидации на строку
-        ]);
+    public function updateAdminCountComments(UpdateCountSettingRequest $request): JsonResponse
+    { return $this->updateCountSetting($request, 'AdminCountComments', 'site_settings.AdminCountComments'); }
 
-        $setting = Setting::where('option', 'AdminCountArticles')->firstOrFail();
-        $setting->value = $validated['value']; // если нужно, можно принудительно привести к строке: (string)$validated['value']
-        $setting->save();
+    public function updateAdminCountBanners(UpdateCountSettingRequest $request): JsonResponse
+    { return $this->updateCountSetting($request, 'AdminCountBanners', 'site_settings.AdminCountBanners'); }
 
-        // Обновляем конфигурацию, если нужно
-        config(['site_settings.AdminCountArticles' => $setting->value]);
+    public function updateAdminCountVideos(UpdateCountSettingRequest $request): JsonResponse
+    { return $this->updateCountSetting($request, 'AdminCountVideos', 'site_settings.AdminCountVideos'); }
 
-        return response()->json(['success' => true, 'value' => $setting->value]);
-    }
+    public function updateAdminCountUsers(UpdateCountSettingRequest $request): JsonResponse
+    { return $this->updateCountSetting($request, 'AdminCountUsers', 'site_settings.AdminCountUsers'); }
 
-    /**
-     * Обновляем количество тегов в таблице на странице
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function updateAdminCountTags(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'value' => 'required|string', // меняем правило валидации на строку
-        ]);
+    public function updateAdminCountRoles(UpdateCountSettingRequest $request): JsonResponse
+    { return $this->updateCountSetting($request, 'AdminCountRoles', 'site_settings.AdminCountRoles'); }
 
-        $setting = Setting::where('option', 'AdminCountTags')->firstOrFail();
-        $setting->value = $validated['value']; // если нужно, можно принудительно привести к строке: (string)$validated['value']
-        $setting->save();
+    public function updateAdminCountPermissions(UpdateCountSettingRequest $request): JsonResponse
+    { return $this->updateCountSetting($request, 'AdminCountPermissions', 'site_settings.AdminCountPermissions'); }
 
-        // Обновляем конфигурацию, если нужно
-        config(['site_settings.AdminCountTags' => $setting->value]);
+    public function updateAdminCountPlugins(UpdateCountSettingRequest $request): JsonResponse
+    { return $this->updateCountSetting($request, 'AdminCountPlugins', 'site_settings.AdminCountPlugins'); }
 
-        return response()->json(['success' => true, 'value' => $setting->value]);
-    }
-
-    /**
-     * Обновляем количество комментариев в таблице на странице
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function updateAdminCountComments(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'value' => 'required|string', // меняем правило валидации на строку
-        ]);
-
-        $setting = Setting::where('option', 'AdminCountComments')->firstOrFail();
-        $setting->value = $validated['value']; // если нужно, можно принудительно привести к строке: (string)$validated['value']
-        $setting->save();
-
-        // Обновляем конфигурацию, если нужно
-        config(['site_settings.AdminCountComments' => $setting->value]);
-
-        return response()->json(['success' => true, 'value' => $setting->value]);
-    }
-
-    /**
-     * Обновляем количество баннеров в таблице на странице
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function updateAdminCountBanners(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'value' => 'required|string', // меняем правило валидации на строку
-        ]);
-
-        $setting = Setting::where('option', 'AdminCountBanners')->firstOrFail();
-        $setting->value = $validated['value']; // если нужно, можно принудительно привести к строке: (string)$validated['value']
-        $setting->save();
-
-        // Обновляем конфигурацию, если нужно
-        config(['site_settings.AdminCountBanners' => $setting->value]);
-
-        return response()->json(['success' => true, 'value' => $setting->value]);
-    }
-
-    /**
-     * Обновляем количество видео в таблице на странице
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function updateAdminCountVideos(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'value' => 'required|string', // меняем правило валидации на строку
-        ]);
-
-        $setting = Setting::where('option', 'AdminCountVideos')->firstOrFail();
-        $setting->value = $validated['value']; // если нужно, можно принудительно привести к строке: (string)$validated['value']
-        $setting->save();
-
-        // Обновляем конфигурацию, если нужно
-        config(['site_settings.AdminCountVideos' => $setting->value]);
-
-        return response()->json(['success' => true, 'value' => $setting->value]);
-    }
-
-    /**
-     * Обновляем количество пользователей в таблице на странице
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function updateAdminCountUsers(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'value' => 'required|string', // меняем правило валидации на строку
-        ]);
-
-        $setting = Setting::where('option', 'AdminCountUsers')->firstOrFail();
-        $setting->value = $validated['value']; // если нужно, можно принудительно привести к строке: (string)$validated['value']
-        $setting->save();
-
-        // Обновляем конфигурацию, если нужно
-        config(['site_settings.AdminCountUsers' => $setting->value]);
-
-        return response()->json(['success' => true, 'value' => $setting->value]);
-    }
-
-    /**
-     * Обновляем количество ролей в таблице на странице
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function updateAdminCountRoles(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'value' => 'required|string', // меняем правило валидации на строку
-        ]);
-
-        $setting = Setting::where('option', 'AdminCountRoles')->firstOrFail();
-        $setting->value = $validated['value']; // если нужно, можно принудительно привести к строке: (string)$validated['value']
-        $setting->save();
-
-        // Обновляем конфигурацию, если нужно
-        config(['site_settings.AdminCountRoles' => $setting->value]);
-
-        return response()->json(['success' => true, 'value' => $setting->value]);
-    }
-
-    /**
-     * Обновляем количество разрешений в таблице на странице
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function updateAdminCountPermissions(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'value' => 'required|string', // меняем правило валидации на строку
-        ]);
-
-        $setting = Setting::where('option', 'AdminCountPermissions')->firstOrFail();
-        $setting->value = $validated['value']; // если нужно, можно принудительно привести к строке: (string)$validated['value']
-        $setting->save();
-
-        // Обновляем конфигурацию, если нужно
-        config(['site_settings.AdminCountPermissions' => $setting->value]);
-
-        return response()->json(['success' => true, 'value' => $setting->value]);
-    }
-
-
-    /**
-     * Обновляем количество модулей в таблице на странице
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function updateAdminCountPlugins(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'value' => 'required|string', // меняем правило валидации на строку
-        ]);
-
-        $setting = Setting::where('option', 'AdminCountPlugins')->firstOrFail();
-        $setting->value = $validated['value']; // если нужно, можно принудительно привести к строке: (string)$validated['value']
-        $setting->save();
-
-        // Обновляем конфигурацию, если нужно
-        config(['site_settings.AdminCountPlugins' => $setting->value]);
-
-        return response()->json(['success' => true, 'value' => $setting->value]);
-    }
-
-    /**
-     * Обновляем количество параметров в таблице на странице
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function updateAdminCountSettings(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'value' => 'required|string', // меняем правило валидации на строку
-        ]);
-
-        $setting = Setting::where('option', 'AdminCountSettings')->firstOrFail();
-        $setting->value = $validated['value']; // если нужно, можно принудительно привести к строке: (string)$validated['value']
-        $setting->save();
-
-        // Обновляем конфигурацию, если нужно
-        config(['site_settings.AdminCountSettings' => $setting->value]);
-
-        return response()->json(['success' => true, 'value' => $setting->value]);
-    }
+    public function updateAdminCountSettings(UpdateCountSettingRequest $request): JsonResponse
+    { return $this->updateCountSetting($request, 'AdminCountSettings', 'site_settings.AdminCountSettings'); }
 }

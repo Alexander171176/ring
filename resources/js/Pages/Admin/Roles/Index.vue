@@ -1,7 +1,12 @@
 <script setup>
+/**
+ * @version PulsarCMS 1.0
+ * @author Александр Косолапов <kosolapov1976@gmail.com>
+ */
 import {defineProps, ref, computed, watch} from 'vue';
-import {useForm} from '@inertiajs/vue3';
+import {useToast} from 'vue-toastification';
 import { useI18n } from 'vue-i18n';
+import {router} from "@inertiajs/vue3";
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import TitlePage from '@/Components/Admin/Headlines/TitlePage.vue';
 import DangerModal from '@/Components/Admin/Modal/DangerModal.vue';
@@ -13,63 +18,126 @@ import DefaultButton from "@/Components/Admin/Buttons/DefaultButton.vue";
 import ItemsPerPageSelect from "@/Components/Admin/Select/ItemsPerPageSelect.vue";
 import SortSelect from "@/Components/Admin/Role/Sort/SortSelect.vue";
 
-const { t } = useI18n();
-const props = defineProps(['roles', 'rolesCount', 'adminCountRoles', 'adminCountRoles']);
-const form = useForm({});
+// --- Инициализация экземпляр i18n, toast ---
+const {t} = useI18n();
+const toast = useToast();
 
-// Используем значение из props для начального количества элементов на странице
-const itemsPerPage = ref(props.adminCountRoles)
+/**
+ * Входные свойства компонента.
+ */
+const props = defineProps(['roles', 'rolesCount', 'adminCountRoles', 'adminSortRoles']);
 
-// чтобы при изменении itemsPerPage автоматически обновлялся параметр в базе,
+/**
+ * Реактивная переменная для хранения текущего количества элементов на странице.
+ */
+const itemsPerPage = ref(props.adminCountRoles); // Используем значение из props
+
+/**
+ * Наблюдатель за изменением количества элементов на странице.
+ */
 watch(itemsPerPage, (newVal) => {
-    axios.put(route('settings.updateAdminCountRoles'), { value: newVal.toString() })
-        .then(response => {
-            // console.log('Количество элементов на странице обновлено:', response.data.value)
-        })
-        .catch(error => {
-            console.error('Ошибка обновления настройки:', error.response.data)
-        })
-})
+    router.put(route('admin.settings.updateAdminCountRoles'), {value: newVal}, {
+        preserveScroll: true,
+        preserveState: true, // Не перезагружаем все props
+        onSuccess: () => toast.info(`Показ ${newVal} элементов на странице.`),
+        onError: (errors) => toast.error(errors.value || 'Ошибка обновления кол-ва элементов.'),
+    });
+});
 
-// параметр сортировки по умолчанию, устанавливаем из props
-const sortParam = ref(props.adminSortRoles)
+/**
+ * Реактивная переменная для хранения текущего параметра сортировки.
+ */
+const sortParam = ref(props.adminSortRoles); // Используем значение из props
+
+/**
+ * Наблюдатель за изменением параметра сортировки.
+ */
 watch(sortParam, (newVal) => {
-    axios.put(route('settings.updateAdminSortRoles'), { value: newVal })
-        .then(response => {
-            // console.log('Сортировка обновлена:', response.data.value)
-        })
-        .catch(error => {
-            console.error('Ошибка обновления сортировки:', error.response.data)
-        })
-})
+    router.put(route('admin.settings.updateAdminSortRoles'), {value: newVal}, {
+        preserveScroll: true,
+        preserveState: true,
+        // onSuccess: () => toast.info(`Сортировка изменена на ${newVal}.`), // TODO: добавить перевод для newVal
+        onSuccess: () => toast.info('Сортировка успешно изменена'),
+        onError: (errors) => toast.error(errors.value || 'Ошибка обновления сортировки.'),
+    });
+});
 
-// Модальное окно удаления
+/**
+ * Флаг отображения модального окна подтверждения удаления.
+ */
 const showConfirmDeleteModal = ref(false);
+
+/**
+ * ID для удаления.
+ */
 const roleToDeleteId = ref(null);
-const confirmDelete = (id) => {
+
+/**
+ * Название для отображения в модальном окне.
+ */
+const roleToDeleteName = ref('');
+
+/**
+ * Открывает модальное окно подтверждения удаления с входными переменными.
+ */
+const confirmDelete = (id, name) => {
     roleToDeleteId.value = id;
+    roleToDeleteName.value = name;
     showConfirmDeleteModal.value = true;
 };
+/**
+ * Закрывает модальное окно подтверждения и сбрасывает связанные переменные.
+ */
 const closeModal = () => {
     showConfirmDeleteModal.value = false;
+    roleToDeleteId.value = null;
+    roleToDeleteName.value = '';
 };
 
-// Удаление роли
+/**
+ * Отправляет запрос на удаление.
+ */
 const deleteRole = () => {
-    if (roleToDeleteId.value !== null) {
-        form.delete(route('roles.destroy', roleToDeleteId.value), {
-            onSuccess: () => closeModal()
-        });
-    }
+    if (roleToDeleteId.value === null) return;
+
+    const idToDelete = roleToDeleteId.value; // Сохраняем ID во временную переменную
+    const nameToDelete = roleToDeleteName.value; // Сохраняем name во временную переменную
+
+    router.delete(route('admin.roles.destroy', {role: idToDelete}), { // Используем временную переменную
+        preserveScroll: true,
+        preserveState: false,
+        onSuccess: (page) => {
+            closeModal(); // Закрываем модалку
+            toast.success(`Роль "${nameToDelete || 'ID: ' + idToDelete}" удалена.`);
+            // console.log('Удаление успешно.');
+        },
+        onError: (errors) => {
+            closeModal();
+            const errorMsg = errors.general || errors[Object.keys(errors)[0]] || 'Произошла ошибка при удалении.';
+            toast.error(`${errorMsg} (Роль: ${nameToDelete || 'ID: ' + idToDelete})`);
+            console.error('Ошибка удаления:', errors);
+        },
+        onFinish: () => {
+            // console.log('Запрос на удаление завершен.');
+            roleToDeleteId.value = null;
+            roleToDeleteName.value = '';
+        }
+    });
 };
 
-// Пагинация
+/**
+ * Текущая страница пагинации.
+ */
 const currentPage = ref(1);
 
-// Строка поиска
+/**
+ * Строка поискового запроса.
+ */
 const searchQuery = ref('');
 
-// Функция сортировки
+/**
+ * Сортирует массив на основе текущего параметра сортировки.
+ */
 const sortRoles = (roles) => {
     // Добавляем сортировку по id в двух направлениях:
     if (sortParam.value === 'idAsc') {
@@ -86,7 +154,9 @@ const sortRoles = (roles) => {
     });
 };
 
-// Фильтр поиска
+/**
+ * Вычисляемое свойство, отсортированный список поиска.
+ */
 const filteredRoles = computed(() => {
     let filtered = props.roles;
 
@@ -99,13 +169,19 @@ const filteredRoles = computed(() => {
     return sortRoles(filtered);
 });
 
-// Пагинация
+/**
+ * Вычисляемое свойство пагинации, возвращающее для текущей страницы.
+ */
 const paginatedRoles = computed(() => {
     const start = (currentPage.value - 1) * itemsPerPage.value;
     return filteredRoles.value.slice(start, start + itemsPerPage.value);
 });
 
+/**
+ * Вычисляемое свойство, возвращающее общее количество страниц пагинации.
+ */
 const totalPages = computed(() => Math.ceil(filteredRoles.value.length / itemsPerPage.value));
+
 </script>
 
 <template>
@@ -121,7 +197,7 @@ const totalPages = computed(() => Math.ceil(filteredRoles.value.length / itemsPe
                         bg-opacity-95 dark:bg-opacity-95">
                 <div class="sm:flex sm:justify-between sm:items-center mb-2">
                     <!-- Кнопка добавить -->
-                    <DefaultButton :href="route('roles.create')">
+                    <DefaultButton :href="route('admin.roles.create')">
                         <template #icon>
                             <svg class="w-4 h-4 fill-current opacity-50 shrink-0" viewBox="0 0 16 16">
                                 <path
