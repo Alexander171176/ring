@@ -19,7 +19,9 @@ use App\Models\Admin\Setting\Setting; // Убедитесь, что импорт
 use App\Models\Admin\Video\Video;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Log;
 use Inertia\Middleware;
+use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 use Tighten\Ziggy\Ziggy;
 
 class HandleInertiaRequests extends Middleware
@@ -55,6 +57,13 @@ class HandleInertiaRequests extends Middleware
         $banners = Banner::all(); // Получение всех статей из базы данных
         $videos = Video::all(); // Получение всех видео из базы данных
 
+//        Log::info('🌐 LOCALE DEBUG', [
+//            'LaravelLocalization::getCurrentLocale()' => LaravelLocalization::getCurrentLocale(),
+//            'app()->getLocale()' => app()->getLocale(),
+//            'available locales' => array_keys(LaravelLocalization::getSupportedLocales()),
+//            'request URI' => $request->getRequestUri(),
+//        ]);
+
         return [
             ...parent::share($request),
             'rubrics' => fn () => RubricSharedResource::collection($rubrics)->toArray($request),
@@ -69,7 +78,7 @@ class HandleInertiaRequests extends Middleware
                 ...(new Ziggy)->toArray(),
                 'location' => $request->url(),
             ],
-            'locale' => App::getLocale(), // Добавляем текущую локаль
+            'locale' => LaravelLocalization::getCurrentLocale(),
 
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),

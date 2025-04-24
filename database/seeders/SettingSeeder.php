@@ -60,15 +60,6 @@ class SettingSeeder extends Seeder
                 'activity' => true,
             ],
             [
-                'type' => 'string',
-                'option' => 'locale',
-                'value' => 'ru',
-                'constant' => 'LOCALE',
-                'category' => 'system',
-                'description' => 'переключение локальных языков',
-                'activity' => true,
-            ],
-            [
                 'type' => 'number',
                 'option' => 'AdminCountRubrics',
                 'value' => '20',

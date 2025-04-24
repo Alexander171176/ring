@@ -158,7 +158,7 @@ const sortRoles = (roles) => {
  * Вычисляемое свойство, отсортированный список поиска.
  */
 const filteredRoles = computed(() => {
-    let filtered = props.roles;
+    let filtered = props.roles.filter(role => role.id !== 1);
 
     if (searchQuery.value) {
         filtered = filtered.filter(role =>
@@ -208,7 +208,7 @@ const totalPages = computed(() => Math.ceil(filteredRoles.value.length / itemsPe
                     </DefaultButton>
                 </div>
                 <SearchInput v-if="rolesCount" v-model="searchQuery" :placeholder="t('searchByName')"/>
-                <CountTable v-if="rolesCount"> {{ rolesCount }} </CountTable>
+                <CountTable v-if="rolesCount"> {{ rolesCount - 1 }} </CountTable>
                 <RoleTable
                     :roles="paginatedRoles"
                     @delete="confirmDelete"

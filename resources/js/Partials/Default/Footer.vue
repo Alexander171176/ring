@@ -1,12 +1,17 @@
 <script setup>
 import {ref, onMounted, watch} from 'vue';
 import {useI18n} from 'vue-i18n';
+import {Inertia} from '@inertiajs/inertia';
 import axios from 'axios';
 import {Link, usePage} from "@inertiajs/vue3";
 import LocaleSelectOption from '@/Components/Admin/Select/LocaleSelectOption.vue';
 
+// берём t() и реактивную locale.value из vue-i18n
 const {t, locale} = useI18n();
 
+/**
+ * Входящие параметры компонента
+ */
 const props = defineProps({
     canLogin: Boolean,
     canRegister: Boolean,
@@ -14,31 +19,23 @@ const props = defineProps({
 
 const {auth} = usePage().props;
 
-// Загружаем сохранённую локаль из localStorage или используем текущую
-const savedLocale = localStorage.getItem('locale') || locale.value;
-const selectedLocale = ref(savedLocale);
+// инициализация селектора на текущей локали
+const selectedLocale = ref(locale.value);
 
-// Устанавливаем локаль из localStorage при монтировании
-onMounted(() => {
-    locale.value = savedLocale;
-});
-
-// Функция для обновления языка в базе данных и перезагрузки страницы
-const updateLanguage = async (newLocale) => {
-    try {
-        await axios.post('/settings/locale', {locale: newLocale});
-        // console.log('Язык успешно обновлен в базе данных');
-        localStorage.setItem('locale', newLocale);
-        window.location.reload();
-    } catch (error) {
-        console.error('Ошибка при обновлении языка в базе данных:', error);
-    }
-};
-
-// Следим за изменением выбранного языка
-watch(selectedLocale, async (newLocale) => {
+// При изменении селектора — меняем i18n и роут
+watch(selectedLocale, (newLocale) => {
     if (newLocale !== locale.value) {
-        await updateLanguage(newLocale);
+        // обновить саму локаль в плагине
+        locale.value = newLocale;
+
+        // перестроить URL: заменить первый сегмент (код языка)
+        const segments = window.location.pathname.split('/');
+        // segments[0] === '' из-за ведущего '/'
+        segments[1] = newLocale;
+        const newPath = segments.join('/') + window.location.search;
+
+        // переходим на новый URL без полной перезагрузки
+        Inertia.visit(newPath, {preserveState: false, preserveScroll: true});
     }
 });
 

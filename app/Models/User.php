@@ -27,6 +27,8 @@ class User extends Authenticatable /* implements MustVerifyEmail */
     use TwoFactorAuthenticatable;
     use HasRoles; // От Spatie/Permission
 
+    protected string $guard_name = 'sanctum'; // ✅ важно для корректной записи в model_has_roles
+
     /**
      * The attributes that are mass assignable.
      *

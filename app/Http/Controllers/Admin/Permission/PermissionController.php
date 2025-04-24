@@ -90,7 +90,7 @@ class PermissionController extends Controller
             DB::beginTransaction();
             Permission::create([
                 'name' => $data['name'],
-                'guard_name' => $data['guard_name'] ?? 'web', // Устанавливаем guard
+                'guard_name' => 'sanctum',
             ]);
             DB::commit();
             Log::info('Разрешение создано:', ['name' => $data['name']]);

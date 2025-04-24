@@ -22,9 +22,6 @@ const emits = defineEmits(['edit', 'delete']);
                                 border border-solid
                                 border-gray-300 dark:border-gray-700">
                 <tr>
-                    <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap w-px">
-                        <div class="font-semibold text-center">{{ t('id') }}</div>
-                    </th>
                     <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
                         <div class="font-semibold text-left">{{ t('name') }}</div>
                     </th>
@@ -37,13 +34,10 @@ const emits = defineEmits(['edit', 'delete']);
                 </tr>
                 </thead>
                 <tbody>
-                <tr v-for="role in roles" :key="role.id"
+                <tr v-for="role in roles.filter(r => r.id !== 1)" :key="role.id"
                     class="text-sm font-semibold
                             border-b-2
                             hover:bg-slate-100 dark:hover:bg-cyan-800">
-                    <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
-                        <div class="text-center">{{ role.id }}</div>
-                    </td>
                     <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
                         <div class="text-left text-teal-600 dark:text-violet-200">{{ role.name }}</div>
                     </td>

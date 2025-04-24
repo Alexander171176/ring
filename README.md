@@ -2,6 +2,8 @@
 
 2) Install Webp, Spatie Media Library <br>
 `composer require intervention/image:^2.7` <br>
+`composer require mcamara/laravel-localization` <br>
+`docker exec ring-php-app php artisan vendor:publish --provider="Mcamara\LaravelLocalization\LaravelLocalizationServiceProvider"` <br>
 `docker exec -it ring-php-app composer require spatie/laravel-medialibrary:"^11.0" --with-all-dependencies` <br>
 `docker exec ring-php-app php artisan vendor:publish --tag="medialibrary-migrations"`  <br>
 `docker exec ring-php-app php artisan migrate`<br>
@@ -47,6 +49,7 @@
    `docker exec ring-php-app php artisan storage:link`<br>
 
 12)  npm install <br>
+    `npm install @inertiajs/inertia` <br>
     `npm install @mayasabha/ckeditor4-vue3` <br>
     `npm install chart.js chartjs-adapter-moment` <br>
     `npm install xlsx html2pdf.js jszip file-saver docx` <br>
@@ -97,6 +100,9 @@
     `docker exec ring-php-app php artisan make:controller Admin/User/UserController --resource` <br>
     `docker exec ring-php-app php artisan make:resource Admin/User/UserResource` <br>
     `docker exec ring-php-app php artisan make:resource Admin/User/UserSharedResource` <br>
+    `docker exec ring-php-app php artisan make:middleware CheckAdminOwnerExists` <br>
+    `docker exec ring-php-app php artisan make:mail AdminAccountDeletedMail` <br>
+    `docker exec ring-php-app php artisan make:mail AdminAccountRestoredMail` <br>
 
 18) Create revoke controllers <br>
     `docker exec ring-php-app php artisan make:controller Admin/Invokable/RemovePermissionFromRoleController --invokable` <br>
@@ -122,7 +128,6 @@
     `docker exec ring-php-app php artisan make:controller Admin/Parameter/ParameterController --resource` <br>
  
 20)  Create middleware ShareSettings <br>
-     `docker exec ring-php-app php artisan make:middleware SetLocaleFromSettings` <br>
      `docker exec ring-php-app php artisan make:resource Admin/Setting/SettingSharedResource` <br>
      `docker exec ring-php-app php artisan make:controller Admin/System/SystemController` <br>
      `docker exec ring-php-app php artisan make:controller Api/Parameter/ApiParameterController --api` <br>

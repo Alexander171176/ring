@@ -175,7 +175,7 @@ export default {
     inTemplates: 'Which templates are used in (separated by commas, without spaces)',
     irreversibleOperation: 'This operation is irreversible and will permanently delete the data!',
     kazakh: 'Kazakh',
-    kz: 'Kazakh',
+    kk: 'Kazakh',
     lastActive: 'Last active',
     lastUsed: 'Last used',
     latestNews: 'Latest news',

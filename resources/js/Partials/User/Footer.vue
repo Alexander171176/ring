@@ -1,36 +1,28 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import axios from 'axios';
+import {Inertia} from '@inertiajs/inertia';
+import LocaleSelectOption from "@/Components/Admin/Select/LocaleSelectOption.vue";
 
 const { t, locale } = useI18n();
 
-// Загружаем сохранённую локаль из localStorage или используем текущую
-const savedLocale = localStorage.getItem('locale') || locale.value;
-const selectedLocale = ref(savedLocale);
+// инициализация селектора на текущей локали
+const selectedLocale = ref(locale.value);
 
-// Устанавливаем локаль из localStorage при монтировании
-onMounted(() => {
-    locale.value = savedLocale;
-});
-
-// Функция для обновления языка в базе данных и перезагрузки страницы
-const updateLanguage = async (newLocale) => {
-    try {
-        await axios.post('/settings/locale', { locale: newLocale });
-        console.log('Язык успешно обновлен в базе данных');
-
-        localStorage.setItem('locale', newLocale); // Сохраняем выбранный язык в localStorage
-        window.location.reload(); // Перезагружаем страницу для применения изменений
-    } catch (error) {
-        console.error('Ошибка при обновлении языка в базе данных:', error);
-    }
-};
-
-// Следим за изменением выбранного языка
-watch(selectedLocale, async (newLocale) => {
+// При изменении селектора — меняем i18n и роут
+watch(selectedLocale, (newLocale) => {
     if (newLocale !== locale.value) {
-        await updateLanguage(newLocale); // Обновляем язык и перезагружаем страницу
+        // обновить саму локаль в плагине
+        locale.value = newLocale;
+
+        // перестроить URL: заменить первый сегмент (код языка)
+        const segments = window.location.pathname.split('/');
+        // segments[0] === '' из-за ведущего '/'
+        segments[1] = newLocale;
+        const newPath = segments.join('/') + window.location.search;
+
+        // переходим на новый URL без полной перезагрузки
+        Inertia.visit(newPath, {preserveState: false, preserveScroll: true});
     }
 });
 </script>
@@ -53,12 +45,7 @@ watch(selectedLocale, async (newLocale) => {
                     </svg>
                     <span class="text-xs sm:text-sm text-gray-500 dark:text-gray-400">{{ t('supportService') }}</span>
                 </a>
-                <select v-model="selectedLocale"
-                        class="bg-slate-100 dark:bg-slate-300 form-select text-gray-900 dark:text-gray-700 px-3 py-0.5">
-                    <option value="ru">{{ t('russian') }}</option>
-                    <option value="en">{{ t('english') }}</option>
-                    <option value="kz">{{ t('kazakh') }}</option>
-                </select>
+                <LocaleSelectOption v-model="selectedLocale"/>
             </div>
         </div>
     </footer>

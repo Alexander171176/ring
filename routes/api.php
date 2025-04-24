@@ -30,8 +30,6 @@ use App\Http\Controllers\Api\Parameter\ApiParameterController;
 
 Route::get('/site-settings', [PublicSettingController::class, 'index'])->name('api.site-settings');
 
-$localePrefix = config('site_settings.locale', 'ru');
-
 // Определение контроллеров публичной части
 $siteLayout = config('site_settings.siteLayout', 'Default');
 $publicRubricControllerClass = "App\\Http\\Controllers\\Public\\{$siteLayout}\\RubricController";

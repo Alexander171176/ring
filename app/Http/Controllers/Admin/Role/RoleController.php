@@ -103,8 +103,7 @@ class RoleController extends Controller
 
             $role = Role::create([
                 'name' => $data['name'],
-                // Устанавливаем guard по умолчанию или из запроса, если валидировали
-                'guard_name' => $data['guard_name'] ?? 'web'
+                'guard_name' => 'sanctum',
             ]);
             $role->syncPermissions($permissionIds); // Синхронизируем по ID
 
@@ -188,7 +187,11 @@ class RoleController extends Controller
         // TODO: Проверка прав $this->authorize('delete-roles', $role);
         // TODO: Добавить проверку, нельзя ли удалить базовые роли (super-admin)
 
-        if (in_array($role->name, ['super-admin', 'admin'])) { // Пример запрета удаления
+        if ($role->id === 1) {
+            return redirect()->route('admin.roles.index')
+                ->with('error', 'Удаление основной роли запрещено.');
+        }
+        if (in_array($role->name, ['super-admin', 'owner'])) {
             return redirect()->route('admin.roles.index')
                 ->with('error', 'Запрещено удалять базовые роли.');
         }

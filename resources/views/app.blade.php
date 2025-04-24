@@ -1,10 +1,19 @@
+@php
+    use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
+@endphp
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+{{-- Отладка локали --}}
+{{-- dd@(LaravelLocalization::getCurrentLocale(), app()->getLocale()) --}}
+<html lang="{{ LaravelLocalization::getCurrentLocale() }}">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
         <meta name="csrf-token" content="{{ csrf_token() }}">
+
+        {{-- 🛡 Запрет Google Translate --}}
+        <meta name="google" content="notranslate">
+        <meta http-equiv="Content-Language" content="{{ LaravelLocalization::getCurrentLocale() }}">
 
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 

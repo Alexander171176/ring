@@ -31,8 +31,6 @@ const props = defineProps([
     'usersCount',
     'adminCountUsers',
     'adminSortUsers',
-    'roles',
-    'permissions'
 ]);
 
 /**
@@ -167,7 +165,7 @@ const sortUsers = (users) => {
  * Вычисляемое свойство, отсортированный список поиска.
  */
 const filteredUsers = computed(() => {
-    let filtered = props.users;
+    let filtered = props.users.filter(user => user.id !== 1);
 
     if (searchQuery.value) {
         filtered = filtered.filter(user =>
@@ -218,11 +216,9 @@ const totalPages = computed(() => Math.ceil(filteredUsers.value.length / itemsPe
                     </DefaultButton>
                 </div>
                 <SearchInput v-if="usersCount" v-model="searchQuery" :placeholder="t('searchByNameOrEmail')"/>
-                <CountTable v-if="usersCount"> {{ usersCount }} </CountTable>
+                <CountTable v-if="usersCount"> {{ usersCount - 1 }} </CountTable>
                 <UserTable
                     :users="paginatedUsers"
-                    :roles="props.roles"
-                    :permissions="props.permissions"
                     @delete="confirmDelete"
                 />
                 <div class="flex justify-between items-center flex-col md:flex-row my-1" v-if="usersCount">

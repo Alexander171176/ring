@@ -7,9 +7,7 @@ import DeleteIconButton from '@/Components/Admin/Buttons/DeleteIconButton.vue';
 const {t} = useI18n();
 
 const props = defineProps({
-    users: Array,
-    roles: Array,
-    permissions: Array,
+    users: Array
 });
 
 const emits = defineEmits(['edit', 'delete']);
@@ -25,9 +23,6 @@ const emits = defineEmits(['edit', 'delete']);
                                 border border-solid
                                 border-gray-300 dark:border-gray-700">
                 <tr>
-                    <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap w-px">
-                        <div class="font-semibold text-center">{{ t('id') }}</div>
-                    </th>
                     <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
                         <div class="font-semibold text-left">{{ t('name') }}</div>
                     </th>
@@ -43,11 +38,8 @@ const emits = defineEmits(['edit', 'delete']);
                 </tr>
                 </thead>
                 <tbody>
-                <tr v-for="user in users" :key="user.id"
+                <tr v-for="user in users.filter(u => u.id !== 1)" :key="user.id"
                     class="text-sm font-semibold border-b-2">
-                    <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
-                        <div class="text-center">{{ user.id }}</div>
-                    </td>
                     <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap
                                 text-teal-600 dark:text-violet-200
                                 hover:bg-slate-100 dark:hover:bg-cyan-800">
@@ -57,6 +49,20 @@ const emits = defineEmits(['edit', 'delete']);
                                 text-blue-600 dark:text-blue-200
                                 hover:bg-slate-100 dark:hover:bg-cyan-800">
                         <div class="text-left">{{ user.email }}</div>
+                    </td>
+                    <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
+                        <div class="flex flex-wrap gap-1">
+                            <span v-for="role in user.roles" :key="role.id"
+                                  class="px-1 py-0 bg-slate-100 dark:bg-slate-800
+                                       border border-dashed border-gray-400
+                                       text-orange-500 dark:text-orange-200 text-xs">
+                                {{ role.name }}
+                            </span>
+                            <!-- Если у роли нет разрешений, можно показать message -->
+                            <span v-if="user.roles.length === 0" class="text-xs italic text-gray-500">
+                                —
+                            </span>
+                        </div>
                     </td>
                     <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
                         <div class="flex justify-end space-x-2">
