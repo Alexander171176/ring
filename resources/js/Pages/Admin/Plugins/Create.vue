@@ -1,4 +1,10 @@
 <script setup>
+/**
+ * @version PulsarCMS 1.0
+ * @author Александр Косолапов <kosolapov1976@gmail.com>
+ */
+import { useToast } from 'vue-toastification';
+import {useI18n} from 'vue-i18n';
 import {ref, watch} from 'vue';
 import {useForm} from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
@@ -8,15 +14,19 @@ import LabelInput from '@/Components/Admin/Input/LabelInput.vue';
 import InputText from '@/Components/Admin/Input/InputText.vue';
 import InputError from '@/Components/Admin/Input/InputError.vue';
 import PrimaryButton from '@/Components/Admin/Buttons/PrimaryButton.vue';
-import {useI18n} from 'vue-i18n';
 import DescriptionTextarea from '@/Components/Admin/Textarea/DescriptionTextarea.vue';
 import CKEditor from '@/Components/Admin/CKEditor/CKEditor.vue';
 import LabelCheckbox from '@/Components/Admin/Checkbox/LabelCheckbox.vue';
 import ActivityCheckbox from '@/Components/Admin/Checkbox/ActivityCheckbox.vue';
 import InputNumber from '@/Components/Admin/Input/InputNumber.vue';
 
+// --- Инициализация ---
+const toast = useToast();
 const {t} = useI18n();
 
+/**
+ * Форма для создания.
+ */
 const form = useForm({
     sort: 0,
     icon: '',
@@ -30,18 +40,24 @@ const form = useForm({
     activity: false,
 });
 
-// Функция для блокировки ввода кириллицы и разрешения только латинских букв, цифр и любых символов
+/**
+ * Функция для блокировки ввода кириллицы и разрешения только латинских букв, цифр и любых символов.
+ */
 const restrictInput = (value) => {
     return value.replace(/[^a-zA-Z0-9!@#$%^&*()_+{}\[\]:;<>,.?~\\/-]/g, '');
 };
 
-// Функция для преобразования первой буквы в заглавную
+/**
+ * Функция для преобразования первой буквы в заглавную.
+ */
 const capitalizeFirstLetter = (value) => {
     if (!value) return '';
     return value.charAt(0).toUpperCase() + value.slice(1);
 };
 
-// Применение ограничения ввода и преобразования первой буквы к нужным полям
+/**
+ * Применение ограничения ввода и преобразования первой буквы к нужным полям.
+ */
 watch(() => form.name, (value) => {
     form.name = capitalizeFirstLetter(restrictInput(value));
 });
@@ -61,6 +77,7 @@ watch(() => form.options, (value) => {
 watch(() => form.code, (value) => {
     form.code = restrictInput(value);
 });
+
 </script>
 
 <template>
@@ -76,7 +93,7 @@ watch(() => form.code, (value) => {
                         bg-opacity-95 dark:bg-opacity-95">
                 <div class="sm:flex sm:justify-between sm:items-center mb-2">
                     <!-- Кнопка назад -->
-                    <DefaultButton :href="route('plugins.index')">
+                    <DefaultButton :href="route('admin.plugins.index')">
                         <template #icon>
                             <!-- SVG -->
                             <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">
@@ -87,7 +104,7 @@ watch(() => form.code, (value) => {
                         {{ t('back') }}
                     </DefaultButton>
                 </div>
-                <form @submit.prevent="form.post(route('plugins.store'))" class="p-3 w-full">
+                <form @submit.prevent="form.post(route('admin.plugins.store'))" class="p-3 w-full">
 
                     <div class="mb-3 flex items-center justify-center">
                         <div class="flex flex-col items-start mr-4">

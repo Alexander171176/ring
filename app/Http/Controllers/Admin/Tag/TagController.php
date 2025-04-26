@@ -236,7 +236,7 @@ class TagController extends Controller
         } catch (Throwable $e) {
             Log::error("Ошибка обновления активности тега ID {$tag->id}: " . $e->getMessage());
             // Возвращаем редирект НАЗАД с сообщением об ошибке
-            return back()->withErrors(['general' => 'Произошла ошибка при обновлении активности.']);
+            return back()->withErrors(['general' => 'Произошла ошибка при обновлении активности тега.']);
         }
     }
 

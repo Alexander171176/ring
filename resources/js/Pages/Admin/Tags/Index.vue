@@ -129,7 +129,7 @@ const deleteTag = () => {
 };
 
 /**
- * Отправляет запрос на удаление.
+ * Отправляет запрос для изменения статуса активности.
  */
 const toggleActivity = (tag) => {
     const newActivity = !tag.activity;

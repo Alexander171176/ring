@@ -112,7 +112,7 @@ Route::group([
         'auth:sanctum',
         config('jetstream.auth_session'),
         'verified',
-        // 'check.owner.exists',
+        'check.owner.exists',
     ])
         ->prefix('admin')
         ->name('admin.')
@@ -223,6 +223,8 @@ Route::group([
                     ->name('banners.bulkUpdateActivity');
                 Route::put('/admin/actions/videos/bulk-activity', [VideoController::class, 'bulkUpdateActivity'])
                     ->name('videos.bulkUpdateActivity');
+                Route::put('/admin/actions/plugins/bulk-activity', [PluginController::class, 'bulkUpdateActivity'])
+                    ->name('plugins.bulkUpdateActivity');
 
                 // Переключение Left/Main/Right (Используем имена моделей для параметров RMB)
                 Route::put('/articles/{article}/left', [ArticleController::class, 'updateLeft'])->name('articles.updateLeft');
@@ -263,13 +265,16 @@ Route::group([
                 Route::put('/tags/update-sort-bulk', [TagController::class, 'updateSortBulk'])->name('tags.updateSortBulk');
                 Route::put('/banners/update-sort-bulk', [BannerController::class, 'updateSortBulk'])->name('banners.updateSortBulk');
                 Route::put('/videos/update-sort-bulk', [VideoController::class, 'updateSortBulk'])->name('videos.updateSortBulk');
+                Route::put('/plugins/update-sort-bulk', [PluginController::class, 'updateSortBulk'])->name('plugins.updateSortBulk');
 
                 // Обновление сортировки (Имена параметров уже были правильные)
                 Route::put('/rubrics/{rubric}/sort', [RubricController::class, 'updateSort'])->name('rubrics.updateSort');
                 Route::put('/sections/{section}/sort', [SectionController::class, 'updateSort'])->name('sections.updateSort');
-                Route::put('/articles/{article}/sort', [ArticleController::class, 'updateSort'])->name('articles.updateSort');
+                Route::put('/tags/{tag}/sort', [TagController::class, 'updateSort'])->name('tags.updateSort');
+                Route::put('/videos/{video}/sort', [VideoController::class, 'updateSort'])->name('videos.updateSort');
                 Route::put('/banners/{banner}/sort', [BannerController::class, 'updateSort'])->name('banners.updateSort');
                 Route::put('/videos/{video}/sort', [VideoController::class, 'updateSort'])->name('videos.updateSort');
+                Route::put('/plugins/{plugin}/sort', [PluginController::class, 'updateSort'])->name('plugins.updateSort');
 
                 // Одобрение комментария (Используем имя модели для параметра RMB)
                 Route::put('/comments/{comment}/approve', [CommentController::class, 'approve'])->name('comments.approve');

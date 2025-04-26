@@ -4,10 +4,18 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // --- Импорты Контроллеров ---
-use App\Http\Controllers\Api\Setting\ApiSettingController as PublicSettingController; // Для публичных настроек
-use App\Http\Controllers\Api\Plugin\ApiPluginController; // Для публичных и админских действий с плагинами/блоками
-use App\Http\Controllers\Admin\Plugin\PluginController as AdminPluginController; // Для админских действий с настройками плагинов
-use App\Http\Controllers\Admin\Setting\SettingController as AdminSettingController; // Для админских действий с настройками сайта
+use App\Http\Controllers\Api\Setting\ApiSettingController as PublicSettingController;
+
+// Для публичных настроек
+use App\Http\Controllers\Api\Plugin\ApiPluginController;
+
+// Для публичных и админских действий с плагинами/блоками
+use App\Http\Controllers\Admin\Plugin\PluginController as AdminPluginController;
+
+// Для админских действий с настройками плагинов
+use App\Http\Controllers\Admin\Setting\SettingController as AdminSettingController;
+
+// Для админских действий с настройками сайта
 // Импорты для ресурсных API контроллеров (Swagger)
 use App\Http\Controllers\Api\Rubric\ApiRubricController;
 use App\Http\Controllers\Api\Article\ApiArticleController;
@@ -15,6 +23,7 @@ use App\Http\Controllers\Api\User\ApiUserController;
 use App\Http\Controllers\Api\Role\ApiRoleController;
 use App\Http\Controllers\Api\Permission\ApiPermissionController;
 use App\Http\Controllers\Api\Parameter\ApiParameterController;
+
 // use App\Http\Controllers\Api\Section\ApiSectionController; // Раскомментировать при добавлении
 // use App\Http\Controllers\Api\Tag\ApiTagController;       // Раскомментировать при добавлении
 // use App\Http\Controllers\Api\Video\ApiVideoController; // Раскомментировать при добавлении
@@ -76,13 +85,14 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // --- Маршруты API СТРОГО для Админ-панели ---
 // Защищаем группу через middleware (Sanctum + проверка роли/разрешения)
-Route::middleware(['auth:sanctum', /* 'role:admin' // TODO: Добавить проверку роли/разрешения */ ])
+Route::middleware([/* 'auth:sanctum', 'role:admin' // TODO: Добавить проверку роли/разрешения */])
     ->prefix('admin') // Префикс URL /api/admin/...
     ->name('api.admin.') // Префикс имени api.admin.*
     ->group(function () {
 
         // Плагины (для админки)
         Route::prefix('plugins')->name('plugins.')->group(function () {
+            // Исправленный маршрут для получения активных плагинов
             Route::get('/active', [ApiPluginController::class, 'getActivePlugins'])->name('active');
             Route::post('/create-table', [ApiPluginController::class, 'createTable'])->name('create-table');
 

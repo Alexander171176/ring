@@ -192,7 +192,7 @@ class ApiPluginController extends Controller
 
     /**
      * @OA\Patch(
-     *     path="/api/plugins/{id}/activity",
+     *     path="/api/plugins/active",
      *     operationId="updatePluginActivity",
      *     tags={"Plugins"},
      *     summary="Update the activity of the specified plugin",

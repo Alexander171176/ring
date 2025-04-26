@@ -25,7 +25,7 @@ const emits = defineEmits([
 // --- Локальная копия для vuedraggable ---
 const localTags = ref([]);
 
-// --- Следим за изменением props.articles и обновляем локальную копию ---
+// --- Следим за изменением props.tags и обновляем локальную копию ---
 watch(() => props.tags, (newVal) => {
     // Создаем глубокую копию, чтобы избежать мутации props
     localTags.value = JSON.parse(JSON.stringify(newVal || []));
