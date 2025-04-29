@@ -20,6 +20,8 @@ class SettingRequest extends FormRequest
         $type = $this->input('type');
 
         return [
+            'sort' => 'nullable|integer|min:0',
+            'activity' => 'required|boolean',
             // Добавляем Rule::in для известных типов
             'type' => ['nullable', 'string', 'max:255',
                 Rule::in(['string', 'text', 'number', 'integer', 'float', 'boolean', 'checkbox', 'json', 'array', 'select'])], // TODO: Дополнить список типов
@@ -42,13 +44,16 @@ class SettingRequest extends FormRequest
             ],
             'category' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:65535',
-            'activity' => 'required|boolean',
         ];
     }
 
     public function messages(): array
     {
         return array_merge(parent::messages(), [
+            'sort.integer' => 'Поле сортировки должно быть числом.',
+            'sort.min' => 'Поле сортировки не может быть отрицательным.', // Добавлено
+            'activity.required' => 'Поле активности обязательно для заполнения.',
+            'activity.boolean' => 'Поле активности должно быть логическим значением.',
             'type.in' => 'Выбран недопустимый тип поля.',
             'option.required' => 'Опция обязательна.',
             'option.unique' => 'Настройка с такой опцией уже существует.',
@@ -58,7 +63,6 @@ class SettingRequest extends FormRequest
             'constant.required' => 'Константа обязательна.',
             'constant.unique' => 'Настройка с такой константой уже существует.',
             'constant.regex' => 'Константа должна содержать только БОЛЬШИЕ латинские буквы и подчеркивания.',
-            'activity.required' => 'Поле активности обязательно.',
         ]);
     }
 

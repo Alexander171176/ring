@@ -3,26 +3,20 @@
 namespace App\Http\Controllers\Admin\Banner;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\Banner\BannerRequest; // Используем
-
-// Реквесты для простых действий
+use App\Http\Requests\Admin\Banner\BannerRequest;
 use App\Http\Requests\Admin\UpdateActivityRequest;
 use App\Http\Requests\Admin\UpdateLeftRequest;
 use App\Http\Requests\Admin\UpdateRightRequest;
 use App\Http\Requests\Admin\UpdateSortEntityRequest;
-use App\Http\Requests\Admin\UpdateSortRequest;
-
-// Ресурсы
 use App\Http\Resources\Admin\Banner\BannerResource;
 use App\Http\Resources\Admin\Banner\BannerImageResource; // Нужен для edit
 use App\Http\Resources\Admin\Section\SectionResource; // Для списка секций
-// Модели
 use App\Models\Admin\Banner\Banner;
 use App\Models\Admin\Banner\BannerImage;
 use App\Models\Admin\Section\Section;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request; // Для bulkDestroy
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
@@ -60,18 +54,17 @@ class BannerController extends Controller
         $adminSortBanners  = config('site_settings.AdminSortBanners', 'idDesc');
 
         try {
-            // Загружаем ВСЕ статьи с количеством секций (или без, если не нужно в таблице)
-            $banners = Banner::withCount(['sections', 'images'])
-            ->with('images') // Загружаем полные данные, если превью нужны в таблице
-            ->get(); // Загружаем ВСЕ
 
+            $banners = Banner::withCount(['sections', 'images'])
+            ->with('images')
+            ->get();
             $bannersCount = $banners->count(); // Считаем из загруженной коллекции
 
         } catch (Throwable $e) {
             Log::error("Ошибка загрузки баннеров для Index: " . $e->getMessage());
             $banners = collect(); // Пустая коллекция в случае ошибки
             $bannersCount = 0;
-            session()->flash('error', 'Не удалось загрузить список баннеров.');
+            session()->flash('error', __('admin/banners.load_error'));
         }
 
         return Inertia::render('Admin/Banners/Index', [
@@ -92,7 +85,6 @@ class BannerController extends Controller
     {
         // TODO: Проверка прав $this->authorize('create-banner', Banner::class);
 
-        // Передаем список секций (только нужные поля)
         $sections = Section::select('id', 'title', 'locale')->orderBy('title')->get();
 
         return Inertia::render('Admin/Banners/Create', [
@@ -112,6 +104,7 @@ class BannerController extends Controller
 
         try {
             DB::beginTransaction();
+
             $banner = Banner::create($data);
 
             // Связи
@@ -165,17 +158,16 @@ class BannerController extends Controller
             $banner->images()->sync($imageSyncData);
 
             DB::commit();
+
             Log::info('Баннер успешно создан', ['id' => $banner->id, 'title' => $banner->title]);
-            return redirect()->route('admin.banners.index')
-                ->with('success', 'Баннер успешно создан.');
+            return redirect()->route('admin.banners.index')->with('success', __('admin/banners.created'));
+
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка при создании баннера: {$e->getMessage()}", [
                 'trace' => $e->getTraceAsString(),
             ]);
-            return back()
-                ->withInput()
-                ->withErrors(['general' => 'Произошла ошибка при создании статьи.']);
+            return back()->withInput()->withErrors(['general' => __('admin/banners.create_error')]);
         }
     }
 
@@ -296,18 +288,14 @@ class BannerController extends Controller
             DB::commit();
 
             Log::info('Баннер обновлен: ', ['id' => $banner->id, 'title' => $banner->title]);
-            return redirect()
-                ->route('admin.banners.index')
-                ->with('success', 'Баннер успешно обновлен.');
+            return redirect()->route('admin.banners.index')->with('success', __('admin/banners.updated'));
 
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка при обновлении баннера ID {$banner->id}: {$e->getMessage()}", [
                 'trace' => $e->getTraceAsString(),
             ]);
-            return back()
-                ->withInput()
-                ->withErrors(['general' => 'Произошла ошибка при обновлении статьи.']);
+            return back()->withInput()->withErrors(['general' => __('admin/banners.update_error')]);
         }
     }
 
@@ -322,17 +310,20 @@ class BannerController extends Controller
     {
         // TODO: Проверка прав $this->authorize('delete-banner', $banner);
         try {
+
             DB::beginTransaction();
             // Удаляем связанные BannerImage и их медиа, используем приватный метод deleteImages
             $this->deleteImages($banner->images()->pluck('id')->toArray());
             $banner->delete(); // Связи с секциями удалятся каскадно
             DB::commit();
+
             Log::info('Баннер удален: ID ' . $banner->id);
-            return redirect()->route('admin.banners.index')->with('success', 'Баннер и связанные изображения удалены.');
+            return redirect()->route('admin.banners.index')->with('success', __('admin/banners.deleted'));
+
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка при удалении баннера ID {$banner->id}: " . $e->getMessage());
-            return back()->withErrors(['general' => 'Произошла ошибка при удалении баннера.']);
+            return back()->withErrors(['general' => __('admin/banners.delete_error')]);
         }
     }
 
@@ -367,16 +358,15 @@ class BannerController extends Controller
 
             Banner::whereIn('id', $bannerIds)->delete();
             DB::commit();
+
             Log::info('Баннеры удалены: ', $bannerIds);
-            // Формируем сообщение об успехе
-            $message = "Выбранные бвннеры ({$count} шт.) успешно удалены.";
-            // Редирект на индексную страницу с сообщением
-            return redirect()->route('admin.banners.index')->with('success', $message);
+            return redirect()->route('admin.banners.index')
+                ->with('success', __('admin/banners.bulk_deleted', ['count' => $count]));
+
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка при массовом удалении баннеров: " . $e->getMessage(), ['ids' => $bannerIds]);
-            // Редирект назад с сообщением об ошибке
-            return back()->withErrors(['general' => 'Произошла ошибка при удалении баннеров.']);
+            return back()->withErrors(['general' => __('admin/banners.bulk_delete_error')]);
         }
     }
 
@@ -392,17 +382,21 @@ class BannerController extends Controller
     {
         // authorize() в UpdateLeftRequest
         $validated = $request->validated();
+
         try {
+            DB::beginTransaction();
             $banner->left = $validated['left'];
             $banner->save();
+            DB::commit();
+
             Log::info("Обновлено значение активации в левой колонке для баннера ID {$banner->id}");
-            // Формируем сообщение об успехе
-            $message = "Выбранные баннеры успешно активированны в левой колонке.";
-            return redirect()->route('admin.banners.index')->with('success', $message);
+            return redirect()->route('admin.banners.index')
+                ->with('success', __('admin/banners.updated_left_success'));
+
         } catch (Throwable $e) {
+            DB::rollBack();
             Log::error("Ошибка обновления значение в левой колонке баннера ID {$banner->id}: " . $e->getMessage());
-            // Возвращаем редирект НАЗАД с сообщением об ошибке
-            return back()->withErrors(['general' => 'Произошла ошибка при обновлении активности в левой колонке.']);
+            return back()->withErrors(['general' => __('admin/banners.updated_left_error')]);
         }
     }
 
@@ -437,17 +431,21 @@ class BannerController extends Controller
     {
         // authorize() в UpdateRightRequest
         $validated = $request->validated();
+
         try {
+            DB::beginTransaction();
             $banner->right = $validated['right'];
             $banner->save();
+            DB::commit();
+
             Log::info("Обновлено значение активации в правой колонке для баннера ID {$banner->id}");
-            // Формируем сообщение об успехе
-            $message = "Выбранные баннеры успешно активированны в правой колонке.";
-            return redirect()->route('admin.banners.index')->with('success', $message);
+            return redirect()->route('admin.banners.index')
+                ->with('success', __('admin/banners.updated_right_success'));
+
         } catch (Throwable $e) {
+            DB::rollBack();
             Log::error("Ошибка обновления значение в правой колонке баннера ID {$banner->id}: " . $e->getMessage());
-            // Возвращаем редирект НАЗАД с сообщением об ошибке
-            return back()->withErrors(['general' => 'Произошла ошибка при обновлении активности в правой колонке.']);
+            return back()->withErrors(['general' => __('admin/banners.updated_right_error')]);
         }
     }
 
@@ -482,17 +480,24 @@ class BannerController extends Controller
     {
         // authorize() в UpdateActivityRequest
         $validated = $request->validated();
+
         try {
+
+            DB::beginTransaction();
             $banner->activity = $validated['activity'];
             $banner->save();
-            $actionText = $banner->activity ? 'активирован' : 'деактивирован';
+            DB::commit();
+
             Log::info("Обновлено activity баннера ID {$banner->id} на {$banner->activity}");
-            // Возвращаем редирект НАЗАД с сообщением об успехе
-            return back()->with('success', "Баннер \"{$banner->title}\" {$actionText}.");
+            $actionText = $banner->activity ? __('admin/common.activated')
+                : __('admin/common.deactivated');
+            return back()
+                ->with('success', __('admin/banners.activity', ['title' => $banner->title, 'action' => $actionText]));
+
         } catch (Throwable $e) {
+            DB::rollBack();
             Log::error("Ошибка обновления активности баннера ID {$banner->id}: " . $e->getMessage());
-            // Возвращаем редирект НАЗАД с сообщением об ошибке
-            return back()->withErrors(['general' => 'Произошла ошибка при обновлении активности.']);
+            return back()->withErrors(['general' => __('admin/banners.update_activity_error')]);
         }
     }
 
@@ -527,15 +532,20 @@ class BannerController extends Controller
     {
         // authorize() в UpdateSortEntityRequest
         $validated = $request->validated();
+
         try {
+            DB::beginTransaction();
             $banner->sort = $validated['sort'];
             $banner->save();
+            DB::commit();
+
             Log::info("Обновлено sort баннера ID {$banner->id} на {$banner->sort}");
             return back();
 
         } catch (Throwable $e) {
+            DB::rollBack();
             Log::error("Ошибка обновления сортировки баннера ID {$banner->id}: " . $e->getMessage());
-            return back()->withErrors(['sort' => 'Не удалось обновить сортировку.']);
+            return back()->withErrors(['sort' => __('admin/banners.update_sort_error')]);
         }
     }
 
@@ -550,8 +560,7 @@ class BannerController extends Controller
     {
         // TODO: Проверка прав $this->authorize('update-banners');
 
-        // Валидируем входящий массив
-        // (Можно вынести в отдельный FormRequest: UpdateSortBulkRequest)
+        // Валидируем входящий массив (Можно вынести в отдельный FormRequest: UpdateSortBulkRequest)
         $validated = $request->validate([
             'banners' => 'required|array',
             'banners.*.id' => ['required', 'integer', 'exists:banners,id'],
@@ -560,23 +569,19 @@ class BannerController extends Controller
 
         try {
             DB::beginTransaction();
-
             foreach ($validated['banners'] as $bannerData) {
                 // Используем update для массового обновления, если возможно, или where/update
                 Banner::where('id', $bannerData['id'])->update(['sort' => $bannerData['sort']]);
             }
-
             DB::commit();
-            Log::info('Массово обновлена сортировка баннеров', ['count' => count($validated['banners'])]);
 
+            Log::info('Массово обновлена сортировка баннеров', ['count' => count($validated['banners'])]);
             return back();
 
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка массового обновления сортировки баннеров: " . $e->getMessage());
-
-            // Возвращаем редирект назад с ошибкой
-            return back()->withErrors(['general' => 'Не удалось обновить порядок баннеров.']);
+            return back()->withErrors(['general' => __('admin/banners.bulk_update_sort_error')]);
         }
     }
 

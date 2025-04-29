@@ -4,23 +4,14 @@ namespace App\Http\Controllers\Admin\Tag;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Tag\TagRequest;
-
-// Используем
-
-// Реквесты для простых действий
 use App\Http\Requests\Admin\UpdateActivityRequest;
 use App\Http\Requests\Admin\UpdateSortEntityRequest;
 use App\Http\Requests\Admin\UpdateSortRequest;
-
-// Если добавим сортировку тегов
-
 use App\Http\Resources\Admin\Tag\TagResource;
 use App\Models\Admin\Tag\Tag;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-
-// Для bulkDestroy
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
@@ -63,7 +54,7 @@ class TagController extends Controller
             Log::error("Ошибка загрузки тегов для Index: " . $e->getMessage());
             $tags = collect(); // Пустая коллекция в случае ошибки
             $tagsCount = 0;
-            session()->flash('error', 'Не удалось загрузить список тегов.');
+            session()->flash('error', __('admin/tags.index_error'));
         }
 
         return Inertia::render('Admin/Tags/Index', [
@@ -95,17 +86,19 @@ class TagController extends Controller
     public function store(TagRequest $request): RedirectResponse
     {
         $data = $request->validated();
+
         try {
             DB::beginTransaction();
             $tag = Tag::create($data);
             DB::commit();
 
             Log::info('Тег создан: ', $tag->toArray());
-            return redirect()->route('admin.tags.index')->with('success', 'Тег успешно создан.');
+            return redirect()->route('admin.tags.index')->with('success', __('admin/tags.created'));
+
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка при создании тега: " . $e->getMessage());
-            return back()->withInput()->withErrors(['general' => 'Произошла ошибка при создании тега.']);
+            return back()->withInput()->withErrors(['general' => __('admin/tags.create_error')]);
         }
     }
 
@@ -136,17 +129,19 @@ class TagController extends Controller
     public function update(TagRequest $request, Tag $tag): RedirectResponse // Используем RMB
     {
         $data = $request->validated();
+
         try {
             DB::beginTransaction();
             $tag->update($data);
             DB::commit();
 
             Log::info('Тег обновлен: ', $tag->toArray());
-            return redirect()->route('admin.tags.index')->with('success', 'Тег успешно обновлен.');
+            return redirect()->route('admin.tags.index')->with('success', __('admin/tags.updated'));
+
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка при обновлении тега ID {$tag->id}: " . $e->getMessage());
-            return back()->withInput()->withErrors(['general' => 'Произошла ошибка при обновлении тега.']);
+            return back()->withInput()->withErrors(['general' => __('admin/tags.update_error')]);
         }
     }
 
@@ -166,11 +161,12 @@ class TagController extends Controller
             DB::commit();
 
             Log::info('Тег удален: ID ' . $tag->id);
-            return redirect()->route('admin.tags.index')->with('success', 'Тег успешно удален.'); // Редирект на индекс
+            return redirect()->route('admin.tags.index')->with('success', __('admin/tags.deleted'));
+
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка при удалении тега ID {$tag->id}: " . $e->getMessage());
-            return back()->withErrors(['general' => 'Произошла ошибка при удалении тега.']);
+            return back()->withErrors(['general' => __('admin/tags.delete_error')]);
         }
     }
 
@@ -198,16 +194,13 @@ class TagController extends Controller
             DB::commit();
 
             Log::info('Теги удалены: ', $tagIds);
-            // Формируем сообщение об успехе
-            $message = "Выбранные теги ({$count} шт.) успешно удалены.";
-            // Редирект на индексную страницу с сообщением
-            return redirect()->route('admin.tags.index')->with('success', $message);
+            return redirect()->route('admin.tags.index')
+                ->with('success', __('admin/tags.bulk_deleted', ['count' => $count]));
 
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка при массовом удалении тегов: " . $e->getMessage(), ['ids' => $tagIds]);
-            // Редирект назад с сообщением об ошибке
-            return back()->withErrors(['general' => 'Произошла ошибка при удалении тегов.']);
+            return back()->withErrors(['general' => __('admin/tags.bulk_delete_error')]);
         }
     }
 
@@ -225,18 +218,20 @@ class TagController extends Controller
         $validated = $request->validated();
 
         try {
+            DB::beginTransaction();
             $tag->activity = $validated['activity'];
             $tag->save();
-            $actionText = $tag->activity ? 'активирована' : 'деактивирована';
-            Log::info("Обновлено activity тега ID {$tag->id} на {$tag->activity}");
+            DB::commit();
 
-            // Возвращаем редирект НАЗАД с сообщением об успехе
-            return back()->with('success', "Тег \"{$tag->title}\" {$actionText}.");
+            Log::info("Обновлено activity тега ID {$tag->id} на {$tag->activity}");
+            $actionText = $tag->activity ? __('admin/common.activated')
+                : __('admin/common.deactivated');
+            return back()
+                ->with('success', __('admin/tags.activity', ['title' => $tag->title, 'action' => $actionText]));
 
         } catch (Throwable $e) {
             Log::error("Ошибка обновления активности тега ID {$tag->id}: " . $e->getMessage());
-            // Возвращаем редирект НАЗАД с сообщением об ошибке
-            return back()->withErrors(['general' => 'Произошла ошибка при обновлении активности тега.']);
+            return back()->withErrors(['general' => __('admin/tags.update_activity_error')]);
         }
     }
 
@@ -271,6 +266,7 @@ class TagController extends Controller
     {
         // authorize() в UpdateSortEntityRequest
         $validated = $request->validated();
+
         try {
             $tag->sort = $validated['sort'];
             $tag->save();
@@ -279,7 +275,7 @@ class TagController extends Controller
 
         } catch (Throwable $e) {
             Log::error("Ошибка обновления сортировки тега ID {$tag->id}: " . $e->getMessage());
-            return back()->withErrors(['sort' => 'Не удалось обновить сортировку.']);
+            return back()->withErrors(['sort' => __('admin/tags.update_sort_error')]);
         }
     }
 
@@ -294,8 +290,7 @@ class TagController extends Controller
     {
         // TODO: Проверка прав $this->authorize('update-tags');
 
-        // Валидируем входящий массив
-        // (Можно вынести в отдельный FormRequest: UpdateSortBulkRequest)
+        // Валидируем входящий массив (Можно вынести в отдельный FormRequest: UpdateSortBulkRequest)
         $validated = $request->validate([
             'tags' => 'required|array',
             'tags.*.id' => ['required', 'integer', 'exists:tags,id'],
@@ -304,23 +299,19 @@ class TagController extends Controller
 
         try {
             DB::beginTransaction();
-
             foreach ($validated['tags'] as $tagData) {
                 // Используем update для массового обновления, если возможно, или where/update
                 Tag::where('id', $tagData['id'])->update(['sort' => $tagData['sort']]);
             }
-
             DB::commit();
-            Log::info('Массово обновлена сортировка тегов', ['count' => count($validated['tags'])]);
 
+            Log::info('Массово обновлена сортировка тегов', ['count' => count($validated['tags'])]);
             return back();
 
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка массового обновления сортировки тегов: " . $e->getMessage());
-
-            // Возвращаем редирект назад с ошибкой
-            return back()->withErrors(['general' => 'Не удалось обновить порядок тегов.']);
+            return back()->withErrors(['general' => __('admin/tags.bulk_update_sort_error')]);
         }
     }
 }

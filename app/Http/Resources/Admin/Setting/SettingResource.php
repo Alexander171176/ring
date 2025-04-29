@@ -17,6 +17,8 @@ class SettingResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'sort' => $this->sort, // Уже integer благодаря $casts['sort' => 'integer']
+            'activity' => $this->activity, // Уже boolean благодаря $casts['activity' => 'boolean']
             'type' => $this->type,
             'option' => $this->option,
             // Поле 'value' уже будет декодировано в PHP массив/объект благодаря $casts['value' => 'json'] в модели.
@@ -25,7 +27,6 @@ class SettingResource extends JsonResource
             'constant' => $this->constant,
             'category' => $this->category,
             'description' => $this->description,
-            'activity' => $this->activity, // Уже boolean благодаря $casts['activity' => 'boolean']
             // Даты скрыты через $hidden в модели, поэтому не добавляем их сюда,
             // если только они не нужны явно для каких-то целей.
             // 'created_at'    => $this->created_at?->toIso8601String(),

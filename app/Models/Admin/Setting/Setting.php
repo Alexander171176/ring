@@ -13,13 +13,14 @@ class Setting extends Model
     use HasFactory;
     protected $table = 'settings';
     protected $fillable = [
+        'sort',
+        'activity',
         'type', // Теперь это поле важно для преобразования
         'option',
         'value',
         'constant',
         'category',
         'description',
-        'activity',
     ];
     protected $hidden = ['created_at', 'updated_at'];
 
@@ -28,6 +29,7 @@ class Setting extends Model
      * Кастуем только activity. Поле value будет обрабатываться аксессором/мутатором.
      */
     protected $casts = [
+        'sort' => 'integer',
         'activity' => 'boolean',
     ];
 
@@ -91,14 +93,14 @@ class Setting extends Model
             // TODO: Заменить 'site_settings' на реальный ключ кэша настроек
             Cache::forget('site_settings'); // Забываем общий кэш
             Cache::forget('setting_' . $setting->option); // Забываем кэш конкретной настройки
-            Log::info("Setting saved, cache cleared: " . $setting->option);
+            Log::info("Настройки сохранены, кэш очищен: " . $setting->option);
         });
 
         static::deleted(function (Setting $setting) {
             // TODO: Заменить 'site_settings' на реальный ключ кэша настроек
             Cache::forget('site_settings');
             Cache::forget('setting_' . $setting->option);
-            Log::info("Setting deleted, cache cleared: " . $setting->option);
+            Log::info("Настройка удалена, кэш очищен: " . $setting->option);
         });
     }
 }

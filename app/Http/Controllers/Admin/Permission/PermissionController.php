@@ -45,14 +45,13 @@ class PermissionController extends Controller
         try {
             // Загружаем ВСЕ разрешения
             $permissions = Permission::all();
-
             $permissionsCount = $permissions->count(); // Считаем из загруженной коллекции
 
         } catch (Throwable $e) {
             Log::error("Ошибка загрузки разрешений для Index: " . $e->getMessage());
             $permissions = collect(); // Пустая коллекция в случае ошибки
             $permissionsCount = 0;
-            session()->flash('error', 'Не удалось загрузить список разрешений.');
+            session()->flash('error', __('admin/permissions.index_error'));
         }
 
         return Inertia::render('Admin/Permissions/Index', [
@@ -86,6 +85,7 @@ class PermissionController extends Controller
     {
         // authorize() в PermissionRequest
         $data = $request->validated();
+
         try {
             DB::beginTransaction();
             Permission::create([
@@ -93,15 +93,16 @@ class PermissionController extends Controller
                 'guard_name' => 'sanctum',
             ]);
             DB::commit();
+
             Log::info('Разрешение создано:', ['name' => $data['name']]);
             app()[PermissionRegistrar::class]->forgetCachedPermissions(); // Очистка кэша Spatie
             return redirect()->route('admin.permissions.index')
-                ->with('success', 'Разрешение успешно создано.');
+                ->with('success', __('admin/permissions.created'));
+
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка при создании разрешения: " . $e->getMessage());
-            return back()->withInput()
-                ->withErrors(['general' => 'Произошла ошибка при создании разрешения.']);
+            return back()->withInput()->withErrors(['general' => __('admin/permissions.create_error')	]);
         }
     }
 
@@ -133,20 +134,21 @@ class PermissionController extends Controller
     {
         // authorize() в PermissionRequest
         $data = $request->validated();
+
         try {
             DB::beginTransaction();
             // Обновляем только имя, guard обычно не меняют
             $permission->update(['name' => $data['name']]);
             DB::commit();
+
             Log::info('Разрешение обновлено:', ['id' => $permission->id, 'name' => $permission->name]);
             app()[PermissionRegistrar::class]->forgetCachedPermissions(); // Очистка кэша Spatie
-            return redirect()->route('admin.permissions.index')
-                ->with('success', 'Разрешение успешно обновлено.');
+            return redirect()->route('admin.permissions.index')->with('success', __('admin/permissions.updated'));
+
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка при обновлении разрешения ID {$permission->id}: " . $e->getMessage());
-            return back()->withInput()
-                ->withErrors(['general' => 'Произошла ошибка при обновлении разрешения.']);
+            return back()->withInput()->withErrors(['general' => __('admin/permissions.update_error')]);
         }
     }
 
@@ -166,13 +168,15 @@ class PermissionController extends Controller
             DB::beginTransaction();
             $permission->delete(); // Spatie удалит связи из role_has_permissions и model_has_permissions
             DB::commit();
+
             Log::info('Разрешение удалено:', ['id' => $permission->id, 'name' => $permission->name]);
             app()[PermissionRegistrar::class]->forgetCachedPermissions(); // Очистка кэша Spatie
-            return redirect()->route('admin.permissions.index')->with('success', 'Разрешение успешно удалено.');
+            return redirect()->route('admin.permissions.index')->with('success', __('admin/permissions.deleted'));
+
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка при удалении разрешения ID {$permission->id}: " . $e->getMessage());
-            return back()->withErrors(['general' => 'Произошла ошибка при удалении разрешения.']);
+            return back()->withErrors(['general' => __('admin/permissions.delete_error')]);
         }
     }
 

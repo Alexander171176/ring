@@ -6,12 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Setting\SettingRequest; // Используем общий реквест для настроек
 // Реквесты для простых действий
 use App\Http\Requests\Admin\UpdateActivityRequest;
+use App\Http\Requests\Admin\UpdateSortEntityRequest;
 use App\Http\Requests\Admin\UpdateSortRequest; // Если параметры нужно сортировать
 use App\Http\Resources\Admin\Setting\SettingResource; // Используем общий ресурс
 use App\Models\Admin\Setting\Setting;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request; // Для bulkDestroy
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
@@ -20,6 +22,17 @@ use Inertia\Response;
 use Throwable;
 use Illuminate\Database\Eloquent\Builder; // Для типизации $query
 
+/**
+ * Контроллер для управления Параметрами системы в административной панели.
+ *
+ * Предоставляет CRUD операции, а также дополнительные действия:
+ * - Обновление активности и сортировки (одиночное и массовое)
+ *
+ * @version 1.1 (Улучшен с RMB, транзакциями, Form Requests)
+ * @author Александр Косолапов <kosolapov1976@gmail.com>
+ * @see \App\Models\Admin\Setting\Setting Модель Статьи
+ * @see \App\Http\Requests\Admin\Setting\SettingRequest Запрос для создания/обновления
+ */
 class ParameterController extends Controller
 {
     // Определяем категорию для этого контроллера
@@ -39,34 +52,37 @@ class ParameterController extends Controller
     }
 
     /**
-     * Отображение списка параметров системы.
+     * Отображение списка всех Параметров.
+     * Загружает пагинированный список с сортировкой по настройкам.
+     * Передает данные для отображения и настройки пагинации/сортировки.
+     * Пагинация и сортировка выполняются на фронтенде.
+     *
+     * @return Response
      */
     public function index(): Response
     {
-        // TODO: Проверка прав $this->authorize('view parameters');
+        // TODO: Проверка прав $this->authorize('show-parameters');
+
         // Используем тот же конфиг, что и для Settings? Или нужен отдельный?
-        $adminCountParameters = config('site_settings.AdminCountParameters', 15); // Используем свой ключ или общий
-        $adminSortParameters  = config('site_settings.AdminSortParameters', 'idDesc'); // Используем свой ключ или общий
+        $adminCountSettings = config('site_settings.AdminCountSettings', 15); // Используем свой ключ или общий
+        $adminSortSettings  = config('site_settings.AdminSortSettings', 'idDesc'); // Используем свой ключ или общий
 
-        $sortField = 'id';
-        $sortDirection = 'desc';
-        if ($adminSortParameters === 'categoryAsc') { $sortField = 'category'; $sortDirection = 'asc'; }
-        elseif ($adminSortParameters === 'optionAsc') { $sortField = 'option'; $sortDirection = 'asc'; }
-
-        // Используем базовый запрос с фильтром
-        $parameters = $this->getParameterQuery()
-            ->orderBy($sortField, $sortDirection)
-            ->paginate($adminCountParameters);
-
-        // Считаем только параметры
-        $parametersCount = $this->getParameterQuery()->count();
+        try {
+            $settings = Setting::all();
+            $settingsCount = Setting::count();
+        } catch (Throwable $e) {
+            Log::error("Ошибка загрузки параметров для Index: " . $e->getMessage());
+            $settings = collect(); // Пустая коллекция в случае ошибки
+            $settingsCount = 0;
+            session()->flash('error', 'Не удалось загрузить список параметров.');
+        }
 
         return Inertia::render('Admin/Parameters/Index', [
             // Используем SettingResource, но передаем как 'parameters'
-            'parameters' => SettingResource::collection($parameters),
-            'parametersCount' => $parametersCount, // Количество только параметров
-            'adminCountParameters' => $adminCountParameters, // Передаем свои настройки
-            'adminSortParameters' => $adminSortParameters,
+            'settings' => SettingResource::collection($settings),
+            'settingsCount' => $settingsCount,
+            'adminCountSettings' => (int)$adminCountSettings,
+            'adminSortSettings' => $adminSortSettings,
         ]);
     }
 
@@ -177,52 +193,126 @@ class ParameterController extends Controller
     }
 
     /**
-     * Массовое удаление параметров системы.
+     * Обновление статуса активности параметра.
+     *
+     * @param UpdateActivityRequest $request
+     * @param Setting $setting
+     * @return RedirectResponse
      */
-    public function bulkDestroy(Request $request): JsonResponse
+    public function updateActivity(UpdateActivityRequest $request, Setting $setting): RedirectResponse
     {
-        // TODO: Проверка прав $this->authorize('delete-bulk parameters');
-        $validated = $request->validate([
-            'ids' => 'required|array',
-            // Проверяем, что ID существуют и относятся к нужной категории/типу
-            'ids.*' => ['required', 'integer', Rule::exists('settings', 'id')->where(function ($query) {
-                // TODO: Адаптировать условие where
-                $query->where('type', 'parameter');
-                // $query->where('category', self::PARAMETER_CATEGORY);
-            })],
-        ]);
-        $parameterIds = $validated['ids'];
+        $validated = $request->validated();
+
+        if (in_array($setting->category, ['system', 'admin', 'public'], true)) {
+            Log::info("Попытка изменения активности параметра ID {$setting->id} с категорией '{$setting->category}'.");
+
+            return back()->with('warning', __('admin/parameters.activity_update_forbidden', [
+                'category' => $setting->category,
+            ]));
+        }
+
         try {
-            // Удаляем только валидированные параметры
-            Setting::whereIn('id', $parameterIds)->delete();
-            Log::info('Параметры системы удалены: ', $parameterIds);
-            return response()->json(['success' => true, 'message' => 'Выбранные параметры удалены.', 'reload' => true]);
+            $setting->activity = $validated['activity'];
+            $setting->save();
+
+            $actionText = $setting->activity ? 'активирован' : 'деактивирован';
+            Log::info("Параметр ID {$setting->id} успешно {$actionText}");
+
+            return back()->with('success', __('admin/parameters.update_activity_success', [
+                'option' => $setting->option,
+                'action' => $actionText,
+            ]));
         } catch (Throwable $e) {
-            Log::error("Ошибка при массовом удалении параметров: " . $e->getMessage(), ['ids' => $parameterIds]);
-            return response()->json(['success' => false, 'message' => 'Ошибка при удалении параметров.'], 500);
+            Log::error("Ошибка обновления активности параметра ID {$setting->id}: " . $e->getMessage());
+
+            return back()->withErrors([
+                'general' => __('admin/parameters.update_activity_error'),
+            ]);
         }
     }
 
     /**
-     * Обновление активности параметра системы.
+     * Обновление статуса активности массово
+     *
+     * @param Request $request
+     * @return JsonResponse Json ответ
      */
-    // Используем {parameter} в маршруте для RMB
-    public function updateActivity(UpdateActivityRequest $request, Setting $parameter): JsonResponse
+    public function bulkUpdateActivity(Request $request): JsonResponse
     {
-        // TODO: Проверка прав $this->authorize('update', $parameter);
-        // Дополнительная проверка
-        // TODO: Адаптировать проверку
-        if ($parameter->type !== 'parameter') {
-            return response()->json(['success' => false, 'message' => 'Действие неприменимо.'], 403);
-        }
+        $data = $request->validate([
+            'ids'      => 'required|array',
+            'ids.*'    => 'required|integer|exists:settings,id',
+            'activity' => 'required|boolean',
+        ]);
 
-        $validated = $request->validated();
-        $parameter->activity = $validated['activity'];
-        $parameter->save();
-        Log::info("Обновлено activity параметра ID {$parameter->id} на {$parameter->activity}");
-        return response()->json(['success' => true, 'reload' => true]);
+        Setting::whereIn('id', $data['ids'])->update(['activity' => $data['activity']]);
+
+        return response()->json(['success' => true]);
     }
 
-    // Метод updateSort для параметров может быть не нужен? Если нужен - добавить по аналогии.
-    // Метод clone для параметров обычно не нужен.
+    /**
+     * Обновление значения сортировки для одного параметра.
+     * Использует Route Model Binding и UpdateSortRequest.
+     * *
+     * @param UpdateSortEntityRequest $request Валидированный запрос с полем 'sort'.
+     * @param Setting $parameter Модель параметра для обновления.
+     * @return RedirectResponse Редирект назад с сообщением..
+     */
+    public function updateSort(UpdateSortEntityRequest $request, Setting $parameter): RedirectResponse
+    {
+        // authorize() в UpdateSortEntityRequest
+        $validated = $request->validated();
+        try {
+            $parameter->sort = $validated['sort'];
+            $parameter->save();
+            Log::info("Обновлено sort тега ID {$parameter->id} на {$parameter->sort}");
+            return back();
+
+        } catch (Throwable $e) {
+            Log::error("Ошибка обновления сортировки тега ID {$parameter->id}: " . $e->getMessage());
+            return back()->withErrors(['sort' => 'Не удалось обновить сортировку.']);
+        }
+    }
+
+    /**
+     * Приватный метод для очистки кэша.
+     *
+     * @param string|null $specificKey
+     * @return void
+     */
+    /**
+     * Приватный метод для очистки кэша.
+     * Исправлено для совместимости с RedisStore (используем цикл forget).
+     */
+    private function clearSettingsCache(string $specificKey = null): void
+    {
+        // TODO: Использовать ваши реальные базовые ключи кэша
+        $keysToForget = ['site_settings', 'setting_locale', 'widget_panel_settings', 'sidebar_settings'];
+        if ($specificKey) {
+            $keysToForget[] = $specificKey;
+        }
+        // Добавляем ключи для всех настроек count и sort
+        try {
+            $options = Setting::where('option', 'like', 'AdminCount%')
+                ->orWhere('option', 'like', 'AdminSort%')
+                // Добавим ключи сайдбара/виджета, если они есть в БД
+                ->orWhereIn('option', ['widgetHexColor', 'widgetOpacity', 'AdminSidebarLightColor', 'admin_sidebar_opacity']) // Пример
+                ->pluck('option');
+            foreach ($options as $option) {
+                $keysToForget[] = 'setting_' . $option; // Ключ для конкретной настройки
+            }
+        } catch (Throwable $e) {
+            // Логируем ошибку получения опций, но не прерываем очистку основных ключей
+            Log::error("Ошибка получения опций для очистки кэша: " . $e->getMessage());
+        }
+
+        $uniqueKeys = array_unique($keysToForget);
+        foreach ($uniqueKeys as $key) {
+            if (!empty($key)) { // Пропускаем пустые ключи на всякий случай
+                Cache::forget($key);
+            }
+        }
+
+        Log::debug("Кэш настроек очищен.", ['keys_cleared' => $uniqueKeys]);
+    }
 }

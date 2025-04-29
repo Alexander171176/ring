@@ -168,57 +168,61 @@ class SettingController extends Controller
     }
 
     /**
-     * Массовое удаление настроек.
+     * Обновление статуса активности параметра.
      *
-     * @param Request $request
-     * @return JsonResponse
+     * @param UpdateActivityRequest $request
+     * @param Setting $setting
+     * @return RedirectResponse
      */
-    public function bulkDestroy(Request $request): JsonResponse
+    public function updateActivity(UpdateActivityRequest $request, Setting $setting): RedirectResponse
     {
-        // TODO: Проверка прав $this->authorize('delete-bulk settings');
-        $validated = $request->validate([
-            'ids' => 'required|array',
-            'ids.*' => 'required|integer|exists:settings,id',
-        ]);
-        $settingIds = $validated['ids'];
+        $validated = $request->validated();
+
+        if (in_array($setting->category, ['system', 'admin', 'public'], true)) {
+            Log::info("Попытка изменения активности параметра ID {$setting->id} с категорией '{$setting->category}'.");
+
+            return back()->with('warning', __('admin/parameters.activity_update_forbidden', [
+                'category' => $setting->category,
+            ]));
+        }
+
         try {
-            DB::beginTransaction();
-            $optionsToClear = Setting::whereIn('id', $settingIds)->pluck('option');
-            Setting::whereIn('id', $settingIds)->delete();
-            foreach ($optionsToClear as $option) { $this->clearSettingsCache('setting_' . $option); }
-            $this->clearSettingsCache();
-            DB::commit();
-            Log::info('Настройки удалены: ', $settingIds);
-            return response()->json(['success' => true, 'message' => 'Выбранные настройки удалены.', 'reload' => true]);
+            $setting->activity = $validated['activity'];
+            $setting->save();
+
+            $actionText = $setting->activity ? 'активирован' : 'деактивирован';
+            Log::info("Параметр ID {$setting->id} успешно {$actionText}");
+
+            return back()->with('success', __('admin/parameters.update_activity_success', [
+                'option' => $setting->option,
+                'action' => $actionText,
+            ]));
         } catch (Throwable $e) {
-            DB::rollBack();
-            Log::error("Ошибка при массовом удалении настроек: " . $e->getMessage(), ['ids' => $settingIds]);
-            return response()->json(['success' => false, 'message' => 'Ошибка при удалении настроек.'], 500);
+            Log::error("Ошибка обновления активности параметра ID {$setting->id}: " . $e->getMessage());
+
+            return back()->withErrors([
+                'general' => __('admin/parameters.update_activity_error'),
+            ]);
         }
     }
 
     /**
-     * Обновление активности Настройки.
+     * Обновление статуса активности массово
      *
-     * @param UpdateActivityRequest $request
-     * @param Setting $setting
-     * @return JsonResponse
+     * @param Request $request
+     * @return JsonResponse Json ответ
      */
-    // Используем {setting} в маршруте для RMB
-    public function updateActivity(UpdateActivityRequest $request, Setting $setting): JsonResponse
+    public function bulkUpdateActivity(Request $request): JsonResponse
     {
-        // authorize() в UpdateActivityRequest
-        $validated = $request->validated();
-        try {
-            $setting->activity = $validated['activity'];
-            $setting->save();
-            $this->clearSettingsCache('setting_' . $setting->option);
-            Log::info("Обновлено activity настройки ID {$setting->id} на {$setting->activity}");
-            return response()->json(['success' => true, 'reload' => true]);
-        } catch (Throwable $e) {
-            Log::error("Ошибка обновления активности настройки ID {$setting->id}: " . $e->getMessage());
-            return response()->json(['success' => false, 'message' => 'Ошибка обновления активности.'], 500);
-        }
+        $data = $request->validate([
+            'ids'      => 'required|array',
+            'ids.*'    => 'required|integer|exists:settings,id',
+            'activity' => 'required|boolean',
+        ]);
+
+        Setting::whereIn('id', $data['ids'])->update(['activity' => $data['activity']]);
+
+        return response()->json(['success' => true]);
     }
 
     /**
@@ -871,6 +875,6 @@ class SettingController extends Controller
         }
         // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
 
-        Log::debug("Settings cache cleared.", ['keys_cleared' => $uniqueKeys]);
+        Log::debug("Кэш настроек очищен.", ['keys_cleared' => $uniqueKeys]);
     }
 }

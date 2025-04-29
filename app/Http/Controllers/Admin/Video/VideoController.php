@@ -64,18 +64,16 @@ class VideoController extends Controller
         $adminSortVideos  = config('site_settings.AdminSortVideos', 'idDesc');
 
         try {
-            // Загружаем ВСЕ видео с секциями, статьями и изображениями, счётчики комментариев, лайков
             $videos = Video::withCount(['sections', 'articles', 'images', 'comments', 'likes'])
                 ->with(['images', 'sections', 'articles'])
                 ->get();
-
-            $videosCount = $videos->count(); // Считаем из загруженной коллекции
+            $videosCount = $videos->count();
 
         } catch (Throwable $e) {
             Log::error("Ошибка загрузки видео для Index: " . $e->getMessage());
             $videos = collect(); // Пустая коллекция в случае ошибки
             $videosCount = 0;
-            session()->flash('error', 'Не удалось загрузить список видео.');
+            session()->flash('error', __('admin/videos.index_error'));
         }
 
         return Inertia::render('Admin/Videos/Index', [
@@ -183,19 +181,15 @@ class VideoController extends Controller
             }
 
             $video->images()->sync($imageSyncData);
-
             DB::commit();
+
             Log::info('Видео успешно создано', ['id' => $video->id, 'title' => $video->title]);
-            return redirect()->route('admin.videos.index')
-                ->with('success', 'Видео успешно создано.');
+            return redirect()->route('admin.videos.index')->with('success', __('admin/videos.created'));
+
         } catch (Throwable $e) {
             DB::rollBack();
-            Log::error("Ошибка при создании видео: {$e->getMessage()}", [
-                'trace' => $e->getTraceAsString(),
-            ]);
-            return back()
-                ->withInput()
-                ->withErrors(['general' => 'Произошла ошибка при создании видео.']);
+            Log::error("Ошибка при создании видео: {$e->getMessage()}", ['trace' => $e->getTraceAsString(),]);
+            return back()->withInput()->withErrors(['general' => __('admin/videos.create_error')]);
         }
     }
 
@@ -340,18 +334,14 @@ class VideoController extends Controller
             DB::commit();
 
             Log::info('Видео обновлено: ', ['id' => $video->id, 'title' => $video->title]);
-            return redirect()
-                ->route('admin.videos.index')
-                ->with('success', 'Видео успешно обновлено.');
+            return redirect()->route('admin.videos.index')->with('success', __('admin/videos.updated'));
 
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка при обновлении видео ID {$video->id}: {$e->getMessage()}", [
                 'trace' => $e->getTraceAsString(),
             ]);
-            return back()
-                ->withInput()
-                ->withErrors(['general' => 'Произошла ошибка при обновлении видео.']);
+            return back()->withInput()->withErrors(['general' => __('admin/videos.update_error')]);
         }
     }
 
@@ -372,14 +362,14 @@ class VideoController extends Controller
             $this->deleteImages($video->images()->pluck('id')->toArray());
             $video->delete();
             DB::commit();
+
             Log::info('Видео удалено: ID ' . $video->id);
-            // Редирект на индексную страницу с сообщением об успехе
-            return redirect()->route('admin.videos.index')->with('success', 'Видео и связанные изображения удалены.');
+            return redirect()->route('admin.videos.index')
+                ->with('success', __('admin/videos.deleted_with_images'));
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка при удалении видео ID {$video->id}: " . $e->getMessage());
-            // Возвращаем назад с сообщением об ошибке
-            return back()->withErrors(['general' => 'Произошла ошибка при удалении видео.']);
+            return back()->withErrors(['general' => __('admin/videos.delete_error')]);
         }
     }
 
@@ -407,6 +397,7 @@ class VideoController extends Controller
 
             $allImageIds = VideoImage::whereHas('videos', fn($q) => $q->whereIn('videos.id', $videoIds))
                 ->pluck('id')->toArray();
+
             if (!empty($allImageIds)) {
                 DB::table('video_has_images')->whereIn('video_id', $videoIds)->delete();
                 $this->deleteImages($allImageIds);
@@ -414,16 +405,14 @@ class VideoController extends Controller
 
             Video::whereIn('id', $videoIds)->delete();
             DB::commit();
+
             Log::info('Видео удалены: ', $videoIds);
-            // Формируем сообщение об успехе
-            $message = "Выбранные видео ({$count} шт.) успешно удалены.";
-            // Редирект на индексную страницу с сообщением
-            return redirect()->route('admin.videos.index')->with('success', $message);
+            return redirect()->route('admin.videos.index')
+                ->with('success', __('admin/videos.bulk_deleted', ['count' => $count]));
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка при массовом удалении видео: " . $e->getMessage(), ['ids' => $videoIds]);
-            // Редирект назад с сообщением об ошибке
-            return back()->withErrors(['general' => 'Произошла ошибка при удалении видео.']);
+            return back()->withErrors(['general' => __('admin/videos.delete_error')]);
         }
     }
 
@@ -439,17 +428,20 @@ class VideoController extends Controller
     {
         // authorize() в UpdateLeftRequest
         $validated = $request->validated();
+
         try {
+            DB::beginTransaction();
             $video->left = $validated['left'];
             $video->save();
+            DB::commit();
+
             Log::info("Обновлено значение активации в левой колонке для видео ID {$video->id}");
-            // Формируем сообщение об успехе
-            $message = "Выбранные видео успешно активированны в левой колонке.";
-            return redirect()->route('admin.videos.index')->with('success', $message);
+            return back()->with('success', __('admin/videos.left_updated'));
+
         } catch (Throwable $e) {
+            DB::rollBack();
             Log::error("Ошибка обновления значение в левой колонке видео ID {$video->id}: " . $e->getMessage());
-            // Возвращаем редирект НАЗАД с сообщением об ошибке
-            return back()->withErrors(['general' => 'Произошла ошибка при обновлении активности в левой колонке.']);
+            return back()->withErrors(['general' => __('admin/videos.left_update_error')]);
         }
     }
 
@@ -484,17 +476,20 @@ class VideoController extends Controller
     {
         // authorize() в UpdateMainRequest
         $validated = $request->validated();
+
         try {
+            DB::beginTransaction();
             $video->main = $validated['main'];
             $video->save();
+            DB::commit();
+
             Log::info("Обновлено значение активации в главном для видео ID {$video->id}");
-            // Формируем сообщение об успехе
-            $message = "Выбранные видео успешно активированны в главном.";
-            return redirect()->route('admin.videos.index')->with('success', $message);
+            return back()->with('success', __('admin/videos.main_updated'));
+
         } catch (Throwable $e) {
+            DB::rollBack();
             Log::error("Ошибка обновления значение в главном видео ID {$video->id}: " . $e->getMessage());
-            // Возвращаем редирект НАЗАД с сообщением об ошибке
-            return back()->withErrors(['general' => 'Произошла ошибка при обновлении активности в главном.']);
+            return back()->withErrors(['general' => __('admin/videos.main_update_error')]);
         }
     }
 
@@ -529,17 +524,20 @@ class VideoController extends Controller
     {
         // authorize() в UpdateRightRequest
         $validated = $request->validated();
+
         try {
+            DB::beginTransaction();
             $video->right = $validated['right'];
             $video->save();
+            DB::commit();
+
             Log::info("Обновлено значение активации в правой колонке для видео ID {$video->id}");
-            // Формируем сообщение об успехе
-            $message = "Выбранные видео успешно активированны в правой колонке.";
-            return redirect()->route('admin.videos.index')->with('success', $message);
+            return back()->with('success', __('admin/videos.right_updated'));
+
         } catch (Throwable $e) {
+            DB::rollBack();
             Log::error("Ошибка обновления значение в правой колонке видео ID {$video->id}: " . $e->getMessage());
-            // Возвращаем редирект НАЗАД с сообщением об ошибке
-            return back()->withErrors(['general' => 'Произошла ошибка при обновлении активности в правой колонке.']);
+            return back()->withErrors(['general' => __('admin/videos.right_update_error')]);
         }
     }
 
@@ -574,17 +572,25 @@ class VideoController extends Controller
     {
         // authorize() в UpdateActivityRequest
         $validated = $request->validated();
+
         try {
+            DB::beginTransaction();
             $video->activity = $validated['activity'];
             $video->save();
-            $actionText = $video->activity ? 'активировано' : 'деактивировано';
+            DB::commit();
+
+            $actionText = $video->activity ? __('admin/common.activated')
+                : __('admin/common.deactivated');
+
             Log::info("Обновлено activity видео ID {$video->id} на {$video->activity}");
-            // Возвращаем редирект НАЗАД с сообщением об успехе
-            return back()->with('success', "Видео \"{$video->title}\" {$actionText}.");
+            return back()
+                ->with('success', __('admin/videos.activity_updated',
+                    ['title' => $video->title, 'action' => $actionText]));
+
         } catch (Throwable $e) {
+            DB::rollBack();
             Log::error("Ошибка обновления активности видео ID {$video->id}: " . $e->getMessage());
-            // Возвращаем редирект НАЗАД с сообщением об ошибке
-            return back()->withErrors(['general' => 'Произошла ошибка при обновлении активности.']);
+            return back()->withErrors(['general' => __('admin/videos.activity_error')]);
         }
     }
 
@@ -619,15 +625,20 @@ class VideoController extends Controller
     {
         // authorize() в UpdateSortEntityRequest
         $validated = $request->validated();
+
         try {
+            DB::beginTransaction();
             $video->sort = $validated['sort'];
             $video->save();
+            DB::commit();
+
             Log::info("Обновлено sort видео ID {$video->id} на {$video->sort}");
-            return back();
+            return back()->with('success', __('admin/videos.sort_updated'));
 
         } catch (Throwable $e) {
+            DB::rollBack();
             Log::error("Ошибка обновления сортировки видео ID {$video->id}: " . $e->getMessage());
-            return back()->withErrors(['sort' => 'Не удалось обновить сортировку.']);
+            return back()->withErrors(['sort' => __('admin/videos.sort_update_error')]);
         }
     }
 
@@ -642,8 +653,7 @@ class VideoController extends Controller
     {
         // TODO: Проверка прав $this->authorize('update-videos');
 
-        // Валидируем входящий массив
-        // (Можно вынести в отдельный FormRequest: UpdateSortBulkRequest)
+        // Валидируем входящий массив (Можно вынести в отдельный FormRequest: UpdateSortBulkRequest)
         $validated = $request->validate([
             'videos' => 'required|array',
             'videos.*.id' => ['required', 'integer', 'exists:videos,id'],
@@ -652,23 +662,18 @@ class VideoController extends Controller
 
         try {
             DB::beginTransaction();
-
             foreach ($validated['videos'] as $videoData) {
-                // Используем update для массового обновления, если возможно, или where/update
                 Video::where('id', $videoData['id'])->update(['sort' => $videoData['sort']]);
             }
-
             DB::commit();
-            Log::info('Массово обновлена сортировка видео', ['count' => count($validated['videos'])]);
 
-            return back();
+            Log::info('Массово обновлена сортировка видео', ['count' => count($validated['videos'])]);
+            return back()->with('success', __('admin/videos.bulk_sort_updated'));
 
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка массового обновления сортировки видео: " . $e->getMessage());
-
-            // Возвращаем редирект назад с ошибкой
-            return back()->withErrors(['general' => 'Не удалось обновить порядок видео.']);
+            return back()->withErrors(['general' => __('admin/videos.bulk_sort_update_error')]);
         }
     }
 

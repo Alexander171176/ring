@@ -31,6 +31,7 @@ const updateSort = (event) => {
             <option value="idDesc">{{ t('idDesc') }}</option>
             <option value="idAsc">{{ t('idAsc') }}</option>
             <!-- Остальные варианты сортировки -->
+            <option value="sort">{{ t('sortNumber') }}</option>
             <option value="category">{{ t('category') }}</option>
             <option value="type">{{ t('type') }}</option>
             <option value="option">{{ t('parameter') }}</option>

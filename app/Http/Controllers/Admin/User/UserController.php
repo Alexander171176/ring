@@ -90,16 +90,12 @@ class UserController extends Controller
             $user->syncPermissions($permissionNames);
 
             DB::commit();
+            return redirect()->route('admin.users.index')->with('success', __('admin/users.created'));
 
-            return redirect()->route('admin.users.index')
-                ->with('success', 'Пользователь успешно создан.');
         } catch (Throwable $e) {
             DB::rollBack();
-
             Log::error("Ошибка при создании пользователя: " . $e->getMessage());
-            return back()->withInput()->withErrors([
-                'general' => 'Произошла ошибка при создании пользователя.',
-            ]);
+            return back()->withInput()->withErrors(['general' => __('admin/users.create_error'),]);
         }
     }
 
@@ -142,17 +138,13 @@ class UserController extends Controller
             ]);
 
             DB::commit();
+            return redirect()->route('admin.users.index')->with('success', __('admin/users.updated'));
 
-            return redirect()->route('admin.users.index')
-                ->with('success', 'Пользователь успешно обновлён.');
         } catch (Throwable $e) {
             DB::rollBack();
-
             Log::error("Ошибка при обновлении пользователя ID {$user->id}: " . $e->getMessage());
             Log::error("Тип ошибки: " . get_class($e));
-            return back()->withInput()->withErrors([
-                'general' => 'Произошла ошибка при обновлении пользователя.',
-            ]);
+            return back()->withInput()->withErrors(['general' => __('admin/users.update_error'),]);
         }
     }
 
@@ -163,24 +155,26 @@ class UserController extends Controller
     {
         if ($user->hasRole('super-admin')) {
             return redirect()->route('admin.users.index')
-                ->with('error', 'Нельзя удалить администратора.');
+                ->with('error', __('admin/users.cannot_delete_superadmin'));
         }
+
         if ($user->id === 1) {
             return redirect()->route('admin.users.index')
-                ->with('error', 'Удаление основного администратора запрещено.');
+                ->with('error', __('admin/users.cannot_delete_main_admin'));
         }
+
         $userRoleNames = $user->roles->pluck('name');
         if ($userRoleNames->count() === 1 && $userRoleNames->first() === 'admin') {
             return redirect()->route('admin.users.index')
-                ->with('error', 'Нельзя удалить пользователя с единственной ролью admin.');
+                ->with('error', __('admin/users.cannot_delete_single_admin'));
         }
+
         try {
             DB::beginTransaction();
 
             // Удаляем роли и разрешения явно
             $user->syncRoles([]);
             $user->syncPermissions([]);
-
             $user->delete();
 
             DB::commit();
@@ -188,17 +182,12 @@ class UserController extends Controller
             app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
             Log::info("Пользователь удалён: ID {$user->id}");
+            return redirect()->route('admin.users.index')->with('success', __('admin/users.deleted'));
 
-            return redirect()->route('admin.users.index')
-                ->with('success', 'Пользователь успешно удалён.');
         } catch (Throwable $e) {
             DB::rollBack();
-
             Log::error("Ошибка при удалении пользователя ID {$user->id}: " . $e->getMessage());
-
-            return back()->withErrors([
-                'general' => 'Произошла ошибка при удалении пользователя.',
-            ]);
+            return back()->withErrors(['general' => __('admin/users.delete_error'),]);
         }
     }
 

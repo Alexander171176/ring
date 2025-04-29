@@ -52,7 +52,7 @@ class PluginController extends Controller
             Log::error("Ошибка загрузки модулей для Index: " . $e->getMessage());
             $plugins = collect(); // Пустая коллекция в случае ошибки
             $pluginsCount = 0;
-            session()->flash('error', 'Не удалось загрузить список модулей.');
+            session()->flash('error', __('admin/plugins.index_load_error'));
         }
 
         return Inertia::render('Admin/Plugins/Index', [
@@ -85,17 +85,19 @@ class PluginController extends Controller
     {
         // authorize() в PluginRequest
         $data = $request->validated();
+
         try {
             DB::beginTransaction();
             $plugin = Plugin::create($data);
             DB::commit();
 
             Log::info('Плагин успешно создан: ', ['id' => $plugin->id, 'name' => $plugin->name]);
-            return redirect()->route('admin.plugins.index')->with('success', 'Плагин успешно создан.');
+            return redirect()->route('admin.plugins.index')->with('success', __('admin/plugins.created'));
+
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка при создании плагина: " . $e->getMessage());
-            return back()->withInput()->withErrors(['general' => 'Произошла ошибка при создании плагина.']);
+            return back()->withInput()->withErrors(['general' => __('admin/plugins.create_error')]);
         }
     }
 
@@ -110,8 +112,8 @@ class PluginController extends Controller
     {
         // TODO: Проверка прав $this->authorize('show-plugin', $plugin);
         $plugin = Plugin::findOrFail($id);
-
         $pluginName = ucfirst($plugin->name);
+
         return Inertia::render("Plugins/{$pluginName}/Index", [
             'plugin' => new PluginResource($plugin),
             'pluginName' => $pluginName,
@@ -145,17 +147,19 @@ class PluginController extends Controller
     {
         // authorize() в PluginRequest
         $data = $request->validated();
+
         try {
             DB::beginTransaction();
             $plugin->update($data);
             DB::commit();
 
             Log::info('Плагин обновлен: ', ['id' => $plugin->id, 'name' => $plugin->name]);
-            return redirect()->route('admin.plugins.index')->with('success', 'Плагин успешно обновлен.');
+            return redirect()->route('admin.plugins.index')->with('success', __('admin/plugins.updated'));
+
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка при обновлении плагина ID {$plugin->id}: " . $e->getMessage());
-            return back()->withInput()->withErrors(['general' => 'Произошла ошибка при обновлении плагина.']);
+            return back()->withInput()->withErrors(['general' => __('admin/plugins.update_error')]);
         }
     }
 
@@ -175,11 +179,12 @@ class PluginController extends Controller
             DB::commit();
 
             Log::info('Плагин удален: ID ' . $plugin->id);
-            return redirect()->route('admin.plugins.index')->with('success', 'Плагин успешно удален.'); // Редирект на индекс
+            return redirect()->route('admin.plugins.index')->with('success', __('admin/plugins.deleted')); // Редирект на индекс
+
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка при удалении плагина ID {$plugin->id}: " . $e->getMessage());
-            return back()->withErrors(['general' => 'Произошла ошибка при удалении плагина.']);
+            return back()->withErrors(['general' => __('admin/plugins.delete_error')]);
         }
     }
 
@@ -197,18 +202,21 @@ class PluginController extends Controller
         $validated = $request->validated();
 
         try {
+            DB::beginTransaction();
             $plugin->activity = $validated['activity'];
             $plugin->save();
-            $actionText = $plugin->activity ? 'активирован' : 'деактивирован';
-            Log::info("Обновлено activity модуля ID {$plugin->id} на {$plugin->activity}");
+            DB::commit();
 
-            // Возвращаем редирект НАЗАД с сообщением об успехе
-            return back()->with('success', "Модуль \"{$plugin->title}\" {$actionText}.");
+            Log::info("Обновлено activity модуля ID {$plugin->id} на {$plugin->activity}");
+            $actionText = $plugin->activity ? __('admin/common.activated')
+                : __('admin/common.deactivated');
+            return back()
+                ->with('success', __('admin/plugins.activity', ['title' => $plugin->title, 'action' => $actionText]));
 
         } catch (Throwable $e) {
+            DB::rollBack();
             Log::error("Ошибка обновления активности модуля ID {$plugin->id}: " . $e->getMessage());
-            // Возвращаем редирект НАЗАД с сообщением об ошибке
-            return back()->withErrors(['general' => 'Произошла ошибка при обновлении активности модуля.']);
+            return back()->withErrors(['general' => __('admin/plugins.update_activity_error')]);
         }
     }
 
@@ -243,15 +251,20 @@ class PluginController extends Controller
     {
         // authorize() в UpdateSortEntityRequest
         $validated = $request->validated();
+
         try {
+            DB::beginTransaction();
             $plugin->sort = $validated['sort'];
             $plugin->save();
+            DB::commit();
+
             Log::info("Обновлено sort модуля ID {$plugin->id} на {$plugin->sort}");
             return back();
 
         } catch (Throwable $e) {
+            DB::rollBack();
             Log::error("Ошибка обновления сортировки модуля ID {$plugin->id}: " . $e->getMessage());
-            return back()->withErrors(['sort' => 'Не удалось обновить сортировку модуля.']);
+            return back()->withErrors(['sort' => __('admin/plugins.update_sort_error')]);
         }
     }
 
@@ -266,8 +279,7 @@ class PluginController extends Controller
     {
         // TODO: Проверка прав $this->authorize('update-plugins');
 
-        // Валидируем входящий массив
-        // (Можно вынести в отдельный FormRequest: UpdateSortBulkRequest)
+        // Валидируем входящий массив (Можно вынести в отдельный FormRequest: UpdateSortBulkRequest)
         $validated = $request->validate([
             'plugins' => 'required|array',
             'plugins.*.id' => ['required', 'integer', 'exists:plugins,id'],
@@ -276,23 +288,19 @@ class PluginController extends Controller
 
         try {
             DB::beginTransaction();
-
             foreach ($validated['plugins'] as $pluginData) {
                 // Используем update для массового обновления, если возможно, или where/update
                 Plugin::where('id', $pluginData['id'])->update(['sort' => $pluginData['sort']]);
             }
-
             DB::commit();
-            Log::info('Массово обновлена сортировка модулей', ['count' => count($validated['plugins'])]);
 
+            Log::info('Массово обновлена сортировка модулей', ['count' => count($validated['plugins'])]);
             return back();
 
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка массового обновления сортировки модулей: " . $e->getMessage());
-
-            // Возвращаем редирект назад с ошибкой
-            return back()->withErrors(['general' => 'Не удалось обновить порядок модулей.']);
+            return back()->withErrors(['general' => __('admin/plugins.update_sort_bulk_error')]);
         }
     }
 

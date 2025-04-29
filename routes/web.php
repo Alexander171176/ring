@@ -206,7 +206,7 @@ Route::group([
                 Route::put('/tags/{tag}/activity', [TagController::class, 'updateActivity'])->name('tags.updateActivity');
                 Route::put('/banners/{banner}/activity', [BannerController::class, 'updateActivity'])->name('banners.updateActivity');
                 Route::put('/videos/{video}/activity', [VideoController::class, 'updateActivity'])->name('videos.updateActivity');
-                Route::put('/settings/{setting}/activity', [SettingController::class, 'updateActivity'])->name('settings.updateActivity');
+                Route::put('/settings/{setting}/activity', [ParameterController::class, 'updateActivity'])->name('settings.updateActivity');
                 Route::put('/plugins/{plugin}/activity', [PluginController::class, 'updateActivity'])->name('plugins.updateActivity');
                 Route::put('/comments/{comment}/activity', [CommentController::class, 'updateActivity'])->name('comments.updateActivity');
 
@@ -225,6 +225,10 @@ Route::group([
                     ->name('videos.bulkUpdateActivity');
                 Route::put('/admin/actions/plugins/bulk-activity', [PluginController::class, 'bulkUpdateActivity'])
                     ->name('plugins.bulkUpdateActivity');
+                Route::put('/admin/actions/settings/bulk-activity', [SettingController::class, 'bulkUpdateActivity'])
+                    ->name('settings.bulkUpdateActivity');
+                Route::put('/admin/actions/parameters/bulk-activity', [ParameterController::class, 'bulkUpdateActivity'])
+                    ->name('parameters.bulkUpdateActivity');
 
                 // Переключение Left/Main/Right (Используем имена моделей для параметров RMB)
                 Route::put('/articles/{article}/left', [ArticleController::class, 'updateLeft'])->name('articles.updateLeft');
@@ -266,6 +270,7 @@ Route::group([
                 Route::put('/banners/update-sort-bulk', [BannerController::class, 'updateSortBulk'])->name('banners.updateSortBulk');
                 Route::put('/videos/update-sort-bulk', [VideoController::class, 'updateSortBulk'])->name('videos.updateSortBulk');
                 Route::put('/plugins/update-sort-bulk', [PluginController::class, 'updateSortBulk'])->name('plugins.updateSortBulk');
+                Route::put('/parameters/update-sort-bulk', [ParameterController::class, 'updateSortBulk'])->name('parameters.updateSortBulk');
 
                 // Обновление сортировки (Имена параметров уже были правильные)
                 Route::put('/rubrics/{rubric}/sort', [RubricController::class, 'updateSort'])->name('rubrics.updateSort');
@@ -275,6 +280,7 @@ Route::group([
                 Route::put('/banners/{banner}/sort', [BannerController::class, 'updateSort'])->name('banners.updateSort');
                 Route::put('/videos/{video}/sort', [VideoController::class, 'updateSort'])->name('videos.updateSort');
                 Route::put('/plugins/{plugin}/sort', [PluginController::class, 'updateSort'])->name('plugins.updateSort');
+                Route::put('/parameters/{parameter}/sort', [ParameterController::class, 'updateSort'])->name('parameters.updateSort');
 
                 // Одобрение комментария (Используем имя модели для параметра RMB)
                 Route::put('/comments/{comment}/approve', [CommentController::class, 'approve'])->name('comments.approve');
