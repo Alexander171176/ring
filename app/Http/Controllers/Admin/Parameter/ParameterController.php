@@ -59,7 +59,7 @@ class ParameterController extends Controller
             Log::error("Ошибка загрузки параметров для Index: " . $e->getMessage());
             $settings = collect(); // Пустая коллекция в случае ошибки
             $settingsCount = 0;
-            session()->flash('error', 'Не удалось загрузить список параметров.');
+            session()->flash('error', __('admin/controllers/parameters.index_error'));
         }
 
         return Inertia::render('Admin/Parameters/Index', [
@@ -106,10 +106,11 @@ class ParameterController extends Controller
             Setting::create($data);
             Log::info('Параметр системы успешно создан: ', ['option' => $data['option']]);
             // Редирект на индекс параметров
-            return redirect()->route('admin.parameters.index')->with('success', 'Параметр системы успешно создан.');
+            return redirect()->route('admin.parameters.index')
+                ->with('success', __('admin/controllers/parameters.created'));
         } catch (Throwable $e) {
             Log::error("Ошибка при создании параметра: " . $e->getMessage());
-            return back()->withInput()->withErrors(['general' => 'Произошла ошибка при создании параметра.']);
+            return back()->withInput()->withErrors(['general' => __('admin/controllers/parameters.create_error')]);
         }
     }
 
@@ -150,12 +151,13 @@ class ParameterController extends Controller
             DB::commit();
 
             Log::info('Параметр системы обновлен: ', ['id' => $setting->id, 'option' => $setting->option]);
-            return redirect()->route('admin.parameters.index')->with('success', 'Параметр системы успешно обновлен.');
+            return redirect()->route('admin.parameters.index')
+                ->with('success', __('admin/controllers/parameters.updated'));
 
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка при обновлении параметра ID {$setting->id}: " . $e->getMessage());
-            return back()->withInput()->withErrors(['general' => 'Произошла ошибка при обновлении параметра.']);
+            return back()->withInput()->withErrors(['general' => __('admin/controllers/parameters.update_error')]);
         }
     }
 
@@ -176,12 +178,13 @@ class ParameterController extends Controller
             DB::commit();
 
             Log::info('Параметр системы удален: ID ' . $setting->id);
-            return redirect()->route('admin.parameters.index')->with('success', 'Параметр системы успешно удален.');
+            return redirect()->route('admin.parameters.index')
+                ->with('success', __('admin/controllers/parameters.deleted'));
 
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка при удалении параметра ID {$setting->id}: " . $e->getMessage());
-            return back()->withErrors(['general' => 'Произошла ошибка при удалении параметра.']);
+            return back()->withErrors(['general' => __('admin/controllers/parameters.delete_error')]);
         }
     }
 
@@ -263,7 +266,7 @@ class ParameterController extends Controller
 
         } catch (Throwable $e) {
             Log::error("Ошибка обновления сортировки параметра ID {$setting->id}: " . $e->getMessage());
-            return back()->withErrors(['sort' => 'Не удалось обновить сортировку параметра.']);
+            return back()->withErrors(['sort' => __('admin/controllers/parameters.update_sort_error')]);
         }
     }
 
@@ -299,7 +302,7 @@ class ParameterController extends Controller
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка массового обновления сортировки параметров: " . $e->getMessage());
-            return back()->withErrors(['general' => 'Ошибка массового обновления сортировки параметров']);
+            return back()->withErrors(['general' => __('admin/controllers/parameters.bulk_update_sort_error')]);
         }
     }
 

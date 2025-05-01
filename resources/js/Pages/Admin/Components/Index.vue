@@ -4,8 +4,9 @@ import { usePage, router } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import TitlePage from '@/Components/Admin/Headlines/TitlePage.vue';
+import HighlightEditor from "@/Components/Admin/HighlightEditor/HighlightEditor.vue"; // компонент редактора
 import DirectoryStructure from '@/Components/Admin/Component/DirectoryStructure.vue';
-import HighlightEditor from "@/Components/Admin/HighlightEditor/HighlightEditor.vue"; // Импортируем новый компонент редактора
+import CodeMirrorEditor from "@/Components/Admin/CodeMirrorEditor/CodeMirrorEditor.vue"; // Импортируем новый компонент редактора
 
 const { t } = useI18n();
 
@@ -24,7 +25,7 @@ const selectFile = (fileName, group) => {
 };
 
 const saveChanges = async () => {
-    router.post(route('components.save'), {
+    router.post(route('admin.components.save'), {
         fileName: selectedFile.value,
         fileContent: fileContent.value,
     });
@@ -89,16 +90,18 @@ const saveChanges = async () => {
                 <h2 class="mb-1 font-semibold text-gray-900">
                     <span class="text-sm text-blue-500">{{ t('editingFile') }}</span> {{ selectedFile }}
                 </h2>
-                <HighlightEditor v-model="fileContent" class="w-full" />
+<!--                <HighlightEditor v-model="fileContent" class="w-full" />-->
+                <CodeMirrorEditor v-model="fileContent" theme="dark"
+                                  class="w-full h-auto" /> <!-- max-h-96 overflow-y-auto -->
                 <div class="flex justify-end mt-2">
                     <button @click="saveChanges"
                             class="flex items-center
-                                   btn px-3 py-1
-                                   bg-teal-500
-                                   text-white text-md font-semibold
-                                   rounded-md shadow-md
-                                   transition-colors duration-300 ease-in-out
-                                   hover:bg-teal-600 focus:bg-teal-600 focus:outline-none">
+                       btn px-3 py-1
+                       bg-teal-500
+                       text-white text-md font-semibold
+                       rounded-md shadow-md
+                       transition-colors duration-300 ease-in-out
+                       hover:bg-teal-600 focus:bg-teal-600 focus:outline-none">
                         <svg class="w-4 h-4 fill-current text-slate-100 mr-1" viewBox="0 0 16 16">
                             <path d="M14.3 2.3L5 11.6 1.7 8.3c-.4-.4-1-.4-1.4 0-.4.4-.4 1 0 1.4l4 4c.2.2.4.3.7.3.3 0 .5-.1.7-.3l10-10c.4-.4.4-1 0-1.4-.4-.4-1-.4-1.4 0z"></path>
                         </svg>
@@ -110,7 +113,7 @@ const saveChanges = async () => {
                 </div>
             </div>
 
-            <DirectoryStructure :fileContents="fileContents" />
+<!--            <DirectoryStructure :fileContents="fileContents" />-->
         </div>
     </AdminLayout>
 </template>
@@ -120,4 +123,24 @@ canvas {
     border: 1px solid #ccc;
     margin-top: 20px;
 }
+/* кастомные стили редактора для тёмного режима */
+.ͼo {
+    color: #F2F2F2;
+    background-color: #2B2B2B;
+}
+.ͼo .cm-gutters {
+    background-color: #111111;
+    color: #FFFFFF;
+}
+.cm-line .ͼq {color: #98ACBF;}
+.ͼo .cm-line .ͼf {color: #FF4747;}
+.ͼo .cm-line .ͼb {color: #FFFF00;}
+.ͼo .cm-line .ͼg {color: #24B87F;}
+.ͼo .cm-line .ͼe {color: #FFC46B;}
+.ͼo .cm-line .ͼm {color: #9F9F9E;}
+.ͼo .cm-line .ͼc {color: #9775A6;}
+.ͼo .cm-line .ͼv {color: #56b6c2;}
+.ͼo .cm-line .ͼr {color: #61afef;}
+.ͼo .cm-line .ͼd {color: #00CCFF;}
+.ͼo .cm-line .ͼi {color: #99CC00;}
 </style>
