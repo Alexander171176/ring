@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin\Setting;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Lang;
 use Illuminate\Validation\Rule;
 
 class UpdateLocaleRequest extends FormRequest
@@ -43,10 +44,6 @@ class UpdateLocaleRequest extends FormRequest
      */
     public function messages(): array
     {
-        return [
-            'locale.required' => 'Необходимо выбрать язык.',
-            'locale.size' => 'Код языка должен состоять из :size символов.',
-            'locale.in' => 'Выбран недопустимый язык.',
-        ];
+        return Lang::get('admin/requests/UpdateLocaleRequest');
     }
 }

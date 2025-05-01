@@ -100,9 +100,6 @@
     `docker exec ring-php-app php artisan make:controller Admin/User/UserController --resource` <br>
     `docker exec ring-php-app php artisan make:resource Admin/User/UserResource` <br>
     `docker exec ring-php-app php artisan make:resource Admin/User/UserSharedResource` <br>
-    `docker exec ring-php-app php artisan make:middleware CheckAdminOwnerExists` <br>
-    `docker exec ring-php-app php artisan make:mail AdminAccountDeletedMail` <br>
-    `docker exec ring-php-app php artisan make:mail AdminAccountRestoredMail` <br>
 
 18) Create revoke controllers <br>
     `docker exec ring-php-app php artisan make:controller Admin/Invokable/RemovePermissionFromRoleController --invokable` <br>

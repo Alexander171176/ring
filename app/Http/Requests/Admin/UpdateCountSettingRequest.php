@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Lang;
 
 class UpdateCountSettingRequest extends FormRequest
 {
@@ -55,10 +56,6 @@ class UpdateCountSettingRequest extends FormRequest
 
     public function messages(): array
     {
-        return [
-            'value.required' => 'Необходимо указать количество.',
-            'value.integer' => 'Количество должно быть целым числом.',
-            'value.min' => 'Количество должно быть не меньше :min.',
-        ];
+        return Lang::get('admin/requests/UpdateCountSettingRequest');
     }
 }

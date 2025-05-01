@@ -4,6 +4,7 @@ namespace App\Http\Requests\Admin\Role;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Lang;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\PermissionRegistrar; // Импортируем для получения имен таблиц
 
@@ -61,18 +62,7 @@ class RoleRequest extends FormRequest
      */
     public function messages(): array
     {
-        return array_merge(parent::messages(), [
-            'name.required' => 'Название роли обязательно.',
-            'name.string' => 'Название роли должно быть строкой.',
-            'name.max' => 'Название роли не должно превышать :max символов.',
-            'name.unique' => 'Роль с таким названием для указанного guard уже существует.', // Уточнено
-
-            'guard_name.string' => 'Guard Name должен быть строкой.',
-            'guard_name.max' => 'Guard Name не должен превышать :max символов.',
-
-            'permissions.array' => 'Разрешения должны быть массивом.',
-            'permissions.*.exists' => 'Выбрано несуществующее разрешение (ID: :value).',
-        ]);
+        return Lang::get('admin/requests/RoleRequest');
     }
 
     /**

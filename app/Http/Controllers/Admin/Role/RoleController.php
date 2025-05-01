@@ -53,7 +53,7 @@ class RoleController extends Controller
             Log::error("Ошибка загрузки ролей для Index: " . $e->getMessage());
             $roles = collect(); // Пустая коллекция в случае ошибки
             $rolesCount = 0;
-            session()->flash('error', __('admin/roles.index_load_error'));
+            session()->flash('error', __('admin/controllers/roles.index_load_error'));
         }
 
         return Inertia::render('Admin/Roles/Index', [
@@ -106,12 +106,12 @@ class RoleController extends Controller
             DB::commit();
 
             Log::info('Роль успешно создана:', ['id' => $role->id, 'name' => $role->name]);
-            return redirect()->route('admin.roles.index')->with('success', __('admin/roles.created'));
+            return redirect()->route('admin.roles.index')->with('success', __('admin/controllers/roles.created'));
 
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка при создании роли: " . $e->getMessage());
-            return back()->withInput()->withErrors(['general' => __('admin/roles.create_error')]);
+            return back()->withInput()->withErrors(['general' => __('admin/controllers/roles.create_error')]);
         }
     }
 
@@ -164,11 +164,11 @@ class RoleController extends Controller
 
             // Очищаем кэш разрешений Spatie
             app()[PermissionRegistrar::class]->forgetCachedPermissions();
-            return redirect()->route('admin.roles.index')->with('success', __('admin/roles.updated'));
+            return redirect()->route('admin.roles.index')->with('success', __('admin/controllers/roles.updated'));
 
         } catch (Throwable $e) {
             Log::error("Ошибка при обновлении роли ID {$role->id}: " . $e->getMessage());
-            return back()->withInput()->withErrors(['general' => __('admin/roles.update_error')]);
+            return back()->withInput()->withErrors(['general' => __('admin/controllers/roles.update_error')]);
         }
     }
 
@@ -186,11 +186,11 @@ class RoleController extends Controller
 
         if ($role->id === 1) {
             return redirect()->route('admin.roles.index')
-                ->with('error', __('admin/roles.delete_main_role_error'));
+                ->with('error', __('admin/controllers/roles.delete_main_role_error'));
         }
         if (in_array($role->name, ['super-admin', 'owner'])) {
             return redirect()->route('admin.roles.index')
-                ->with('error', __('admin/roles.delete_base_role_error'));
+                ->with('error', __('admin/controllers/roles.delete_base_role_error'));
         }
         // TODO: Проверить, назначена ли роль пользователям? Запретить удаление или отсоединить?
         // if ($role->users()->count() > 0) { ... }
@@ -203,12 +203,12 @@ class RoleController extends Controller
             Log::info('Роль удалена:', ['id' => $role->id, 'name' => $role->name]);
             // Очищаем кэш разрешений Spatie
             app()[PermissionRegistrar::class]->forgetCachedPermissions();
-            return redirect()->route('admin.roles.index')->with('success', __('admin/roles.deleted'));
+            return redirect()->route('admin.roles.index')->with('success', __('admin/controllers/roles.deleted'));
 
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка при удалении роли ID {$role->id}: " . $e->getMessage());
-            return back()->withErrors(['general' => __('admin/roles.delete_error')]);
+            return back()->withErrors(['general' => __('admin/controllers/roles.delete_error')]);
         }
     }
 

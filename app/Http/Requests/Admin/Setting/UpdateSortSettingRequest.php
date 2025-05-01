@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin\Setting;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Lang;
 use Illuminate\Validation\Rule;
 
 class UpdateSortSettingRequest extends FormRequest
@@ -57,9 +58,6 @@ class UpdateSortSettingRequest extends FormRequest
 
     public function messages(): array
     {
-        return [
-            'value.string' => 'Тип сортировки должен быть строкой.',
-            'value.max' => 'Значение сортировки слишком длинное.', // Добавили сообщение для max
-        ];
+        return Lang::get('admin/requests/UpdateSortSettingRequest');
     }
 }

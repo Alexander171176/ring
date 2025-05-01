@@ -107,15 +107,8 @@ Route::group([
 
 
 // --- Маршруты Панели Администратора ---
-
-    Route::middleware([
-        'auth:sanctum',
-        config('jetstream.auth_session'),
-        'verified',
-        'check.owner.exists',
-    ])
-        ->prefix('admin')
-        ->name('admin.')
+    Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',])
+        ->prefix('admin')->name('admin.')
         ->group(function () {
 
             // Главная страница админки
@@ -197,7 +190,6 @@ Route::group([
                 Route::post('/rubrics/{rubric}/clone', [RubricController::class, 'clone'])->name('rubrics.clone');
                 Route::post('/sections/{section}/clone', [SectionController::class, 'clone'])->name('sections.clone');
                 Route::post('/articles/{article}/clone', [ArticleController::class, 'clone'])->name('articles.clone');
-                // Route::post('/videos/{video}/clone', [VideoController::class, 'clone'])->name('videos.clone'); // Добавить маршрут для видео
 
                 // Переключение активности (Используем имена моделей для параметров RMB)
                 Route::put('/rubrics/{rubric}/activity', [RubricController::class, 'updateActivity'])->name('rubrics.updateActivity');
@@ -225,10 +217,8 @@ Route::group([
                     ->name('videos.bulkUpdateActivity');
                 Route::put('/admin/actions/plugins/bulk-activity', [PluginController::class, 'bulkUpdateActivity'])
                     ->name('plugins.bulkUpdateActivity');
-                Route::put('/admin/actions/settings/bulk-activity', [SettingController::class, 'bulkUpdateActivity'])
+                Route::put('/admin/actions/settings/bulk-activity', [ParameterController::class, 'bulkUpdateActivity'])
                     ->name('settings.bulkUpdateActivity');
-                Route::put('/admin/actions/parameters/bulk-activity', [ParameterController::class, 'bulkUpdateActivity'])
-                    ->name('parameters.bulkUpdateActivity');
 
                 // Переключение Left/Main/Right (Используем имена моделей для параметров RMB)
                 Route::put('/articles/{article}/left', [ArticleController::class, 'updateLeft'])->name('articles.updateLeft');
@@ -270,7 +260,7 @@ Route::group([
                 Route::put('/banners/update-sort-bulk', [BannerController::class, 'updateSortBulk'])->name('banners.updateSortBulk');
                 Route::put('/videos/update-sort-bulk', [VideoController::class, 'updateSortBulk'])->name('videos.updateSortBulk');
                 Route::put('/plugins/update-sort-bulk', [PluginController::class, 'updateSortBulk'])->name('plugins.updateSortBulk');
-                Route::put('/parameters/update-sort-bulk', [ParameterController::class, 'updateSortBulk'])->name('parameters.updateSortBulk');
+                Route::put('/actions/settings/update-sort-bulk', [ParameterController::class, 'updateSortBulk'])->name('settings.updateSortBulk');
 
                 // Обновление сортировки (Имена параметров уже были правильные)
                 Route::put('/rubrics/{rubric}/sort', [RubricController::class, 'updateSort'])->name('rubrics.updateSort');

@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin\Tag;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Lang;
 use Illuminate\Validation\Rule;
 // use Illuminate\Support\Str; // Если будете использовать Str::slug в prepareForValidation
 
@@ -74,35 +75,7 @@ class TagRequest extends FormRequest
      */
     public function messages(): array
     {
-        // Используем array_merge для сохранения стандартных сообщений Laravel, если нужно
-        return array_merge(parent::messages(), [
-            'locale.required' => 'Язык тега обязателен.',
-            'locale.in' => 'Допустимые языки: :values.',
-
-            'name.required' => 'Название тега обязательно.',
-            'name.max' => 'Название тега не должно превышать :max символов.',
-            'name.unique' => 'Тег с таким Названием и Языком уже существует.', // Исправлено
-
-            'slug.required' => 'Slug тега обязателен.',
-            'slug.max' => 'Slug тега не должен превышать :max символов.',
-            'slug.regex' => 'Slug должен содержать только латинские буквы, цифры и дефисы.', // Добавлено
-            'slug.unique' => 'Тег с таким Slug и Языком уже существует.',    // Исправлено
-
-            'short.max' => 'Краткое описание не должно превышать :max символов.',
-            'description.string' => 'Описание должно быть строкой.',
-
-            'meta_title.max' => 'Meta заголовок не должен превышать :max символов.',
-            'meta_keywords.max' => 'Meta ключевые слова не должны превышать :max символов.',
-            'meta_desc.string' => 'Meta описание должно быть строкой.', // Исправлено
-
-            'sort.integer' => 'Поле сортировки должно быть числом.',
-            'sort.min' => 'Поле сортировки не может быть отрицательным.', // Добавлено
-            'activity.required' => 'Поле активности обязательно для заполнения.',
-            'activity.boolean' => 'Поле активности должно быть логическим значением.', // Добавлено
-
-            'views.integer' => 'Количество просмотров должно быть числом.', // Добавлено
-            'views.min' => 'Количество просмотров не может быть отрицательным.', // Добавлено
-        ]);
+        return Lang::get('admin/requests/TagRequest');
     }
 
     /**

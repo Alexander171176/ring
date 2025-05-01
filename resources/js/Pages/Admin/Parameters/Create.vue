@@ -1,20 +1,34 @@
 <script setup>
-import { useForm } from '@inertiajs/vue3'
+/**
+ * @version PulsarCMS 1.0
+ * @author Александр Косолапов <kosolapov1976@gmail.com>
+ */
+import {useToast} from "vue-toastification";
+import {useI18n} from 'vue-i18n';
+import {useForm} from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import TitlePage from '@/Components/Admin/Headlines/TitlePage.vue'
 import LabelCheckbox from "@/Components/Admin/Checkbox/LabelCheckbox.vue";
 import ActivityCheckbox from "@/Components/Admin/Checkbox/ActivityCheckbox.vue";
+import InputNumber from "@/Components/Admin/Input/InputNumber.vue";
 import DefaultButton from '@/Components/Admin/Buttons/DefaultButton.vue'
 import PrimaryButton from '@/Components/Admin/Buttons/PrimaryButton.vue'
 import LabelInput from '@/Components/Admin/Input/LabelInput.vue'
 import InputText from '@/Components/Admin/Input/InputText.vue'
 import InputError from '@/Components/Admin/Input/InputError.vue'
 import MetaDescTextarea from "@/Components/Admin/Textarea/MetaDescTextarea.vue";
-import {useI18n} from 'vue-i18n';
+import TypeSelect from "@/Components/Admin/Parameters/Select/TypeSelect.vue";
+import CategorySelect from "@/Components/Admin/Parameters/Select/CategorySelect.vue";
 
-const {t} = useI18n();
+// --- Инициализация ---
+const toast = useToast();
+const { t } = useI18n();
 
+/**
+ * Форма для создания.
+ */
 const form = useForm({
+    sort: 0,
     type: '',
     option: '',
     value: '',
@@ -22,18 +36,60 @@ const form = useForm({
     category: '',
     description: '',
     activity: false,
-})
-// Функция для преобразования camelCase в UPPER_CASE с нижним подчёркиванием
+});
+
+/**
+ * Фильтрация поля option — разрешаем только латиницу, цифры и дефис
+ */
+const handleOptionInput = (event) => {
+    const cleaned = event.target.value.replace(/[^A-Za-z0-9\-]/g, '');
+    form.option = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+};
+
+/**
+ * Функция для преобразования camelCase в UPPER_CASE с нижним подчёркиванием.
+ */
 const toUpperCaseWithUnderscore = (str) => {
     return str.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toUpperCase();
 };
 
-// Обработчик фокуса на поле constant
+/**
+ * Обработчик фокуса на поле constant.
+ */
 const handleConstantFocus = () => {
     if (form.option) {
         form.constant = toUpperCaseWithUnderscore(form.option);
     }
 };
+
+/**
+ * Отправляет данные формы для создания.
+ */
+const submitForm = () => {
+    //console.log("Отправляемые изображения перед трансформацией:", form.images);
+
+    form.transform((data) => ({
+        ...data,
+        activity: data.activity ? 1 : 0,
+    }));
+
+    //console.log("Отправляемые изображения после трансформации:", form.images);
+
+    form.post(route('admin.parameters.store'), {
+        preserveScroll: true,
+        onSuccess: () => {
+            // Действия при успехе (toast уведомление обычно делается через flash в HandleInertiaRequests)
+            toast.success('Параметр успешно создан!');
+            // console.log("Форма успешно отправлена.");
+        },
+        onError: (errors) => {
+            console.error("Не удалось отправить форму:", errors);
+            // Можно показать toast с общей ошибкой или первой ошибкой из списка
+            const firstError = errors[Object.keys(errors)[0]];
+            toast.error(firstError || 'Пожалуйста, проверьте правильность заполнения полей.');
+        }
+    });
+}
 </script>
 
 <template>
@@ -50,7 +106,7 @@ const handleConstantFocus = () => {
                         bg-opacity-95 dark:bg-opacity-95">
                 <div class="sm:flex sm:justify-between sm:items-center mb-2">
                     <!-- Кнопка назад -->
-                    <DefaultButton :href="route('parameters.index')">
+                    <DefaultButton :href="route('admin.parameters.index')">
                         <template #icon>
                             <!-- SVG -->
                             <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">
@@ -65,28 +121,45 @@ const handleConstantFocus = () => {
                         <!-- Datepicker built with flatpickr -->
                     </div>
                 </div>
-                <form @submit.prevent="form.post(route('parameters.store'))" class="p-3 w-full">
+                <form @submit.prevent="submitForm" class="p-3 w-full">
 
-                    <div class="mb-3 flex items-center">
+                    <div class="mb-3 flex justify-between flex-col lg:flex-row items-center gap-4">
+
+                        <!-- Активность -->
                         <div class="flex justify-between w-full">
                             <div class="flex flex-row items-center">
                                 <ActivityCheckbox v-model="form.activity"/>
                                 <LabelCheckbox for="activity" :text="t('activity')"/>
                             </div>
                         </div>
+
+                        <!-- Категория -->
                         <div class="flex flex-row items-center">
-                            <LabelInput for="type" :value="t('type')" class="mr-3"/>
-                            <InputText
-                                id="type"
-                                type="text"
-                                v-model="form.type"
-                                maxlength="255"
-                                autocomplete="type"
-                                pattern="[A-Za-z0-9\-]+"
-                                :title="t('urlVerification')"
-                            />
-                            <InputError class="mt-2" :message="form.errors.type"/>
+                            <LabelInput for="category" :value="t('parameterCategory')" class="w-full"/>
+                            <CategorySelect v-model="form.category" :error="form.errors.category" />
                         </div>
+
+                        <!-- Тип -->
+                        <div class="flex flex-row items-center gap-2">
+                            <LabelInput for="type" :value="t('type')" class="mr-3"/>
+                            <TypeSelect v-model="form.type" :error="form.errors.type" class="w-full lg:w-64 mr-3" />
+                        </div>
+
+                        <!-- Сортировка -->
+                        <div class="flex flex-row items-center gap-2">
+                            <div class="h-8 flex items-center">
+                                <LabelInput for="sort" :value="t('sort')" class="text-sm"/>
+                            </div>
+                            <InputNumber
+                                id="sort"
+                                type="number"
+                                v-model="form.sort"
+                                autocomplete="sort"
+                                class="w-full lg:w-28"
+                            />
+                            <InputError class="mt-2 lg:mt-0" :message="form.errors.sort"/>
+                        </div>
+
                     </div>
 
                     <div class="mb-3 flex flex-col items-start">
@@ -100,6 +173,7 @@ const handleConstantFocus = () => {
                             id="option"
                             type="text"
                             v-model="form.option"
+                            @input="handleOptionInput"
                             required
                             maxlength="255"
                             autocomplete="option"
@@ -118,6 +192,7 @@ const handleConstantFocus = () => {
                             @focus="handleConstantFocus"
                             required
                             autocomplete="constant"
+                            pattern="[A-Z][A-Z0-9_]*"
                         />
                         <InputError class="mt-2" :message="form.errors.constant"/>
                     </div>
@@ -143,25 +218,6 @@ const handleConstantFocus = () => {
 
                     <div class="mb-3 flex flex-col items-start">
                         <div class="flex justify-between w-full">
-                            <LabelInput for="category" :value="t('parameterCategory')"/>
-                            <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
-                                {{ form.category.length }} / 255 {{ t('characters') }}
-                            </div>
-                        </div>
-                        <InputText
-                            id="category"
-                            type="text"
-                            v-model="form.category"
-                            maxlength="255"
-                            autocomplete="value"
-                            pattern="[A-Za-z0-9\-]+"
-                            :title="t('urlVerification')"
-                        />
-                        <InputError class="mt-2" :message="form.errors.category"/>
-                    </div>
-
-                    <div class="mb-3 flex flex-col items-start">
-                        <div class="flex justify-between w-full">
                             <LabelInput for="description" :value="t('parameterDescription')"/>
                             <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
                                 {{ form.description.length }} / 255 {{ t('characters') }}
@@ -172,7 +228,7 @@ const handleConstantFocus = () => {
                     </div>
 
                     <div class="flex items-center justify-center mt-4">
-                        <DefaultButton :href="route('parameters.index')" class="mb-3">
+                        <DefaultButton :href="route('admin.parameters.index')" class="mb-3">
                             <template #icon>
                                 <!-- SVG -->
                                 <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">

@@ -181,7 +181,7 @@ class SettingController extends Controller
         if (in_array($setting->category, ['system', 'admin', 'public'], true)) {
             Log::info("Попытка изменения активности параметра ID {$setting->id} с категорией '{$setting->category}'.");
 
-            return back()->with('warning', __('admin/parameters.activity_update_forbidden', [
+            return back()->with('warning', __('admin/controllers/parameters.activity_update_forbidden', [
                 'category' => $setting->category,
             ]));
         }
@@ -193,7 +193,7 @@ class SettingController extends Controller
             $actionText = $setting->activity ? 'активирован' : 'деактивирован';
             Log::info("Параметр ID {$setting->id} успешно {$actionText}");
 
-            return back()->with('success', __('admin/parameters.update_activity_success', [
+            return back()->with('success', __('admin/controllers/parameters.update_activity_success', [
                 'option' => $setting->option,
                 'action' => $actionText,
             ]));
@@ -201,7 +201,7 @@ class SettingController extends Controller
             Log::error("Ошибка обновления активности параметра ID {$setting->id}: " . $e->getMessage());
 
             return back()->withErrors([
-                'general' => __('admin/parameters.update_activity_error'),
+                'general' => __('admin/controllers/parameters.update_activity_error'),
             ]);
         }
     }

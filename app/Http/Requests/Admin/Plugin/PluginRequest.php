@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin\Plugin;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Lang;
 use Illuminate\Validation\Rule;
 
 class PluginRequest extends FormRequest
@@ -63,36 +64,7 @@ class PluginRequest extends FormRequest
      */
     public function messages(): array
     {
-        return array_merge(parent::messages(), [
-            'sort.integer' => 'Поле сортировки должно быть числом.',
-            'sort.min' => 'Поле сортировки не может быть отрицательным.',
-
-            'name.required' => 'Имя плагина обязательно.',
-            'name.max' => 'Имя плагина не должно превышать :max символов.',
-            'name.unique' => 'Плагин с таким именем уже существует.',
-
-            'version.max' => 'Версия плагина не должна превышать :max символов.',
-
-            'icon.string' => 'Иконка должна быть строкой.',
-            'icon.max' => 'Содержимое иконки слишком длинное.',
-
-            'description.string' => 'Описание должно быть строкой.',
-            'description.max' => 'Описание слишком длинное.',
-
-            'readme.string' => 'README должно быть строкой.',
-
-            'options.json' => 'Опции должны быть корректной JSON строкой.', // Добавлено
-
-            'code.string' => 'Код должен быть строкой.',
-            'code.max' => 'Код не должен превышать :max символов.',
-            'code.regex' => 'Код может содержать только латинские буквы, цифры и подчеркивание.', // Добавлено
-            // 'code.unique' => 'Плагин с таким кодом уже существует.', // Если code уникален
-
-            'templates.max' => 'Поле шаблонов не должно превышать :max символов.',
-
-            'activity.required' => 'Поле активности обязательно.',
-            'activity.boolean' => 'Поле активности должно быть логическим.',
-        ]);
+        return Lang::get('admin/requests/PluginRequest');
     }
 
     /**

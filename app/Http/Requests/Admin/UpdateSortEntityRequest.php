@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Lang;
 
 class UpdateSortEntityRequest extends FormRequest
 {
@@ -30,10 +31,6 @@ class UpdateSortEntityRequest extends FormRequest
 
     public function messages(): array
     {
-        return [
-            'sort.required' => 'Необходимо указать значение сортировки.',
-            'sort.integer' => 'Значение сортировки должно быть целым числом.',
-            'sort.min' => 'Значение сортировки не может быть отрицательным.',
-        ];
+        return Lang::get('admin/requests/UpdateSortEntityRequest');
     }
 }

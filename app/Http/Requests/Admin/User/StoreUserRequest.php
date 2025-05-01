@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin\User;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Lang;
 use Illuminate\Validation\Rule;
 
 class StoreUserRequest extends FormRequest
@@ -24,13 +25,6 @@ class StoreUserRequest extends FormRequest
 
     public function messages(): array
     {
-        return [
-            'name.required' => 'Имя пользователя обязательно.',
-            'email.required' => 'Email обязателен.',
-            'email.email' => 'Некорректный формат email.',
-            'email.unique' => 'Этот email уже зарегистрирован.',
-            'roles.array' => 'Роли должны быть массивом.',
-            'permissions.array' => 'Разрешения должны быть массивом.',
-        ];
+        return Lang::get('admin/requests/StoreUserRequest');
     }
 }

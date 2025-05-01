@@ -68,7 +68,7 @@ class ArticleController extends Controller
             Log::error("Ошибка загрузки постов для Index: " . $e->getMessage());
             $articles = collect(); // Пустая коллекция в случае ошибки
             $articlesCount = 0;
-            session()->flash('error', __('admin/articles.index_error'));
+            session()->flash('error', __('admin/controllers/articles.index_error'));
         }
 
         return Inertia::render('Admin/Articles/Index', [
@@ -177,14 +177,14 @@ class ArticleController extends Controller
             DB::commit();
 
             Log::info('Статья успешно создана', ['id' => $article->id, 'title' => $article->title]);
-            return redirect()->route('admin.articles.index')->with('success', __('admin/articles.created'));
+            return redirect()->route('admin.articles.index')->with('success', __('admin/controllers/articles.created'));
 
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка при создании статьи: {$e->getMessage()}", [
                 'trace' => $e->getTraceAsString(),
             ]);
-            return back()->withInput()->withErrors(['general' => __('admin/articles.create_error')]);
+            return back()->withInput()->withErrors(['general' => __('admin/controllers/articles.create_error')]);
         }
     }
 
@@ -315,14 +315,14 @@ class ArticleController extends Controller
             DB::commit();
 
             Log::info('Статья обновлена: ', ['id' => $article->id, 'title' => $article->title]);
-            return redirect()->route('admin.articles.index')->with('success', __('admin/articles.updated'));
+            return redirect()->route('admin.articles.index')->with('success', __('admin/controllers/articles.updated'));
 
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка при обновлении статьи ID {$article->id}: {$e->getMessage()}", [
                 'trace' => $e->getTraceAsString(),
             ]);
-            return back()->withInput()->withErrors(['general' => __('admin/articles.update_error')]);
+            return back()->withInput()->withErrors(['general' => __('admin/controllers/articles.update_error')]);
         }
     }
 
@@ -345,12 +345,12 @@ class ArticleController extends Controller
             DB::commit();
 
             Log::info('Статья удалена: ID ' . $article->id);
-            return redirect()->route('admin.articles.index')->with('success', __('admin/articles.deleted'));
+            return redirect()->route('admin.articles.index')->with('success', __('admin/controllers/articles.deleted'));
 
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка при удалении статьи ID {$article->id}: " . $e->getMessage());
-            return back()->withErrors(['general' => __('admin/articles.delete_error')]);
+            return back()->withErrors(['general' => __('admin/controllers/articles.delete_error')]);
         }
     }
 
@@ -389,12 +389,12 @@ class ArticleController extends Controller
 
             Log::info('Статьи удалены: ', $articleIds);
             return redirect()->route('admin.articles.index')
-                ->with('success', __('admin/articles.bulk_deleted', ['count' => $count]));
+                ->with('success', __('admin/controllers/articles.bulk_deleted', ['count' => $count]));
 
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка при массовом удалении статей: " . $e->getMessage(), ['ids' => $articleIds]);
-            return back()->withErrors(['general' => __('admin/articles.bulk_delete_error')]);
+            return back()->withErrors(['general' => __('admin/controllers/articles.bulk_delete_error')]);
         }
     }
 
@@ -417,11 +417,11 @@ class ArticleController extends Controller
 
             Log::info("Обновлено значение активации в левой колонке для статьи ID {$article->id}");
             return redirect()->route('admin.articles.index')
-                ->with('success', __('admin/articles.updated_left_success'));
+                ->with('success', __('admin/controllers/articles.updated_left_success'));
 
         } catch (Throwable $e) {
             Log::error("Ошибка обновления значение в левой колонке статьи ID {$article->id}: " . $e->getMessage());
-            return back()->withErrors(['general' => __('admin/articles.updated_left_error')]);
+            return back()->withErrors(['general' => __('admin/controllers/articles.updated_left_error')]);
         }
     }
 
@@ -446,7 +446,7 @@ class ArticleController extends Controller
             Log::error('Ошибка массового обновления активности в левой колонке: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => __('admin/articles.bulk_left_update_error'),
+                'message' => __('admin/controllers/articles.bulk_left_update_error'),
             ], 500);
         }
     }
@@ -470,11 +470,11 @@ class ArticleController extends Controller
 
             Log::info("Обновлено значение активации в главном для статьи ID {$article->id}");
             return redirect()->route('admin.articles.index')
-                ->with('success', __('admin/articles.updated_main_success'));
+                ->with('success', __('admin/controllers/articles.updated_main_success'));
 
         } catch (Throwable $e) {
             Log::error("Ошибка обновления значение в главном статьи ID {$article->id}: " . $e->getMessage());
-            return back()->withErrors(['general' => __('admin/articles.main_update_error')]);
+            return back()->withErrors(['general' => __('admin/controllers/articles.main_update_error')]);
         }
     }
 
@@ -499,7 +499,7 @@ class ArticleController extends Controller
             Log::error('Ошибка массового обновления активности в главном: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => __('admin/articles.bulk_main_update_error'),
+                'message' => __('admin/controllers/articles.bulk_main_update_error'),
             ], 500);
         }
     }
@@ -523,11 +523,11 @@ class ArticleController extends Controller
 
             Log::info("Обновлено значение активации в правой колонке для статьи ID {$article->id}");
             return redirect()->route('admin.articles.index')
-                ->with('success', __('admin/articles.updated_right_success'));
+                ->with('success', __('admin/controllers/articles.updated_right_success'));
 
         } catch (Throwable $e) {
             Log::error("Ошибка обновления значение в правой колонке статьи ID {$article->id}: " . $e->getMessage());
-            return back()->withErrors(['general' => __('admin/articles.right_update_error')]);
+            return back()->withErrors(['general' => __('admin/controllers/articles.right_update_error')]);
         }
     }
 
@@ -552,7 +552,7 @@ class ArticleController extends Controller
             Log::error('Ошибка массового обновления активности в правой колонке: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => __('admin/articles.bulk_right_update_error'),
+                'message' => __('admin/controllers/articles.bulk_right_update_error'),
             ], 500);
         }
     }
@@ -574,16 +574,16 @@ class ArticleController extends Controller
             $article->activity = $validated['activity'];
             $article->save();
 
-            $actionText = $article->activity ? __('admin/articles.activated')
-                : __('admin/articles.deactivated');
+            $actionText = $article->activity ? __('admin/controllers/articles.activated')
+                : __('admin/controllers/articles.deactivated');
 
             Log::info("Обновлено activity статьи ID {$article->id} на {$article->activity}");
-            return back()->with('success', __('admin/articles.activity',
+            return back()->with('success', __('admin/controllers/articles.activity',
                 ['title' => $article->title, 'action' => $actionText]));
 
         } catch (Throwable $e) {
             Log::error("Ошибка обновления активности статьи ID {$article->id}: " . $e->getMessage());
-            return back()->withErrors(['general' => __('admin/articles.update_activity_error')]);
+            return back()->withErrors(['general' => __('admin/controllers/articles.update_activity_error')]);
         }
     }
 
@@ -627,7 +627,7 @@ class ArticleController extends Controller
 
         } catch (Throwable $e) {
             Log::error("Ошибка обновления сортировки статьи ID {$article->id}: " . $e->getMessage());
-            return back()->withErrors(['sort' => __('admin/articles.update_sort_error')]);
+            return back()->withErrors(['sort' => __('admin/controllers/articles.update_sort_error')]);
         }
     }
 
@@ -663,7 +663,7 @@ class ArticleController extends Controller
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка массового обновления сортировки статей: " . $e->getMessage());
-            return back()->withErrors(['general' => __('admin/articles.update_sort_bulk_error')]);
+            return back()->withErrors(['general' => __('admin/controllers/articles.update_sort_bulk_error')]);
         }
     }
 
@@ -720,12 +720,12 @@ class ArticleController extends Controller
             DB::commit();
 
             Log::info('Статья ID ' . $article->id . ' успешно клонирована в ID ' . $clonedArticle->id);
-            return redirect()->route('admin.articles.index')->with('success', __('admin/articles.cloned'));
+            return redirect()->route('admin.articles.index')->with('success', __('admin/controllers/articles.cloned'));
 
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка при клонировании статьи ID {$article->id}: " . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
-            return back()->withInput()->withErrors(['general' => __('admin/articles.clone_error')]);
+            return back()->withInput()->withErrors(['general' => __('admin/controllers/articles.clone_error')]);
         }
     }
 

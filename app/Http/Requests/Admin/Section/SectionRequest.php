@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin\Section;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Lang;
 use Illuminate\Validation\Rule;
 
 class SectionRequest extends FormRequest
@@ -82,48 +83,7 @@ class SectionRequest extends FormRequest
      */
     public function messages(): array
     {
-        // Берем предыдущие сообщения и добавляем/исправляем нужные
-        return array_merge(parent::messages(), [
-            'locale.required' => 'Язык секции обязателен.',
-            'locale.string' => 'Язык должен быть строкой.',
-            'locale.size' => 'Код языка должен состоять из 2 символов.',
-            'locale.in' => 'Допустимые языки: :values.', // Используем :values
-
-            'title.required' => 'Название секции обязательно для заполнения.',
-            'title.string' => 'Название секции должно быть строкой.',
-            'title.max' => 'Название секции не должно превышать :max символов.',
-            'title.unique' => 'Секция с таким Названием и Языком уже существует.', // Уточнено
-
-            // Раскомментируйте, если добавили url
-            /*
-           'url.required' => 'URL секции обязателен.',
-           'url.string' => 'URL секции должен быть строкой.',
-           'url.max' => 'URL секции не должен превышать :max символов.',
-           'url.regex' => 'URL должен содержать только латинские буквы, цифры и дефисы.',
-           'url.unique' => 'Секция с таким URL и Языком уже существует.',
-           */
-
-            'short.string' => 'Краткое описание должно быть строкой.',
-            'short.max' => 'Краткое описание не должно превышать :max символов.',
-
-            'description.string' => 'Описание должно быть строкой.', // Добавлено
-
-            'sort.integer' => 'Поле сортировки должно быть числом.',
-            'sort.min' => 'Поле сортировки не может быть отрицательным.', // Добавлено
-            'activity.required' => 'Поле активности обязательно для заполнения.',
-            'activity.boolean' => 'Поле активности должно быть логическим значением.',
-
-            'icon.string' => 'Иконка должна быть строкой.',
-            'icon.max' => 'Иконка не должна превышать :max символов.',
-            // 'icon_file.image' => 'Файл иконки должен быть изображением.', // Если иконка - файл
-            // 'icon_file.mimes' => 'Допустимые форматы иконки: :values.',
-            // 'icon_file.max' => 'Размер файла иконки не должен превышать :max Кб.',
-
-            'rubrics.array' => 'Рубрики должны быть массивом.',
-            'rubrics.*.id.required_with' => 'ID рубрики обязателен.', // Добавлено
-            'rubrics.*.id.integer' => 'ID рубрики должен быть числом.', // Добавлено
-            'rubrics.*.id.exists' => 'Выбрана несуществующая рубрика.', // Добавлено
-        ]);
+        return Lang::get('admin/requests/SectionRequest');
     }
 
     /**

@@ -1,4 +1,11 @@
 <script setup>
+/**
+ * @version PulsarCMS 1.0
+ * @author Александр Косолапов <kosolapov1976@gmail.com>
+ */
+import { useToast } from "vue-toastification";
+import { useI18n } from 'vue-i18n';
+import {defineProps, onMounted, ref} from 'vue';
 import { useForm } from '@inertiajs/vue3'
 import AdminLayout from '@/Layouts/AdminLayout.vue'
 import TitlePage from '@/Components/Admin/Headlines/TitlePage.vue'
@@ -10,11 +17,17 @@ import PrimaryButton from '@/Components/Admin/Buttons/PrimaryButton.vue'
 import MetaDescTextarea from '@/Components/Admin/Textarea/MetaDescTextarea.vue';
 import LabelCheckbox from '@/Components/Admin/Checkbox/LabelCheckbox.vue';
 import ActivityCheckbox from '@/Components/Admin/Checkbox/ActivityCheckbox.vue';
-import { useI18n } from 'vue-i18n';
-import { ref, watch } from 'vue';
+import TypeSelect from "@/Components/Admin/Parameters/Select/TypeSelect.vue";
+import InputNumber from "@/Components/Admin/Input/InputNumber.vue";
+import CategorySelect from "@/Components/Admin/Parameters/Select/CategorySelect.vue";
 
+// --- Инициализация ---
+const toast = useToast();
 const { t } = useI18n();
 
+/**
+ * Входные свойства компонента.
+ */
 const props = defineProps({
     setting: {
         type: Object,
@@ -22,39 +35,73 @@ const props = defineProps({
     },
 })
 
+/**
+ * Формируем форму редактирования.
+ */
 const form = useForm({
     _method: 'PUT',
-    type: ref(props.setting?.type ?? ''),
-    option: ref(props.setting?.option ?? ''),
-    value: ref(props.setting?.value ?? ''),
-    constant: ref(props.setting?.constant ?? ''),
-    category: ref(props.setting?.category ?? ''),
-    description: ref(props.setting?.description ?? ''),
-    activity: ref(Boolean(props.setting?.activity ?? false)),
-})
+    sort: props.setting?.sort ?? 0,
+    type: props.setting?.type ?? '',
+    option: props.setting?.option ?? '',
+    value: props.setting?.value ?? '',
+    constant: props.setting?.constant ?? '',
+    category: props.setting?.category ?? '',
+    description: props.setting?.description ?? '',
+    activity: Boolean(props.setting?.activity ?? false),
+});
 
-// Функция для преобразования camelCase в UPPER_CASE с нижним подчёркиванием
+/**
+ * Фильтрация поля option — разрешаем только латиницу, цифры и дефис
+ */
+const handleOptionInput = (event) => {
+    const cleaned = event.target.value.replace(/[^A-Za-z0-9\-]/g, '');
+    form.option = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+};
+
+/**
+ * Функция для преобразования camelCase в UPPER_CASE с нижним подчёркиванием.
+ */
 const toUpperCaseWithUnderscore = (str) => {
     return str.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toUpperCase();
 };
 
-// Обработчик фокуса на поле constant
+/**
+ * Обработчик фокуса на поле constant.
+ */
 const handleConstantFocus = () => {
     if (form.option) {
         form.constant = toUpperCaseWithUnderscore(form.option);
     }
 };
 
-// Watcher для отслеживания изменений в props.setting
-watch(() => props.setting, (newSetting) => {
-    form.type = newSetting?.type ?? '';
-    form.option = newSetting?.option ?? '';
-    form.value = newSetting?.value ?? '';
-    form.constant = newSetting?.constant ?? '';
-    form.category = newSetting?.category ?? '';
-    form.description = newSetting?.description ?? '';
-    form.activity = Boolean(newSetting?.activity ?? false);
-}, { immediate: true });
+/**
+ * Отправляет данные формы для обновления.
+ */
+const submitForm = () => {
+    // Используем transform для объединения данных формы с массивами новых и существующих изображений
+    form.transform((data) => ({
+        ...data,
+        activity: data.activity ? 1 : 0,
+    }));
+
+    form.post(route('admin.parameters.update', props.setting.id), {
+        preserveScroll: true,
+        forceFormData: true, // Принудительно отправляем как FormData
+        onSuccess: (page) => {
+            //console.log("Edit.vue onSuccess:", page);
+            toast.success('Параметр успешно обновлен!'); // Можно добавить, если нужно кастомное
+        },
+        onError: (errors) => {
+            console.error("❌ Ошибка при обновлении параметра:", errors);
+            const firstError = errors[Object.keys(errors)[0]];
+            toast.error(firstError || 'Пожалуйста, проверьте правильность заполнения полей.')
+        }
+    });
+};
+
+// onMounted(() => {
+//     console.log('props.setting:', props.setting);
+// });
 </script>
 
 <template>
@@ -71,7 +118,7 @@ watch(() => props.setting, (newSetting) => {
                         bg-opacity-95 dark:bg-opacity-95">
                 <div class="sm:flex sm:justify-between sm:items-center mb-2">
                     <!-- Кнопка назад -->
-                    <DefaultButton :href="route('parameters.index')">
+                    <DefaultButton :href="route('admin.parameters.index')">
                         <template #icon>
                             <!-- SVG -->
                             <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">
@@ -86,29 +133,45 @@ watch(() => props.setting, (newSetting) => {
                         <!-- Datepicker built with flatpickr -->
                     </div>
                 </div>
-                <form @submit.prevent="form.put(route('parameters.update', { id: props.setting.id }))"
-                      class="p-3 w-full">
+                <form @submit.prevent="submitForm" class="p-3 w-full">
 
-                    <div class="mb-3 flex items-center">
+                    <div class="mb-3 flex justify-between flex-col lg:flex-row items-center gap-4">
+
+                        <!-- Активность -->
                         <div class="flex justify-between w-full">
                             <div class="flex flex-row items-center">
                                 <ActivityCheckbox v-model="form.activity"/>
                                 <LabelCheckbox for="activity" :text="t('activity')"/>
                             </div>
                         </div>
+
+                        <!-- Категория -->
                         <div class="flex flex-row items-center">
-                            <LabelInput for="type" :value="t('type')" class="mr-3"/>
-                            <InputText
-                                id="type"
-                                type="text"
-                                v-model="form.type"
-                                maxlength="255"
-                                autocomplete="type"
-                                pattern="[A-Za-z0-9\-]+"
-                                :title="t('urlVerification')"
-                            />
-                            <InputError class="mt-2" :message="form.errors.type"/>
+                            <LabelInput for="category" :value="t('parameterCategory')" class="w-full"/>
+                            <CategorySelect v-model="form.category" :error="form.errors.category" />
                         </div>
+
+                        <!-- Тип -->
+                        <div class="flex flex-row items-center gap-2">
+                            <LabelInput for="type" :value="t('type')" class="mr-3"/>
+                            <TypeSelect v-model="form.type" :error="form.errors.type" class="w-full lg:w-64 mr-3" />
+                        </div>
+
+                        <!-- Сортировка -->
+                        <div class="flex flex-row items-center gap-2">
+                            <div class="h-8 flex items-center">
+                                <LabelInput for="sort" :value="t('sort')" class="text-sm"/>
+                            </div>
+                            <InputNumber
+                                id="sort"
+                                type="number"
+                                v-model="form.sort"
+                                autocomplete="sort"
+                                class="w-full lg:w-28"
+                            />
+                            <InputError class="mt-2 lg:mt-0" :message="form.errors.sort"/>
+                        </div>
+
                     </div>
 
                     <div class="mb-3 flex flex-col items-start">
@@ -122,6 +185,7 @@ watch(() => props.setting, (newSetting) => {
                             id="option"
                             type="text"
                             v-model="form.option"
+                            @input="handleOptionInput"
                             required
                             maxlength="255"
                             autocomplete="option"
@@ -140,6 +204,7 @@ watch(() => props.setting, (newSetting) => {
                             @focus="handleConstantFocus"
                             required
                             autocomplete="constant"
+                            pattern="[A-Z][A-Z0-9_]*"
                         />
                         <InputError class="mt-2" :message="form.errors.constant"/>
                     </div>
@@ -165,25 +230,6 @@ watch(() => props.setting, (newSetting) => {
 
                     <div class="mb-3 flex flex-col items-start">
                         <div class="flex justify-between w-full">
-                            <LabelInput for="category" :value="t('parameterCategory')"/>
-                            <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
-                                {{ form.category.length }} / 255 {{ t('characters') }}
-                            </div>
-                        </div>
-                        <InputText
-                            id="category"
-                            type="text"
-                            v-model="form.category"
-                            maxlength="255"
-                            autocomplete="value"
-                            pattern="[A-Za-z0-9\-]+"
-                            :title="t('urlVerification')"
-                        />
-                        <InputError class="mt-2" :message="form.errors.category"/>
-                    </div>
-
-                    <div class="mb-3 flex flex-col items-start">
-                        <div class="flex justify-between w-full">
                             <LabelInput for="description" :value="t('parameterDescription')"/>
                             <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
                                 {{ form.description.length }} / 255 {{ t('characters') }}
@@ -194,7 +240,7 @@ watch(() => props.setting, (newSetting) => {
                     </div>
 
                     <div class="flex items-center justify-center mt-4">
-                        <DefaultButton :href="route('parameters.index')" class="mb-3">
+                        <DefaultButton :href="route('admin.parameters.index')" class="mb-3">
                             <template #icon>
                                 <!-- SVG -->
                                 <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">

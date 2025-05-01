@@ -35,21 +35,6 @@ use Illuminate\Database\Eloquent\Builder; // Для типизации $query
  */
 class ParameterController extends Controller
 {
-    // Определяем категорию для этого контроллера
-    private const PARAMETER_CATEGORY = 'system'; // TODO: Замените на ваше значение категории
-
-    /**
-     * Применяет базовый скоуп для выборки только параметров системы.
-     */
-    private function getParameterQuery(): Builder
-    {
-        // TODO: Адаптируйте условие where под ваш способ идентификации параметров
-        // return Setting::where('category', self::PARAMETER_CATEGORY);
-        // Или по типу:
-        return Setting::where('type', 'parameter');
-        // Или по списку опций:
-        // return Setting::whereIn('option', ['option1', 'option2', ...]);
-    }
 
     /**
      * Отображение списка всех Параметров.
@@ -87,11 +72,13 @@ class ParameterController extends Controller
     }
 
     /**
-     * Показ формы создания параметра системы.
+     * Отображение формы создания нового параметра.
+     *
+     * @return Response
      */
     public function create(): Response
     {
-        // TODO: Проверка прав $this->authorize('create', Setting::class); // Или кастомное право
+        // TODO: Проверка прав $this->authorize('create-setting', Setting::class); // Или кастомное право
         return Inertia::render('Admin/Parameters/Create', [
             // Передаем дефолтное значение категории, если нужно
             // 'defaultCategory' => self::PARAMETER_CATEGORY,
@@ -99,11 +86,15 @@ class ParameterController extends Controller
     }
 
     /**
-     * Создание параметра системы.
+     * Сохранение нового параметра в базе данных.
+     * Использует SectionRequest для валидации и авторизации.
+     *
+     * @param SettingRequest $request
+     * @return RedirectResponse Редирект на список статей с сообщением.
      */
     public function store(SettingRequest $request): RedirectResponse
     {
-        // TODO: Проверка прав $this->authorize('create', Setting::class);
+        // TODO: Проверка прав $this->authorize('create-setting', Setting::class);
         $data = $request->validated();
 
         // Принудительно устанавливаем категорию (или тип), если она не передается из формы
@@ -123,71 +114,73 @@ class ParameterController extends Controller
     }
 
     /**
-     * Показ формы редактирования параметра системы.
+     * Отображение формы редактирования существующего параметра.
+     * Использует Route Model Binding для получения модели.
+     *
+     * @param string $id
+     * @return Response
      */
-    // Используем RMB {parameter}, но тип будет Setting $setting
-    public function edit(Setting $parameter): Response // Меняем имя переменной на $parameter
+    public function edit(string $id): Response
     {
-        // TODO: Проверка прав $this->authorize('update', $parameter);
-        // Дополнительная проверка, что это действительно параметр
-        // TODO: Адаптировать проверку
-        if ($parameter->type !== 'parameter') {
-            abort(404, 'Настройка не является параметром системы.');
-        }
+        $setting = Setting::findOrFail($id);
 
         return Inertia::render('Admin/Parameters/Edit', [
-            // Передаем как 'parameter', используем SettingResource
-            'parameter' => new SettingResource($parameter),
+            'setting' => new SettingResource($setting),
         ]);
     }
 
     /**
-     * Обновление параметра системы.
+     * Обновление существующего параметра в базе данных.
+     * Использует SettingRequest и Route Model Binding.
+     *
+     * @param SettingRequest $request Валидированный запрос.
+     * @param string $id
+     * @return RedirectResponse Редирект на список параметров с сообщением.
      */
-    // Используем RMB {parameter} и SettingRequest
-    public function update(SettingRequest $request, Setting $parameter): RedirectResponse
+    public function update(SettingRequest $request, string $id): RedirectResponse
     {
-        // TODO: Проверка прав $this->authorize('update', $parameter);
-        // Дополнительная проверка
-        // TODO: Адаптировать проверку
-        if ($parameter->type !== 'parameter') {
-            abort(403, 'Вы не можете редактировать эту настройку как параметр системы.');
-        }
+        // TODO: Проверка прав $this->authorize('update', $setting);
 
+        $setting = Setting::findOrFail($id);
         $data = $request->validated();
-        // Запрещаем менять категорию/тип через эту форму (если нужно)
-        // TODO: Адаптировать
-        unset($data['type'], $data['category'], $data['option'], $data['constant']); // Запрещаем менять ключевые поля
 
         try {
-            $parameter->update($data);
-            Log::info('Параметр системы обновлен: ', ['id' => $parameter->id, 'option' => $parameter->option]);
+            DB::beginTransaction();
+            $setting->update($data);
+            DB::commit();
+
+            Log::info('Параметр системы обновлен: ', ['id' => $setting->id, 'option' => $setting->option]);
             return redirect()->route('admin.parameters.index')->with('success', 'Параметр системы успешно обновлен.');
+
         } catch (Throwable $e) {
-            Log::error("Ошибка при обновлении параметра ID {$parameter->id}: " . $e->getMessage());
+            DB::rollBack();
+            Log::error("Ошибка при обновлении параметра ID {$setting->id}: " . $e->getMessage());
             return back()->withInput()->withErrors(['general' => 'Произошла ошибка при обновлении параметра.']);
         }
     }
 
     /**
-     * Удаление параметра системы.
+     * Удаление указанного параметра.
+     * Использует Route Model Binding.
+     *
+     * @param Setting $setting Модель настроек для удаления.
+     * @return RedirectResponse Редирект на список параметров с сообщением.
      */
-    // Используем RMB {parameter}
-    public function destroy(Setting $parameter): RedirectResponse
+    public function destroy(Setting $setting): RedirectResponse
     {
-        // TODO: Проверка прав $this->authorize('delete', $parameter);
-        // Дополнительная проверка
-        // TODO: Адаптировать проверку
-        if ($parameter->type !== 'parameter') {
-            abort(403, 'Вы не можете удалить эту настройку как параметр системы.');
-        }
+        // TODO: Проверка прав $this->authorize('delete-setting', $setting);
 
         try {
-            $parameter->delete();
-            Log::info('Параметр системы удален: ID ' . $parameter->id);
+            DB::beginTransaction();
+            $setting->delete();
+            DB::commit();
+
+            Log::info('Параметр системы удален: ID ' . $setting->id);
             return redirect()->route('admin.parameters.index')->with('success', 'Параметр системы успешно удален.');
+
         } catch (Throwable $e) {
-            Log::error("Ошибка при удалении параметра ID {$parameter->id}: " . $e->getMessage());
+            DB::rollBack();
+            Log::error("Ошибка при удалении параметра ID {$setting->id}: " . $e->getMessage());
             return back()->withErrors(['general' => 'Произошла ошибка при удалении параметра.']);
         }
     }
@@ -206,7 +199,7 @@ class ParameterController extends Controller
         if (in_array($setting->category, ['system', 'admin', 'public'], true)) {
             Log::info("Попытка изменения активности параметра ID {$setting->id} с категорией '{$setting->category}'.");
 
-            return back()->with('warning', __('admin/parameters.activity_update_forbidden', [
+            return back()->with('warning', __('admin/controllers/parameters.activity_update_forbidden', [
                 'category' => $setting->category,
             ]));
         }
@@ -218,7 +211,7 @@ class ParameterController extends Controller
             $actionText = $setting->activity ? 'активирован' : 'деактивирован';
             Log::info("Параметр ID {$setting->id} успешно {$actionText}");
 
-            return back()->with('success', __('admin/parameters.update_activity_success', [
+            return back()->with('success', __('admin/controllers/parameters.update_activity_success', [
                 'option' => $setting->option,
                 'action' => $actionText,
             ]));
@@ -226,7 +219,7 @@ class ParameterController extends Controller
             Log::error("Ошибка обновления активности параметра ID {$setting->id}: " . $e->getMessage());
 
             return back()->withErrors([
-                'general' => __('admin/parameters.update_activity_error'),
+                'general' => __('admin/controllers/parameters.update_activity_error'),
             ]);
         }
     }
@@ -255,64 +248,59 @@ class ParameterController extends Controller
      * Использует Route Model Binding и UpdateSortRequest.
      * *
      * @param UpdateSortEntityRequest $request Валидированный запрос с полем 'sort'.
-     * @param Setting $parameter Модель параметра для обновления.
+     * @param Setting $setting Модель параметра для обновления.
      * @return RedirectResponse Редирект назад с сообщением..
      */
-    public function updateSort(UpdateSortEntityRequest $request, Setting $parameter): RedirectResponse
+    public function updateSort(UpdateSortEntityRequest $request, Setting $setting): RedirectResponse
     {
         // authorize() в UpdateSortEntityRequest
         $validated = $request->validated();
         try {
-            $parameter->sort = $validated['sort'];
-            $parameter->save();
-            Log::info("Обновлено sort тега ID {$parameter->id} на {$parameter->sort}");
+            $setting->sort = $validated['sort'];
+            $setting->save();
+            Log::info("Обновлено sort параметра ID {$setting->id} на {$setting->sort}");
             return back();
 
         } catch (Throwable $e) {
-            Log::error("Ошибка обновления сортировки тега ID {$parameter->id}: " . $e->getMessage());
-            return back()->withErrors(['sort' => 'Не удалось обновить сортировку.']);
+            Log::error("Ошибка обновления сортировки параметра ID {$setting->id}: " . $e->getMessage());
+            return back()->withErrors(['sort' => 'Не удалось обновить сортировку параметра.']);
         }
     }
 
     /**
-     * Приватный метод для очистки кэша.
+     * Массовое обновление сортировки на основе переданного порядка ID.
+     * Принимает массив объектов вида `[{id: 1, sort: 10}, {id: 5, sort: 20}]`.
      *
-     * @param string|null $specificKey
-     * @return void
+     * @param Request $request Запрос с массивом 'settings'.
+     * @return RedirectResponse Редирект назад с сообщением.
      */
-    /**
-     * Приватный метод для очистки кэша.
-     * Исправлено для совместимости с RedisStore (используем цикл forget).
-     */
-    private function clearSettingsCache(string $specificKey = null): void
+    public function updateSortBulk(Request $request): RedirectResponse
     {
-        // TODO: Использовать ваши реальные базовые ключи кэша
-        $keysToForget = ['site_settings', 'setting_locale', 'widget_panel_settings', 'sidebar_settings'];
-        if ($specificKey) {
-            $keysToForget[] = $specificKey;
-        }
-        // Добавляем ключи для всех настроек count и sort
+        // TODO: Проверка прав $this->authorize('update-settings');
+
+        // Валидируем входящий массив (Можно вынести в отдельный FormRequest: UpdateSortBulkRequest)
+        $validated = $request->validate([
+            'settings' => 'required|array',
+            'settings.*.id' => ['required', 'integer', 'exists:settings,id'],
+            'settings.*.sort' => ['required', 'integer', 'min:1'],
+        ]);
+
         try {
-            $options = Setting::where('option', 'like', 'AdminCount%')
-                ->orWhere('option', 'like', 'AdminSort%')
-                // Добавим ключи сайдбара/виджета, если они есть в БД
-                ->orWhereIn('option', ['widgetHexColor', 'widgetOpacity', 'AdminSidebarLightColor', 'admin_sidebar_opacity']) // Пример
-                ->pluck('option');
-            foreach ($options as $option) {
-                $keysToForget[] = 'setting_' . $option; // Ключ для конкретной настройки
+            DB::beginTransaction();
+            foreach ($validated['settings'] as $settingData) {
+                // Используем update для массового обновления, если возможно, или where/update
+                Setting::where('id', $settingData['id'])->update(['sort' => $settingData['sort']]);
             }
+            DB::commit();
+
+            Log::info('Массово обновлена сортировка параметров', ['count' => count($validated['settings'])]);
+            return back();
+
         } catch (Throwable $e) {
-            // Логируем ошибку получения опций, но не прерываем очистку основных ключей
-            Log::error("Ошибка получения опций для очистки кэша: " . $e->getMessage());
+            DB::rollBack();
+            Log::error("Ошибка массового обновления сортировки параметров: " . $e->getMessage());
+            return back()->withErrors(['general' => 'Ошибка массового обновления сортировки параметров']);
         }
-
-        $uniqueKeys = array_unique($keysToForget);
-        foreach ($uniqueKeys as $key) {
-            if (!empty($key)) { // Пропускаем пустые ключи на всякий случай
-                Cache::forget($key);
-            }
-        }
-
-        Log::debug("Кэш настроек очищен.", ['keys_cleared' => $uniqueKeys]);
     }
+
 }

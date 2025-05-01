@@ -54,7 +54,7 @@ class TagController extends Controller
             Log::error("Ошибка загрузки тегов для Index: " . $e->getMessage());
             $tags = collect(); // Пустая коллекция в случае ошибки
             $tagsCount = 0;
-            session()->flash('error', __('admin/tags.index_error'));
+            session()->flash('error', __('admin/controllers/tags.index_error'));
         }
 
         return Inertia::render('Admin/Tags/Index', [
@@ -93,12 +93,12 @@ class TagController extends Controller
             DB::commit();
 
             Log::info('Тег создан: ', $tag->toArray());
-            return redirect()->route('admin.tags.index')->with('success', __('admin/tags.created'));
+            return redirect()->route('admin.tags.index')->with('success', __('admin/controllers/tags.created'));
 
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка при создании тега: " . $e->getMessage());
-            return back()->withInput()->withErrors(['general' => __('admin/tags.create_error')]);
+            return back()->withInput()->withErrors(['general' => __('admin/controllers/tags.create_error')]);
         }
     }
 
@@ -136,12 +136,12 @@ class TagController extends Controller
             DB::commit();
 
             Log::info('Тег обновлен: ', $tag->toArray());
-            return redirect()->route('admin.tags.index')->with('success', __('admin/tags.updated'));
+            return redirect()->route('admin.tags.index')->with('success', __('admin/controllers/tags.updated'));
 
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка при обновлении тега ID {$tag->id}: " . $e->getMessage());
-            return back()->withInput()->withErrors(['general' => __('admin/tags.update_error')]);
+            return back()->withInput()->withErrors(['general' => __('admin/controllers/tags.update_error')]);
         }
     }
 
@@ -161,12 +161,12 @@ class TagController extends Controller
             DB::commit();
 
             Log::info('Тег удален: ID ' . $tag->id);
-            return redirect()->route('admin.tags.index')->with('success', __('admin/tags.deleted'));
+            return redirect()->route('admin.tags.index')->with('success', __('admin/controllers/tags.deleted'));
 
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка при удалении тега ID {$tag->id}: " . $e->getMessage());
-            return back()->withErrors(['general' => __('admin/tags.delete_error')]);
+            return back()->withErrors(['general' => __('admin/controllers/tags.delete_error')]);
         }
     }
 
@@ -195,12 +195,12 @@ class TagController extends Controller
 
             Log::info('Теги удалены: ', $tagIds);
             return redirect()->route('admin.tags.index')
-                ->with('success', __('admin/tags.bulk_deleted', ['count' => $count]));
+                ->with('success', __('admin/controllers/tags.bulk_deleted', ['count' => $count]));
 
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка при массовом удалении тегов: " . $e->getMessage(), ['ids' => $tagIds]);
-            return back()->withErrors(['general' => __('admin/tags.bulk_delete_error')]);
+            return back()->withErrors(['general' => __('admin/controllers/tags.bulk_delete_error')]);
         }
     }
 
@@ -224,14 +224,14 @@ class TagController extends Controller
             DB::commit();
 
             Log::info("Обновлено activity тега ID {$tag->id} на {$tag->activity}");
-            $actionText = $tag->activity ? __('admin/common.activated')
-                : __('admin/common.deactivated');
+            $actionText = $tag->activity ? __('admin/controllers/common.activated')
+                : __('admin/controllers/common.deactivated');
             return back()
-                ->with('success', __('admin/tags.activity', ['title' => $tag->title, 'action' => $actionText]));
+                ->with('success', __('admin/controllers/tags.activity', ['title' => $tag->title, 'action' => $actionText]));
 
         } catch (Throwable $e) {
             Log::error("Ошибка обновления активности тега ID {$tag->id}: " . $e->getMessage());
-            return back()->withErrors(['general' => __('admin/tags.update_activity_error')]);
+            return back()->withErrors(['general' => __('admin/controllers/tags.update_activity_error')]);
         }
     }
 
@@ -275,7 +275,7 @@ class TagController extends Controller
 
         } catch (Throwable $e) {
             Log::error("Ошибка обновления сортировки тега ID {$tag->id}: " . $e->getMessage());
-            return back()->withErrors(['sort' => __('admin/tags.update_sort_error')]);
+            return back()->withErrors(['sort' => __('admin/controllers/tags.update_sort_error')]);
         }
     }
 
@@ -311,7 +311,7 @@ class TagController extends Controller
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка массового обновления сортировки тегов: " . $e->getMessage());
-            return back()->withErrors(['general' => __('admin/tags.bulk_update_sort_error')]);
+            return back()->withErrors(['general' => __('admin/controllers/tags.bulk_update_sort_error')]);
         }
     }
 }

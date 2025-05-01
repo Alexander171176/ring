@@ -110,12 +110,12 @@ class SectionController extends Controller
             DB::commit();
 
             Log::info('Секция успешно создана: ', $section->toArray());
-            return redirect()->route('admin.sections.index')->with('success', __('admin/sections.created'));
+            return redirect()->route('admin.sections.index')->with('success', __('admin/controllers/sections.created'));
 
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка при создании секции: " . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
-            return back()->withInput()->withErrors(['general' => __('admin/sections.create_error')]);
+            return back()->withInput()->withErrors(['general' => __('admin/controllers/sections.create_error')]);
         }
     }
 
@@ -167,12 +167,12 @@ class SectionController extends Controller
             DB::commit();
 
             Log::info('Секция обновлена: ', $section->toArray());
-            return redirect()->route('admin.sections.index')->with('success', __('admin/sections.updated'));
+            return redirect()->route('admin.sections.index')->with('success', __('admin/controllers/sections.updated'));
 
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка при обновлении секции ID {$section->id}: " . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
-            return back()->withInput()->withErrors(['general' => __('admin/sections.update_error')]);
+            return back()->withInput()->withErrors(['general' => __('admin/controllers/sections.update_error')]);
         }
     }
 
@@ -193,12 +193,12 @@ class SectionController extends Controller
             DB::commit();
 
             Log::info('Секция удалена: ID ' . $section->id);
-            return redirect()->route('admin.sections.index')->with('success', __('admin/sections.deleted'));
+            return redirect()->route('admin.sections.index')->with('success', __('admin/controllers/sections.deleted'));
 
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка при удалении секции ID {$section->id}: " . $e->getMessage());
-            return back()->withErrors(['general' => __('admin/sections.delete_error')]);
+            return back()->withErrors(['general' => __('admin/controllers/sections.delete_error')]);
         }
     }
 
@@ -227,12 +227,12 @@ class SectionController extends Controller
 
             Log::info('Секции удалены: ', $sectionIds);
             return redirect()->route('admin.sections.index')
-                ->with('success', __('admin/sections.bulk_deleted', ['count' => $count]));
+                ->with('success', __('admin/controllers/sections.bulk_deleted', ['count' => $count]));
 
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка при массовом удалении секций: " . $e->getMessage(), ['ids' => $sectionIds]);
-            return back()->withErrors(['general' => __('admin/sections.bulk_delete_error')]);
+            return back()->withErrors(['general' => __('admin/controllers/sections.bulk_delete_error')]);
         }
     }
 
@@ -256,14 +256,14 @@ class SectionController extends Controller
             DB::commit();
 
             Log::info("Обновлено activity секции ID {$section->id} на {$section->activity}");
-            $actionText = $section->activity ? __('admin/common.activated')
-                : __('admin/common.deactivated');
+            $actionText = $section->activity ? __('admin/controllers/common.activated')
+                : __('admin/controllers/common.deactivated');
             return back()
-                ->with('success', __('admin/sections.activity', ['title' => $section->title, 'action' => $actionText]));
+                ->with('success', __('admin/controllers/sections.activity', ['title' => $section->title, 'action' => $actionText]));
 
         } catch (Throwable $e) {
             Log::error("Ошибка обновления активности секции ID {$section->id}: " . $e->getMessage());
-            return back()->withErrors(['general' => __('admin/sections.update_activity_error')]);
+            return back()->withErrors(['general' => __('admin/controllers/sections.update_activity_error')]);
         }
     }
 
@@ -307,7 +307,7 @@ class SectionController extends Controller
 
         } catch (Throwable $e) {
             Log::error("Ошибка обновления сортировки секции ID {$section->id}: " . $e->getMessage());
-            return back()->withErrors(['sort' => __('admin/sections.update_sort_error')]);
+            return back()->withErrors(['sort' => __('admin/controllers/sections.update_sort_error')]);
         }
     }
 
@@ -343,7 +343,7 @@ class SectionController extends Controller
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка массового обновления сортировки рубрик: " . $e->getMessage());
-            return back()->withErrors(['general' => __('admin/sections.bulk_update_sort_error')]);
+            return back()->withErrors(['general' => __('admin/controllers/sections.bulk_update_sort_error')]);
         }
     }
 
@@ -374,12 +374,12 @@ class SectionController extends Controller
             DB::commit();
 
             Log::info('Секция ID ' . $section->id . ' успешно клонирована в ID ' . $clonedSection->id);
-            return redirect()->route('admin.sections.index')->with('success', __('admin/sections.cloned'));
+            return redirect()->route('admin.sections.index')->with('success', __('admin/controllers/sections.cloned'));
 
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка при клонировании секции ID {$section->id}: " . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
-            return back()->withInput()->withErrors(['general' => __('admin/sections.clone_error')]);
+            return back()->withInput()->withErrors(['general' => __('admin/controllers/sections.clone_error')]);
         }
     }
 }

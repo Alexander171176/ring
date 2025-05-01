@@ -52,7 +52,7 @@ class PluginController extends Controller
             Log::error("Ошибка загрузки модулей для Index: " . $e->getMessage());
             $plugins = collect(); // Пустая коллекция в случае ошибки
             $pluginsCount = 0;
-            session()->flash('error', __('admin/plugins.index_load_error'));
+            session()->flash('error', __('admin/controllers/plugins.index_load_error'));
         }
 
         return Inertia::render('Admin/Plugins/Index', [
@@ -92,12 +92,12 @@ class PluginController extends Controller
             DB::commit();
 
             Log::info('Плагин успешно создан: ', ['id' => $plugin->id, 'name' => $plugin->name]);
-            return redirect()->route('admin.plugins.index')->with('success', __('admin/plugins.created'));
+            return redirect()->route('admin.plugins.index')->with('success', __('admin/controllers/plugins.created'));
 
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка при создании плагина: " . $e->getMessage());
-            return back()->withInput()->withErrors(['general' => __('admin/plugins.create_error')]);
+            return back()->withInput()->withErrors(['general' => __('admin/controllers/plugins.create_error')]);
         }
     }
 
@@ -154,12 +154,12 @@ class PluginController extends Controller
             DB::commit();
 
             Log::info('Плагин обновлен: ', ['id' => $plugin->id, 'name' => $plugin->name]);
-            return redirect()->route('admin.plugins.index')->with('success', __('admin/plugins.updated'));
+            return redirect()->route('admin.plugins.index')->with('success', __('admin/controllers/plugins.updated'));
 
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка при обновлении плагина ID {$plugin->id}: " . $e->getMessage());
-            return back()->withInput()->withErrors(['general' => __('admin/plugins.update_error')]);
+            return back()->withInput()->withErrors(['general' => __('admin/controllers/plugins.update_error')]);
         }
     }
 
@@ -179,12 +179,12 @@ class PluginController extends Controller
             DB::commit();
 
             Log::info('Плагин удален: ID ' . $plugin->id);
-            return redirect()->route('admin.plugins.index')->with('success', __('admin/plugins.deleted')); // Редирект на индекс
+            return redirect()->route('admin.plugins.index')->with('success', __('admin/controllers/plugins.deleted')); // Редирект на индекс
 
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка при удалении плагина ID {$plugin->id}: " . $e->getMessage());
-            return back()->withErrors(['general' => __('admin/plugins.delete_error')]);
+            return back()->withErrors(['general' => __('admin/controllers/plugins.delete_error')]);
         }
     }
 
@@ -208,15 +208,15 @@ class PluginController extends Controller
             DB::commit();
 
             Log::info("Обновлено activity модуля ID {$plugin->id} на {$plugin->activity}");
-            $actionText = $plugin->activity ? __('admin/common.activated')
-                : __('admin/common.deactivated');
+            $actionText = $plugin->activity ? __('admin/controllers/common.activated')
+                : __('admin/controllers/common.deactivated');
             return back()
-                ->with('success', __('admin/plugins.activity', ['title' => $plugin->title, 'action' => $actionText]));
+                ->with('success', __('admin/controllers/plugins.activity', ['title' => $plugin->title, 'action' => $actionText]));
 
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка обновления активности модуля ID {$plugin->id}: " . $e->getMessage());
-            return back()->withErrors(['general' => __('admin/plugins.update_activity_error')]);
+            return back()->withErrors(['general' => __('admin/controllers/plugins.update_activity_error')]);
         }
     }
 
@@ -264,7 +264,7 @@ class PluginController extends Controller
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка обновления сортировки модуля ID {$plugin->id}: " . $e->getMessage());
-            return back()->withErrors(['sort' => __('admin/plugins.update_sort_error')]);
+            return back()->withErrors(['sort' => __('admin/controllers/plugins.update_sort_error')]);
         }
     }
 
@@ -300,7 +300,7 @@ class PluginController extends Controller
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Ошибка массового обновления сортировки модулей: " . $e->getMessage());
-            return back()->withErrors(['general' => __('admin/plugins.update_sort_bulk_error')]);
+            return back()->withErrors(['general' => __('admin/controllers/plugins.update_sort_bulk_error')]);
         }
     }
 

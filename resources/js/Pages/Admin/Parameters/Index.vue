@@ -209,16 +209,25 @@ const handleSortOrderUpdate = (orderedIds) => {
         sort: startSort + index + 1,
     }));
 
-    router.put(route('admin.settings.updateSortBulk'), {settings: sortData}, {
-        preserveScroll: true,
-        preserveState: true,
-        onSuccess: () => {
-            toast.success('Порядок параметров обновлен.');
-        },
-        onError: () => {
-            toast.error('Ошибка обновления порядка параметров.');
+    router.put(route('admin.actions.settings.updateSortBulk'),
+        {settings: sortData}, // Отправляем массив объектов
+        {
+            preserveScroll: true,
+            preserveState: true, // Сохраняем состояние, т.к. на сервере нет редиректа
+            onSuccess: () => {
+                toast.success("Порядок статей успешно обновлен.");
+                // Обновляем локальные данные (если нужно, но Inertia должна прислать обновленные props)
+                // Возможно, лучше сделать preserveState: false и дождаться обновления props
+            },
+            onError: (errors) => {
+                console.error("Ошибка обновления сортировки:", errors);
+                toast.error(errors.general || errors.settings || "Не удалось обновить порядок статей.");
+                // TODO: Откатить порядок на фронтенде? Сложно без сохранения исходного состояния.
+                // Проще сделать preserveState: false или router.reload при ошибке.
+                router.reload({only: ['settings'], preserveScroll: true}); // Перезагружаем данные при ошибке
+            },
         }
-    });
+    );
 };
 
 /**
@@ -254,19 +263,29 @@ const toggleSelectSetting = (settingId) => {
  */
 const bulkToggleActivity = (newActivity) => {
     if (!selectedSettings.value.length) {
-        toast.warning('Выберите параметры для изменения активности.');
+        toast.warning('Выберите параметры для активации/деактивации');
         return;
     }
-
-    axios.put(route('admin.settings.bulkUpdateActivity'), {
-        ids: selectedSettings.value,
-        activity: newActivity,
-    }).then(() => {
-        toast.success('Активность параметров успешно обновлена.');
-        selectedSettings.value = [];
-    }).catch(() => {
-        toast.error('Не удалось обновить активность параметров.');
-    });
+    axios
+        .put(route('admin.actions.settings.bulkUpdateActivity'), {
+            ids: selectedSettings.value,
+            activity: newActivity,
+        })
+        .then(() => {
+            toast.success('Активность парметров массово обновлена')
+            // сразу очистим выбор
+            const updatedIds = [...selectedSettings.value]
+            selectedSettings.value = []
+            // и оптимистично поправим флаг в таблице
+            paginatedSettings.value.forEach((a) => {
+                if (updatedIds.includes(a.id)) {
+                    a.activity = newActivity
+                }
+            })
+        })
+        .catch(() => {
+            toast.error('Не удалось обновить активность параметров')
+        })
 };
 
 /**
