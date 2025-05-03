@@ -47,6 +47,7 @@ export default {
     bulkActions: 'Bulk actions on items:',
     cancel: 'Cancel',
     category: 'Category',
+    changeEditorTheme: 'Change the editor\'s theme',
     characters: 'characters',
     charts: 'Charts',
     checkbox: 'The flag',

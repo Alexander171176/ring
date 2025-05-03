@@ -21,6 +21,16 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
+        <!-- public/tinymce/tinymce.min.js -->
+        <script src="/tinymce/tinymce.min.js"></script>
+
+        <!-- public/tinymce/skins/ui/oxide/skin.min.css -->
+        <link rel="stylesheet" href="/tinymce/skins/ui/oxide/skin.min.css">
+
+        <!-- public/tinymce/skins/content/default/content.min.css -->
+        <link rel="stylesheet" href="/tinymce/skins/content/default/content.min.css">
+
+
         <!-- Scripts -->
         @routes
         @vite(['resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])

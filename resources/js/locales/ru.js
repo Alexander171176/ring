@@ -47,6 +47,7 @@ export default {
     bulkActions: 'Массовые действия над элементами:',
     cancel: 'Отмена',
     category: 'Категория',
+    changeEditorTheme: 'Сменить тему редактора',
     characters: 'символов',
     charts: 'Графики',
     checkbox: 'Флажок',

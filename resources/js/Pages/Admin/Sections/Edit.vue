@@ -21,6 +21,7 @@ import CKEditor from "@/Components/Admin/CKEditor/CKEditor.vue";
 import SelectLocale from "@/Components/Admin/Select/SelectLocale.vue";
 import VueMultiselect from "vue-multiselect";
 import {useToast} from "vue-toastification";
+import TinyEditor from "@/Components/Admin/TinyEditor/TinyEditor.vue";
 
 // --- Инициализация ---
 const toast = useToast();
@@ -168,7 +169,8 @@ const submitForm = async () => {
 
                     <div class="mb-3 flex flex-col items-start">
                         <LabelInput for="description" :value="t('description')"/>
-                        <CKEditor v-model="form.description" class="w-full"/>
+                        <TinyEditor v-model="form.description" :height="500" />
+                        <!-- <CKEditor v-model="form.description" class="w-full"/> -->
                         <InputError class="mt-2" :message="form.errors.description"/>
                     </div>
 

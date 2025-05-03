@@ -70,3 +70,7 @@ html {
 .custom-scrollbar:active::-webkit-scrollbar-thumb {
     background-color: #FF0000; /* Цвет при нажатии */
 }
+
+.tox .tox-promotion {
+    display: none !important;
+}

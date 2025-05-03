@@ -47,6 +47,7 @@ export default {
     bulkActions: 'Элементтерге жаппай әрекеттер:',
     cancel: 'Бас тарту',
     category: 'Санат',
+    changeEditorTheme: 'Редактордың тақырыбын өзгерту',
     characters: 'таңбалар',
     charts: 'Графиктер',
     checkbox: 'Құсбелгі',

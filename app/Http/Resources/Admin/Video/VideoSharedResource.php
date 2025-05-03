@@ -35,7 +35,7 @@ class VideoSharedResource extends JsonResource
             'url'           => $this->url,
             'activity'      => $this->activity, // boolean
             'source_type'   => $this->source_type,
-            'published_at'  => $this->published_at?->toDateString(), // YYYY-MM-DD
+            'published_at'  => $this->published_at?->format('Y-m-d'), // YYYY-MM-DD
 
             // URL или код в зависимости от типа
             'display_source' => match ($this->source_type) {

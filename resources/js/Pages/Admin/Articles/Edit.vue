@@ -16,6 +16,7 @@ import ClearMetaButton from '@/Components/Admin/Buttons/ClearMetaButton.vue';
 import MetatagsButton from '@/Components/Admin/Buttons/MetatagsButton.vue';
 import LabelCheckbox from '@/Components/Admin/Checkbox/LabelCheckbox.vue';
 import ActivityCheckbox from '@/Components/Admin/Checkbox/ActivityCheckbox.vue';
+import TinyEditor from "@/Components/Admin/TinyEditor/TinyEditor.vue";
 import CKEditor from '@/Components/Admin/CKEditor/CKEditor.vue';
 import MetaDescTextarea from '@/Components/Admin/Textarea/MetaDescTextarea.vue';
 import InputNumber from '@/Components/Admin/Input/InputNumber.vue';
@@ -333,9 +334,10 @@ const submitForm = () => {
                     </div>
 
                     <div class="mb-3 flex flex-col items-start">
-                        <LabelInput for="description" :value="t('description')" />
-                        <CKEditor v-model="form.description" class="w-full" />
-                        <InputError class="mt-2" :message="form.errors.description" />
+                        <LabelInput for="description" :value="t('description')"/>
+                        <TinyEditor v-model="form.description" :height="500" />
+                        <!-- <CKEditor v-model="form.description" class="w-full"/> -->
+                        <InputError class="mt-2" :message="form.errors.description"/>
                     </div>
 
                     <!-- Дата публикации, Автор -->

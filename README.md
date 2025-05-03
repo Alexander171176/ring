@@ -51,6 +51,7 @@
 12)  npm install <br>
     `npm install @inertiajs/inertia` <br>
     `npm install @mayasabha/ckeditor4-vue3` <br>
+    `npm install tinymce` <br>
     `npm install chart.js chartjs-adapter-moment` <br>
     `npm install xlsx html2pdf.js jszip file-saver docx` <br>
     `npm install codemirror @codemirror/lang-javascript @codemirror/state @codemirror/view @codemirror/theme-one-dark` <br>

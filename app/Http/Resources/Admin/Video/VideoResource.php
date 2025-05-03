@@ -32,7 +32,7 @@ class VideoResource extends JsonResource
             'short' => $this->short,
             'description' => $this->description,
             'author' => $this->author,
-            'published_at' => $this->published_at?->toIso8601String(), // ISO формат
+            'published_at'  => $this->published_at?->format('Y-m-d'), // YYYY-MM-DD
             'duration' => $this->duration,      // integer
             'source_type' => $this->source_type,
 

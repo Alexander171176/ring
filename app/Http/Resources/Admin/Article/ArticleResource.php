@@ -32,7 +32,7 @@ class ArticleResource extends JsonResource
             'short'         => $this->short,
             'description'   => $this->description,
             'author'        => $this->author,
-            'published_at'  => $this->published_at?->toIso8601String(), // <--- Изменен формат на ISO
+            'published_at'  => $this->published_at?->format('Y-m-d'), // YYYY-MM-DD
             'views'         => $this->views,     // integer
             'likes'         => $this->likes,     // integer
             'meta_title'    => $this->meta_title,

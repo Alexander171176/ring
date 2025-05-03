@@ -24,6 +24,7 @@ import LabelInput from '@/Components/Admin/Input/LabelInput.vue';
 import CKEditor from "@/Components/Admin/CKEditor/CKEditor.vue";
 import SelectLocale from "@/Components/Admin/Select/SelectLocale.vue";
 import ClearMetaButton from "@/Components/Admin/Buttons/ClearMetaButton.vue";
+import TinyEditor from "@/Components/Admin/TinyEditor/TinyEditor.vue";
 
 // --- Инициализация ---
 const {t} = useI18n();
@@ -50,6 +51,7 @@ const form = useForm({
     title: props.rubric.title ?? '',
     url: props.rubric.url ?? '',
     short: props.rubric.short ?? '',
+    description: props.rubric.description ?? '',
     meta_title: props.rubric.meta_title ?? '',
     meta_keywords: props.rubric.meta_keywords ?? '',
     meta_desc: props.rubric.meta_desc ?? '',
@@ -264,7 +266,8 @@ const submitForm = async () => {
 
                     <div class="mb-3 flex flex-col items-start">
                         <LabelInput for="description" :value="t('description')"/>
-                        <CKEditor v-model="form.description" class="w-full"/>
+                        <TinyEditor v-model="form.description" :height="500" />
+                        <!-- <CKEditor v-model="form.description" class="w-full"/> -->
                         <InputError class="mt-2" :message="form.errors.description"/>
                     </div>
 

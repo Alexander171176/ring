@@ -25,6 +25,7 @@ import SelectLocale from "@/Components/Admin/Select/SelectLocale.vue";
 import MultiImageUpload from "@/Components/Admin/Image/MultiImageUpload.vue";
 import VueMultiselect from 'vue-multiselect';
 import VideoSourceFields from "@/Components/Admin/Video/Upload/VideoSourceFields.vue";
+import TinyEditor from "@/Components/Admin/TinyEditor/TinyEditor.vue";
 
 // --- Инициализация ---
 const toast = useToast();
@@ -337,7 +338,8 @@ const submitForm = () => {
                     <!-- описание -->
                     <div class="mb-3 flex flex-col items-start">
                         <LabelInput for="description" :value="t('description')"/>
-                        <CKEditor v-model="form.description" class="w-full"/>
+                        <TinyEditor v-model="form.description" :height="500" />
+                        <!-- <CKEditor v-model="form.description" class="w-full"/> -->
                         <InputError class="mt-2" :message="form.errors.description"/>
                     </div>
 

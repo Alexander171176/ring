@@ -32,7 +32,7 @@ class ArticleSharedResource extends JsonResource
             'title'         => $this->title,
             'url'           => $this->url,
             'activity'      => $this->activity, // boolean
-            'published_at'  => $this->published_at?->toDateString(), // YYYY-MM-DD
+            'published_at'  => $this->published_at?->format('Y-m-d'), // YYYY-MM-DD
             // Можно добавить URL первого изображения (превью)
             'thumbnail_url' => $thumbnailUrl, // <--- Используем результат проверки
 
