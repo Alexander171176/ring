@@ -163,10 +163,15 @@ const getPrimaryImage = (article) => {
                                     {{ article.locale }}
                                 </div>
                             </td>
-                            <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
-                                <div class="text-left text-teal-600 dark:text-violet-200"
-                                     :title="formatDate(article.published_at)">
-                                    {{ article.title }}
+                            <td class="px-2 first:pl-7 last:pr-7 py-1 whitespace-nowrap">
+                                <div class="text-left">
+                                    <a :href="`/articles/${encodeURIComponent(article.url)}`"
+                                       class="text-teal-600 dark:text-violet-200 hover:underline
+                                              hover:text-teal-800 dark:hover:text-violet-50"
+                                       target="_blank" rel="noopener noreferrer"
+                                       :title="formatDate(article.published_at)">
+                                        {{ article.title }}
+                                    </a>
                                 </div>
                             </td>
                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">

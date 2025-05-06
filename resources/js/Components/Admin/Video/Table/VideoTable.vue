@@ -178,8 +178,15 @@ const getPrimaryImage = (video) => {
                                     {{ video.title }}
                                 </div>
                             </td>
-                            <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
-                                <div class="text-left text-blue-600 dark:text-violet-200">{{ video.url }}</div>
+                            <td class="px-2 first:pl-7 last:pr-7 py-1 whitespace-nowrap">
+                                <div class="text-left">
+                                    <a :href="`/videos/${encodeURIComponent(video.url)}`"
+                                       class="text-violet-600 dark:text-violet-200 hover:underline
+                                              hover:text-violet-800 dark:hover:text-violet-50"
+                                       target="_blank" rel="noopener noreferrer">
+                                        {{ video.url }}
+                                    </a>
+                                </div>
                             </td>
                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
                                 <div class="text-left">

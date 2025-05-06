@@ -29,6 +29,10 @@ export const sidebarIcons = {
         <circle class="fill-current text-blue-600" cx="18.5" cy="18.5" r="4.5"></circle>
         <circle class="fill-current text-blue-400" cx="5.5" cy="18.5" r="4.5"></circle>
     `,
+    pages: `
+        <path class="fill-current text-blue-400" d="M22,24H13a2,2,0,0,1-2-2V11a2,2,0,0,1,2-2h9a2,2,0,0,1,2,2V22A2,2,0,0,1,22,24ZM13,11h0V21h9V11Z"></path>
+        <path class="fill-current text-blue-600" d="M9,18H2V2H16V7h2V2a2,2,0,0,0-2-2H2A2,2,0,0,0,0,2V20a2,2,0,0,0,2,2H9Z"></path>
+    `,
     rubrics: `
         <circle class="fill-current text-blue-600" cx="16" cy="8" r="8"></circle>
         <circle class="fill-current text-blue-400" cx="8" cy="16" r="8"></circle>

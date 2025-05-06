@@ -119,7 +119,14 @@ const toggleAll = (event) => {
                                 <div class="text-left text-yellow-500 dark:text-yellow-200">{{ rubric.title }}</div>
                             </td>
                             <td class="px-2 first:pl-7 last:pr-7 py-1 whitespace-nowrap">
-                                <div class="text-left text-violet-600 dark:text-violet-200">{{ rubric.url }}</div>
+                                <div class="text-left">
+                                    <a :href="`/rubrics/${encodeURIComponent(rubric.url)}`"
+                                       class="text-violet-600 dark:text-violet-200 hover:underline
+                                              hover:text-violet-800 dark:hover:text-violet-50"
+                                       target="_blank" rel="noopener noreferrer">
+                                        {{ rubric.url }}
+                                    </a>
+                                </div>
                             </td>
                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
                                 <div class="text-center">{{ rubric.views }}</div>

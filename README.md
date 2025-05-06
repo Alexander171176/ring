@@ -272,7 +272,17 @@
     `docker exec ring-php-app php artisan make:model User/Like/VideoLike` <br>
     `docker exec ring-php-app php artisan migrate` <br>
 
-37) creating business logic app API <br>
+37) creating business logic ap Page
+    `docker exec ring-php-app php artisan make:model Admin/Page/Page -mf` <br>
+    `docker exec ring-php-app php artisan migrate` <br>
+    `docker exec ring-php-app php artisan make:seeder PageSeeder` <br>
+    `docker exec ring-php-app php artisan db:seed --class=PageSeeder` <br>
+    `docker exec ring-php-app php artisan make:resource Admin/Page/PageResource` <br>
+    `docker exec ring-php-app php artisan make:resource Admin/Page/PageSharedResource` <br>
+    `docker exec ring-php-app php artisan make:request Admin/Page/PageRequest` <br>
+    `docker exec ring-php-app php artisan make:controller Admin/Page/PageController --resource` <br>
+
+38) creating business logic app API <br>
     `composer require "darkaonline/l5-swagger` <br>
     `docker exec ring-php-app php artisan vendor:publish --provider "L5Swagger\L5SwaggerServiceProvider"` <br>
     `docker exec ring-php-app php artisan make:controller Api/User/ApiUserController --api` <br>
@@ -293,7 +303,7 @@
     `docker-compose restart` <br>
     `docker exec ring-php-app php artisan l5-swagger:generate` <br>
 
-38) Помощь в командах
+39) Помощь в командах
     Удалите существующие символические ссылки <br>
     `docker exec -it ring-php-app rm /var/www/public/storage` <br>
     `docker exec -it ring-php-app rm /var/www/storage/api-docs` <br>
@@ -316,7 +326,7 @@
     `docker restart ring-php-app`  <br>
     `docker exec -it ring-php-app php artisan route:list`  <br>
     `mkdir -p app/Services`  <br>
-39) `composer config --global disable-tls true` <br> отключение сертификатов, если нужно
+40) `composer config --global disable-tls true` <br> отключение сертификатов, если нужно
     `php --ini` <br> найти php.ini
     `composer diagnose` <br> диагностика composer
     `composer self-update` <br> обновление текущей версии composer

@@ -230,6 +230,7 @@ class TagController extends Controller
                 ->with('success', __('admin/controllers/tags.activity', ['title' => $tag->title, 'action' => $actionText]));
 
         } catch (Throwable $e) {
+            DB::rollBack();
             Log::error("Ошибка обновления активности тега ID {$tag->id}: " . $e->getMessage());
             return back()->withErrors(['general' => __('admin/controllers/tags.update_activity_error')]);
         }
@@ -251,7 +252,7 @@ class TagController extends Controller
 
         Tag::whereIn('id', $data['ids'])->update(['activity' => $data['activity']]);
 
-        return response()->json(['success' => true]);
+        return back()->response()->json(['success' => true]);
     }
 
     /**

@@ -36,6 +36,7 @@ class SectionSeeder extends Seeder
                 'locale' => 'ru',
                 'title' => 'Новости',
                 'short' => 'Новости в мире спорта.',
+                'description' => 'Описание',
             ],
             [
                 'sort' => 2,
@@ -44,6 +45,7 @@ class SectionSeeder extends Seeder
                 'locale' => 'ru',
                 'title' => 'Обзоры',
                 'short' => 'Обзоры поединков.',
+                'description' => 'Описание',
             ],
             [
                 'sort' => 3,
@@ -52,6 +54,7 @@ class SectionSeeder extends Seeder
                 'locale' => 'ru',
                 'title' => 'Интервью',
                 'short' => 'Интервью с известностями.',
+                'description' => 'Описание',
             ],
             [
                 'sort' => 4,
@@ -60,6 +63,7 @@ class SectionSeeder extends Seeder
                 'locale' => 'ru',
                 'title' => 'Результаты',
                 'short' => 'Результаты боёв соперников.',
+                'description' => 'Описание',
             ],
         ];
 
@@ -67,7 +71,7 @@ class SectionSeeder extends Seeder
         foreach ($sections as $sectionData) {
             $section = Section::create($sectionData);
             $section->rubrics()->attach($rubric->id);
-            Log::info("Создана статья: {$section->title} и связана с рубрикой: {$rubric->title}");
+            Log::info("Создана секция: {$section->title} и связана с рубрикой: {$rubric->title}");
         }
     }
 }

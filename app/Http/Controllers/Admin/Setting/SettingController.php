@@ -304,6 +304,25 @@ class SettingController extends Controller
     }
 
     /**
+     * Обновление количества элементов в страницах
+     *
+     * @param UpdateCountSettingRequest $request
+     * @return RedirectResponse
+     */
+    public function updateAdminCountPages(UpdateCountSettingRequest $request): RedirectResponse
+    {
+        return $this->updateSettingAndRedirect(
+            $request,
+            'AdminCountPages',
+            'site_settings.AdminCountPages',
+            'number',
+            'admin_display',
+            'Количество элементов на странице успешно обновлено.',
+            'Ошибка обновления настройки количества элементов.'
+        );
+    }
+
+    /**
      * Обновление количества элементов в рубриках
      *
      * @param UpdateCountSettingRequest $request
@@ -546,6 +565,25 @@ class SettingController extends Controller
             Log::error("Ошибка обновления настройки сортировки '{$optionKey}': " . $e->getMessage());
             return back()->withInput()->withErrors(['value' => "Ошибка обновления настройки сортировки."]); // Универсальное сообщение
         }
+    }
+
+    /**
+     * Обновляет сортировку элементов в страницах
+     *
+     * @param UpdateSortRequest $request
+     * @return RedirectResponse
+     */
+    public function updateAdminSortPages(UpdateSortRequest $request): RedirectResponse
+    {
+        return $this->updateSettingAndRedirect(
+            $request,
+            'AdminSortPages',
+            'site_settings.AdminSortPages',
+            'string',
+            'admin_sort',
+            'Сортировка по умолчанию успешно обновлена.',
+            'Ошибка обновления настройки сортировки.'
+        );
     }
 
     /**
