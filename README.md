@@ -126,14 +126,17 @@
     `docker exec ring-php-app php artisan make:request Admin/Setting/UpdateSettingValueRequest` <br>
     `docker exec ring-php-app php artisan make:request Admin/Parameter/UpdateParameterValueRequest` <br>
     `docker exec ring-php-app php artisan make:controller Admin/Parameter/ParameterController --resource` <br>
- 
-20)  Create middleware ShareSettings <br>
+
+20) creating business logic app System <br>
+    `docker exec ring-php-app php artisan make:controller Admin/Log/LogController` <br>
+
+21)  Create middleware ShareSettings <br>
      `docker exec ring-php-app php artisan make:resource Admin/Setting/SettingSharedResource` <br>
      `docker exec ring-php-app php artisan make:controller Admin/System/SystemController` <br>
      `docker exec ring-php-app php artisan make:controller Api/Parameter/ApiParameterController --api` <br>
      `docker exec ring-php-app php artisan make:controller Api/Setting/ApiSettingController --api` <br>
 
-21) creating business logic app Plugin <br>
+22) creating business logic app Plugin <br>
     `docker exec ring-php-app php artisan make:model Admin/Plugin/Plugin -mf` <br>
     `docker exec ring-php-app php artisan migrate` <br>
     `docker exec ring-php-app php artisan make:seeder PluginsSeeder` <br>
@@ -144,7 +147,7 @@
     `docker exec ring-php-app php artisan make:resource Admin/Plugin/PluginSharedResource` <br>
     `docker exec ring-php-app php artisan make:request Admin/Plugin/PluginRequest` <br>
 
-22) creating business logic app Rubric <br>
+23) creating business logic app Rubric <br>
     `docker exec ring-php-app php artisan make:model Admin/Rubric/Rubric -mf` <br>
     `docker exec ring-php-app php artisan migrate`<br>
     `docker exec ring-php-app php artisan make:seeder RubricSeeder` <br>
@@ -157,7 +160,7 @@
     `docker exec ring-php-app php artisan make:controller Public/Default/RubricController` <br>
     `docker exec ring-php-app php artisan make:resource Admin/Rubric/RubricSharedResource` <br>
 
-23) creating business logic app Section <br>
+24) creating business logic app Section <br>
     `docker exec ring-php-app php artisan make:model Admin/Section/Section -mf` <br>
     `docker exec ring-php-app php artisan make:migration create_rubric_has_sections_table --create=rubric_has_sections` <br>
     `docker exec ring-php-app php artisan migrate`<br>
@@ -169,7 +172,7 @@
     `docker exec ring-php-app php artisan make:controller Admin/Section/SectionController --resource` <br>
     `docker exec ring-php-app php artisan make:controller Admin/Invokable/RemoveRubricFromSectionController --invokable` <br>
 
-24) creating business logic app Article <br>
+25) creating business logic app Article <br>
     `docker exec ring-php-app php artisan make:model Admin/Article/Article -mf` <br>
     `docker exec ring-php-app php artisan make:migration create_article_has_section_table --create=article_has_section` <br>
     `docker exec ring-php-app php artisan migrate`<br>
@@ -184,10 +187,10 @@
     `docker exec ring-php-app php artisan make:controller Public/Default/ArticleController` <br>
     `docker exec ring-php-app php artisan make:resource Admin/Article/ArticleSharedResource` <br>
 
-25) Create revoke controllers Section and Article <br>
+26) Create revoke controllers Section and Article <br>
     `docker exec ring-php-app php artisan make:controller Admin/Invokable/RemoveArticleFromSectionController --invokable` <br>
 
-26) creating business logic app Image Article <br>
+27) creating business logic app Image Article <br>
     `docker exec ring-php-app php artisan make:model Admin/Article/ArticleImage -mf` <br>
     `docker exec ring-php-app php artisan make:migration create_article_has_images_table --create=article_has_images` <br>
     `docker exec ring-php-app php artisan migrate` <br>
@@ -197,7 +200,7 @@
     `docker exec ring-php-app php artisan make:migration create_article_related_table --create=article_related` <br>
     `docker exec ring-php-app php artisan migrate` <br>
 
-27) creating business logic app Comment <br>
+28) creating business logic app Comment <br>
     `docker exec ring-php-app php artisan make:model Admin/Comment/Comment -m`
     `docker exec ring-php-app php artisan migrate` <br>
     `docker exec ring-php-app php artisan make:factory Admin/Comment/CommentFactory --model=Comment` <br>
@@ -209,12 +212,12 @@
     `docker exec ring-php-app php artisan make:controller Admin/Comment/CommentController --resource` <br>
     `docker exec ring-php-app php artisan make:controller Public/CommentController --resource` <br>
 
-28) creating business logic app Like <br>
+29) creating business logic app Like <br>
     `docker exec ring-php-app php artisan make:migration create_article_likes_table --create=article_likes` <br>
     `docker exec ring-php-app php artisan migrate` <br>
     `docker exec ring-php-app php artisan make:model User/Like/ArticleLike` <br>
 
-29) creating business logic app Tag <br>
+30) creating business logic app Tag <br>
     `docker exec ring-php-app php artisan make:model Admin/Tag/Tag -mf` <br>
     `docker exec ring-php-app php artisan make:migration create_article_has_tag_table --create=article_has_tag` <br>
     `docker exec ring-php-app php artisan migrate` <br>
@@ -226,22 +229,22 @@
     `docker exec ring-php-app php artisan make:controller Admin/Invokable/RemoveArticleFromTagController --invokable` <br>
     `docker exec ring-php-app php artisan make:controller Public/Default/TagController` <br>
 
-30) creating business logic app Report <br>
+31) creating business logic app Report <br>
     `docker exec ring-php-app php artisan make:controller Admin/Report/ReportController --resource` <br>
 
-31) creating business logic app Chart <br>
+32) creating business logic app Chart <br>
     `docker exec ring-php-app php artisan make:controller Admin/Chart/ChartController --resource` <br>
 
-32) creating business logic app Component <br>
+33) creating business logic app Component <br>
     `docker exec ring-php-app php artisan make:controller Admin/Component/ComponentController --resource` <br>
 
-33) creating business logic app Editor <br>
+34) creating business logic app Editor <br>
     `docker exec ring-php-app php artisan make:controller Admin/Editor/EditorController --resource` <br>
 
-34) creating business logic app Diagram <br>
+35) creating business logic app Diagram <br>
   `docker exec ring-php-app php artisan make:controller Admin/Diagram/DiagramController --resource` <br>
 
-35) creating business logic ap Banner
+36) creating business logic ap Banner
     `docker exec ring-php-app php artisan make:model Admin/Banner/Banner -mf` <br>
     `docker exec ring-php-app php artisan make:migration create_banner_has_section_table --create=banner_has_section` <br>
     `docker exec ring-php-app php artisan migrate` <br>
@@ -255,7 +258,7 @@
     `docker exec ring-php-app php artisan make:resource Admin/Banner/BannerSharedResource` <br>
     `docker exec ring-php-app php artisan migrate` <br>
 
-36) creating business logic ap Video
+37) creating business logic ap Video
     `docker exec ring-php-app php artisan make:model Admin/Video/Video -mf` <br>
     `docker exec ring-php-app php artisan make:migration create_section_has_video_table --create=section_has_video` <br>
     `docker exec ring-php-app php artisan make:migration create_article_has_video_table --create=article_has_video` <br>
@@ -274,7 +277,7 @@
     `docker exec ring-php-app php artisan make:model User/Like/VideoLike` <br>
     `docker exec ring-php-app php artisan migrate` <br>
 
-37) creating business logic ap Page
+38) creating business logic ap Page
     `docker exec ring-php-app php artisan make:model Admin/Page/Page -mf` <br>
     `docker exec ring-php-app php artisan migrate` <br>
     `docker exec ring-php-app php artisan make:seeder PageSeeder` <br>
@@ -284,7 +287,7 @@
     `docker exec ring-php-app php artisan make:request Admin/Page/PageRequest` <br>
     `docker exec ring-php-app php artisan make:controller Admin/Page/PageController --resource` <br>
 
-38) creating business logic app API <br>
+39) creating business logic app API <br>
     `composer require "darkaonline/l5-swagger` <br>
     `docker exec ring-php-app php artisan vendor:publish --provider "L5Swagger\L5SwaggerServiceProvider"` <br>
     `docker exec ring-php-app php artisan make:controller Api/User/ApiUserController --api` <br>
@@ -305,7 +308,7 @@
     `docker-compose restart` <br>
     `docker exec ring-php-app php artisan l5-swagger:generate` <br>
 
-39) Помощь в командах
+40) Помощь в командах
     Удалите существующие символические ссылки <br>
     `docker exec -it ring-php-app rm /var/www/public/storage` <br>
     `docker exec -it ring-php-app rm /var/www/storage/api-docs` <br>
@@ -328,7 +331,7 @@
     `docker restart ring-php-app`  <br>
     `docker exec -it ring-php-app php artisan route:list`  <br>
     `mkdir -p app/Services`  <br>
-40) `composer config --global disable-tls true` <br> отключение сертификатов, если нужно
+41) `composer config --global disable-tls true` <br> отключение сертификатов, если нужно
     `php --ini` <br> найти php.ini
     `composer diagnose` <br> диагностика composer
     `composer self-update` <br> обновление текущей версии composer

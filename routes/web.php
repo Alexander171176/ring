@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\Log\LogController;
 use App\Http\Controllers\Admin\Page\PageController;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
@@ -122,6 +123,11 @@ Route::group([
             Route::get('/', function () {
                 return Inertia::render('Admin');
             })->name('index');
+
+            // для показа, очистки логов и скачивания логов
+            Route::get('/logs', [LogController::class, 'index'])->name('logs.index');
+            Route::delete('/logs', [LogController::class, 'clear'])->name('logs.clear');
+            Route::get('/logs/download', [LogController::class, 'download'])->name('logs.download');
 
             // --- Настройки отображения в админке ---
             Route::prefix('settings')->name('settings.')->group(function () {

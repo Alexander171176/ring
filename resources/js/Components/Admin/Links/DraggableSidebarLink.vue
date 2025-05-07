@@ -76,6 +76,7 @@ const linkInfo = {
     diagrams: {label: t('diagrams'), route: 'admin.diagrams.index'},
     settings: {label: t('settings'), route: 'admin.settings.index'},
     parameters: {label: t('parameters'), route: 'admin.parameters.index'},
+    logs: {label: t('logs'), route: 'admin.logs.index'},
     components: {label: t('components'), route: 'admin.components.index'},
     plugins: {label: t('plugins'), route: 'admin.plugins.index'},
 };

@@ -60,6 +60,7 @@ const mainLinks = ref(JSON.parse(localStorage.getItem('mainLinks')) || [
     'permissions',
     'settings',
     'parameters',
+    'logs',
     'components',
     'diagrams',
     'plugins',
