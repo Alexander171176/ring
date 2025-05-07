@@ -37,6 +37,7 @@ const {t} = useI18n();
 </script>
 
 <template>
+
     <Head :title="t('loginTitle')"/>
 
     <div class="flex flex-row flex-wrap w-full">

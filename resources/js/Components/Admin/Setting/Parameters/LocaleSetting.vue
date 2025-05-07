@@ -21,7 +21,7 @@ const localeForm = useForm({
 
 const submitLocaleForm = async () => {
     if (localeSetting.value) {
-        localeForm.put(route('settings.update', localeSetting.value.id), {
+        localeForm.put(route('admin.actions.settings.updateValue', localeSetting.value.id), {
             onSuccess: () => {
                 // Перезагружаем страницу после успешного сохранения
                 window.location.reload();

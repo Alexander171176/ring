@@ -21,7 +21,7 @@ const widgetOpacityForm = useForm({
 
 const submitWidgetOpacity = async () => {
     if (widgetOpacitySetting.value) {
-        widgetOpacityForm.put(route('settings.update', widgetOpacitySetting.value.id), {
+        widgetOpacityForm.put(route('admin.actions.settings.updateValue', widgetOpacitySetting.value.id), {
             onSuccess: () => {
                 console.log('Настройка widgetOpacity успешно обновлена');
             },

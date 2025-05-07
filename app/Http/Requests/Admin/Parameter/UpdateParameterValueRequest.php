@@ -15,7 +15,7 @@ class UpdateParameterValueRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'value' => 'nullable|string|max:65535',
+            'value' => 'nullable', // без условий
         ];
     }
 

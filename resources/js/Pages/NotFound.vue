@@ -1,7 +1,10 @@
 <!-- resources/js/Pages/NotFound.vue -->
 <script setup>
-import { Link } from '@inertiajs/vue3'
-import authImage from '../../images/auth-image.jpg'
+import { Link } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
+import authImage from '../../images/auth-image.jpg';
+
+const { t } = useI18n();
 </script>
 
 <template>
@@ -11,15 +14,15 @@ import authImage from '../../images/auth-image.jpg'
     >
         <div class="bg-white bg-opacity-85 p-8 rounded-lg shadow-md max-w-md text-center">
             <h1 class="text-9xl font-extrabold text-slate-600">404</h1>
-            <p class="mt-4 text-2xl font-semibold text-red-400">Страница не найдена</p>
+            <p class="mt-4 text-2xl font-semibold text-red-400">{{ t('pageNotFound') }}</p>
             <p class="mt-2 text-lg font-semibold text-slate-500">
-                Извините, запрошенная вами страница отсутствует.
+                {{ t('pageNotFoundText') }}
             </p>
             <div class="mt-6">
-                <Link href="/"
+                <Link :href="route('home')"
                       class="px-3 py-1.5 bg-blue-700 text-white rounded-md
                              hover:bg-blue-500 transition-colors duration-200">
-                    На главную
+                    {{ t('home') }}
                 </Link>
             </div>
         </div>

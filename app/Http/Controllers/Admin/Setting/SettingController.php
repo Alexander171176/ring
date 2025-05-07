@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 // Реквесты
 use App\Http\Requests\Admin\Setting\SettingRequest;
 use App\Http\Requests\Admin\Setting\UpdateLocaleRequest;
+use App\Http\Requests\Admin\Setting\UpdateSettingValueRequest;
 use App\Http\Requests\Admin\Setting\UpdateSortSettingRequest;
 use App\Http\Requests\Admin\Setting\UpdateWidgetPanelRequest;
 use App\Http\Requests\Admin\UpdateActivityRequest;
@@ -72,98 +73,37 @@ class SettingController extends Controller
     }
 
     /**
-     * Показ формы создания настройки.
+     * Обновление значения конкретной настройки.
      *
-     * @return InertiaResponse
-     */
-    public function create(): InertiaResponse
-    {
-        // TODO: Проверка прав $this->authorize('create-setting', Setting::class);
-        return Inertia::render('Admin/Settings/Create');
-    }
-
-    /**
-     * Создание новой настройки.
-     *
-     * @param SettingRequest $request
-     * @return RedirectResponse
-     */
-    public function store(SettingRequest $request): RedirectResponse
-    {
-        $data = $request->validated();
-        try {
-            DB::beginTransaction();
-            Setting::create($data);
-            $this->clearSettingsCache();
-            DB::commit();
-            Log::info('Настройка успешно создана: ', ['option' => $data['option']]);
-            return redirect()->route('admin.settings.index')->with('success', 'Настройка успешно создана.');
-        } catch (Throwable $e) {
-            DB::rollBack();
-            Log::error("Ошибка при создании настройки: " . $e->getMessage());
-            return back()->withInput()->withErrors(['general' => 'Произошла ошибка при создании настройки.']);
-        }
-    }
-
-    /**
-     * Показ формы редактирования настройки.
-     *
-     * @param Setting $setting
-     * @return InertiaResponse
-     */
-    public function edit(Setting $setting): InertiaResponse // Используем RMB
-    {
-        // TODO: Проверка прав $this->authorize('update-setting', $setting);
-        return Inertia::render('Admin/Settings/Edit', [
-            'setting' => new SettingResource($setting),
-        ]);
-    }
-
-    /**
-     * Обновление существующей настройки (всех полей).
-     *
-     * @param SettingRequest $request
+     * @param UpdateSettingValueRequest $request
      * @param Setting $setting
      * @return RedirectResponse
      */
-    public function update(SettingRequest $request, Setting $setting): RedirectResponse // Используем RMB и SettingRequest
+    public function updateValue(UpdateSettingValueRequest $request, Setting $setting): RedirectResponse
     {
-        $data = $request->validated();
         try {
             DB::beginTransaction();
-            $setting->update($data);
-            $this->clearSettingsCache('setting_' . $setting->option);
-            DB::commit();
-            Log::info('Настройка обновлена: ', ['id' => $setting->id, 'option' => $setting->option]);
-            return redirect()->route('admin.settings.index')->with('success', 'Настройка успешно обновлена.');
-        } catch (Throwable $e) {
-            DB::rollBack();
-            Log::error("Ошибка при обновлении настройки ID {$setting->id}: " . $e->getMessage());
-            return back()->withInput()->withErrors(['general' => 'Произошла ошибка при обновлении настройки.']);
-        }
-    }
 
-    /**
-     * Удаление настройки.
-     *
-     * @param Setting $setting
-     * @return RedirectResponse
-     */
-    public function destroy(Setting $setting): RedirectResponse // Используем RMB
-    {
-        // TODO: Проверка прав $this->authorize('delete-setting', $setting);
-        try {
-            DB::beginTransaction();
-            $optionKey = $setting->option;
-            $setting->delete();
-            $this->clearSettingsCache('setting_' . $optionKey);
+            $setting->update([
+                'value' => $request->validated()['value'],
+            ]);
+
             DB::commit();
-            Log::info('Настройка удалена: ID ' . $setting->id);
-            return redirect()->route('admin.settings.index')->with('success', 'Настройка успешно удалена.');
-        } catch (Throwable $e) {
+
+            Log::info('Значение настройки обновлено', [
+                'id' => $setting->id,
+                'option' => $setting->option,
+                'new_value' => $setting->value,
+            ]);
+
+            return back()->with('success', __('admin/controllers/settings.value_updated'));
+
+        } catch (\Throwable $e) {
             DB::rollBack();
-            Log::error("Ошибка при удалении настройки ID {$setting->id}: " . $e->getMessage());
-            return back()->withErrors(['general' => 'Произошла ошибка при удалении настройки.']);
+
+            Log::error("Ошибка при обновлении значения настройки ID {$setting->id}: {$e->getMessage()}");
+
+            return back()->withErrors(['value' => __('admin/controllers/settings.update_value_error')]);
         }
     }
 

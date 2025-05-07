@@ -20,7 +20,7 @@ const widgetHexColorForm = useForm({
 
 const submitWidgetHexColorForm = async () => {
     if (widgetHexColorSetting.value) {
-        widgetHexColorForm.put(route('settings.update', widgetHexColorSetting.value.id), {
+        widgetHexColorForm.put(route('admin.actions.settings.updateValue', widgetHexColorSetting.value.id), {
             onSuccess: () => {
                 console.log('Настройка widgetHexColor успешно обновлена');
             },

@@ -57,24 +57,30 @@ Route::group([
     ]
 ], function () {
 
-// --- Глобальные настройки и публичные маршруты ---
-// Используем замыкание для получения настроек один раз
-    $siteLayout = config('site_settings.siteLayout', 'Default');
-
+    // --- Глобальные настройки и публичные маршруты ---
     Route::post('/admin/cache/clear', [SystemController::class, 'clearCache']) // Исправлен неймспейс
     ->middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']) // Защищаем маршрут кэша
     ->name('cache.clear');
 
-// Обработка 404 и режима обслуживания вынесена до основной группы
+    // Используем замыкание для получения настроек один раз
+    $siteLayout = config('site_settings.siteLayout', 'Default');
+
+    // Добавить маршрут для страницы технических работ
+    Route::get('/maintenance', function () {
+        return Inertia::render('Maintenance');
+    })->name('maintenance');
+
+    // Обработка 404 и режима обслуживания вынесена до основной группы
     Route::fallback(function (Request $request) {
-        if (config('site_settings.downtimeSite', 'false') === 'true' && !$request->is('admin/*') && !$request->user()?->can('access maintenance mode')) { // Добавим условие для админки
-            // TODO: Реализовать проверку права 'access maintenance mode'
+        if (config('site_settings.downtimeSite', 'false') === 'true'
+            && !$request->is('admin/*')
+            && !$request->is(app()->getLocale() . '/admin*')) {
             return Inertia::render('Maintenance');
         }
         return Inertia::render('NotFound')->toResponse($request)->setStatusCode(404);
     });
 
-// Публичная часть сайта
+    // Публичная часть сайта
     Route::middleware([CheckDowntime::class])->group(function () use ($siteLayout) {
 
         Route::get('/', fn() => Inertia::render('Public/' . $siteLayout . '/Index'))->name('home'); // Добавим имя
@@ -95,9 +101,9 @@ Route::group([
         // TODO: Добавить другие публичные маршруты (поиск, контакты и т.д.)
     });
 
-// --- Маршруты аутентификации и профиля пользователя ---
+    // --- Маршруты аутентификации и профиля пользователя ---
 
-// Профиль Пользователя (стандартные маршруты Jetstream/Fortify обычно регистрируются пакетами)
+    // Профиль Пользователя (стандартные маршруты Jetstream/Fortify обычно регистрируются пакетами)
     Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])->group(function () {
         Route::get('/dashboard', function () { // Пользовательский дашборд
             return Inertia::render('Dashboard');
@@ -107,7 +113,7 @@ Route::group([
     });
 
 
-// --- Маршруты Панели Администратора ---
+    // --- Маршруты Панели Администратора ---
     Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',])
         ->prefix('admin')->name('admin.')
         ->group(function () {
@@ -119,6 +125,7 @@ Route::group([
 
             // --- Настройки отображения в админке ---
             Route::prefix('settings')->name('settings.')->group(function () {
+
                 // Количество на странице
                 Route::put('/update-count/pages', [SettingController::class, 'updateAdminCountPages'])->name('updateAdminCountPages');
                 Route::put('/update-count/rubrics', [SettingController::class, 'updateAdminCountRubrics'])->name('updateAdminCountRubrics');
@@ -152,10 +159,7 @@ Route::group([
             });
 
             // --- Основные CRUD Ресурсы ---
-            // Laravel автоматически использует правильные имена параметров для RMB:
-            // {setting}, {parameter}, {user}, {role}, {permission}, {rubric}, {section}, {article}, {tag}, {banner}, {video}, {comment}, {component}, {diagram}, {plugin}
             Route::resource('/settings', SettingController::class);
-            // Route::put('/admin/settings/{id}', ...) - Этот маршрут дублируется ресурсным update, УДАЛИТЬ?
             Route::resource('/parameters', ParameterController::class);
             Route::resource('/users', UserController::class);
             Route::resource('/roles', RoleController::class);
@@ -177,7 +181,6 @@ Route::group([
             Route::get('/reports/download', [ReportController::class, 'download'])->name('reports.download'); // Выносим отдельно
 
             // --- Маршруты удаления связей ManyToMany ---
-            // Имена параметров уже корректны для RMB
             Route::delete('/roles/{role}/permissions/{permission}', RemovePermissionFromRoleController::class)->name('roles.permissions.destroy');
             Route::delete('/users/{user}/roles/{role}', RemoveRoleFromUserController::class)->name('users.roles.destroy');
             Route::delete('/users/{user}/permissions/{permission}', RemovePermissionFromUserController::class)->name('users.permissions.destroy');
@@ -190,6 +193,10 @@ Route::group([
 
             // --- Маршруты для дополнительных действий ---
             Route::prefix('actions')->name('actions.')->group(function () { // Группируем доп. действия
+
+                // Обновление только value настройки
+                Route::put('/settings/{setting}/value', [SettingController::class, 'updateValue'])->name('settings.updateValue');
+
                 // Клонирование (Используем имена моделей для параметров RMB)
                 Route::post('/rubrics/{rubric}/clone', [RubricController::class, 'clone'])->name('rubrics.clone');
                 Route::post('/sections/{section}/clone', [SectionController::class, 'clone'])->name('sections.clone');
@@ -268,7 +275,7 @@ Route::group([
                 Route::put('/banners/update-sort-bulk', [BannerController::class, 'updateSortBulk'])->name('banners.updateSortBulk');
                 Route::put('/videos/update-sort-bulk', [VideoController::class, 'updateSortBulk'])->name('videos.updateSortBulk');
                 Route::put('/plugins/update-sort-bulk', [PluginController::class, 'updateSortBulk'])->name('plugins.updateSortBulk');
-                Route::put('/actions/settings/update-sort-bulk', [ParameterController::class, 'updateSortBulk'])->name('settings.updateSortBulk');
+                Route::put('/settings/update-sort-bulk', [ParameterController::class, 'updateSortBulk'])->name('settings.updateSortBulk');
 
                 // Обновление сортировки (Имена параметров уже были правильные)
                 Route::put('/pages/{page}/sort', [RubricController::class, 'updateSort'])->name('pages.updateSort');
@@ -296,7 +303,7 @@ Route::group([
 
         }); // Конец группы admin
 
-// --- Остальные маршруты (Filemanager, Redis test) ---
+    // --- Остальные маршруты (Filemanager, Redis test) ---
     Route::group(['prefix' => 'laravel-filemanager', 'middleware' => ['web', 'auth']], function () {
         \UniSharp\LaravelFilemanager\Lfm::routes();
     });

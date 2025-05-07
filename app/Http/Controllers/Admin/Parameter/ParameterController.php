@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin\Parameter;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\Parameter\ParameterRequest;
 use App\Http\Requests\Admin\Setting\SettingRequest; // Используем общий реквест для настроек
 // Реквесты для простых действий
 use App\Http\Requests\Admin\UpdateActivityRequest;
@@ -89,10 +90,10 @@ class ParameterController extends Controller
      * Сохранение нового параметра в базе данных.
      * Использует SectionRequest для валидации и авторизации.
      *
-     * @param SettingRequest $request
+     * @param ParameterRequest $request
      * @return RedirectResponse Редирект на список статей с сообщением.
      */
-    public function store(SettingRequest $request): RedirectResponse
+    public function store(ParameterRequest $request): RedirectResponse
     {
         // TODO: Проверка прав $this->authorize('create-setting', Setting::class);
         $data = $request->validated();
@@ -134,11 +135,11 @@ class ParameterController extends Controller
      * Обновление существующего параметра в базе данных.
      * Использует SettingRequest и Route Model Binding.
      *
-     * @param SettingRequest $request Валидированный запрос.
+     * @param ParameterRequest $request Валидированный запрос.
      * @param string $id
      * @return RedirectResponse Редирект на список параметров с сообщением.
      */
-    public function update(SettingRequest $request, string $id): RedirectResponse
+    public function update(ParameterRequest $request, string $id): RedirectResponse
     {
         // TODO: Проверка прав $this->authorize('update', $setting);
 

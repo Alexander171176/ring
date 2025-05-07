@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
 class CheckDowntime
 {
@@ -12,17 +13,23 @@ class CheckDowntime
      */
     public function handle(Request $request, Closure $next)
     {
-        // Получаем настройку downtimeSite из глобальной конфигурации
         $downtime = config('site_settings.downtimeSite', 'false');
 
-        // Если включён режим обслуживания и запрос НЕ для админки, дашборда или maintenance
         if (
             $downtime === 'true' &&
             !$request->is('admin*') &&
+            !$request->is(app()->getLocale() . '/admin*') &&
             !$request->is('dashboard') &&
-            !$request->is('maintenance')
+            !$request->is(app()->getLocale() . '/dashboard') &&
+            !$request->is('maintenance') &&
+            !$request->is(app()->getLocale() . '/maintenance')
         ) {
-            return redirect('/maintenance');
+            return redirect(LaravelLocalization::localizeURL('/maintenance'));
+        }
+
+        if ($downtime === 'false' && ($request->is('maintenance')
+                || $request->is(app()->getLocale() . '/maintenance'))) {
+            return redirect(LaravelLocalization::localizeURL('/'));
         }
 
         return $next($request);

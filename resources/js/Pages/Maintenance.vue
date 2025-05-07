@@ -1,5 +1,8 @@
 <script setup>
 import { useHead } from '@vueuse/head';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 useHead({
     title: 'На сайте проводятся технические работы',
@@ -39,10 +42,10 @@ useHead({
     <div class="flex items-center justify-center h-screen bg-slate-200 text-center">
         <div class="max-w-lg p-6 bg-white rounded-lg shadow-md">
             <img src="../../images/hot_air_baloon.png" alt="Сайт закрыт" class="w-full h-auto mb-6">
-            <h1 class="text-2xl font-semibold text-teal-500 mb-4">На сайте проводятся технические работы</h1>
+            <h1 class="text-2xl font-semibold text-teal-500 mb-4">{{ t('technicalWorkTitle') }}</h1>
             <span class="text-orange-600 text-lg font-semibold">
-                Пожалуйста, попробуйте зайти позже.
-                <span class="text-gray-500 block mt-2 font-bold">Спасибо за понимание!</span>
+                {{ t('technicalWorkText') }}
+                <span class="text-gray-500 block mt-2 font-bold">{{ t('technicalWorkThanks') }}</span>
             </span>
         </div>
     </div>

@@ -6,9 +6,13 @@ import InputError from '@/Components/Admin/Input/InputError.vue';
 import IconSaveButton from '@/Components/Admin/Buttons/IconSaveButton.vue';
 import SettingsCheckbox from '@/Components/Admin/Setting/Input/SettingsCheckbox.vue';
 import InfoIconButton from '@/Components/Admin/Setting/Button/InfoIconButton.vue';
+import { useToast } from "vue-toastification";
 import { useI18n } from 'vue-i18n';
 
+// --- Инициализация ---
+const toast = useToast();
 const { t } = useI18n();
+
 const props = defineProps({
     setting: Object
 });
@@ -22,12 +26,15 @@ const downtimeForm = useForm({
 const submitDowntimeForm = async () => {
     if (downtimeSetting.value) {
         downtimeForm.value = downtimeForm.value === 'true' ? 'true' : 'false';
-        downtimeForm.put(route('settings.update', downtimeSetting.value.id), {
+        downtimeForm.put(route('admin.actions.settings.updateValue', downtimeSetting.value.id), {
             onSuccess: () => {
                 // console.log('Настройка downtimeSite успешно обновлена');
+                toast.success('Настройка downtimeSite успешно обновлена!');
             },
             onError: (errors) => {
-                // console.error('Ошибка при обновлении настройки downtimeSite:', errors);
+                console.error('Ошибка при обновлении настройки downtimeSite:', errors);
+                const firstError = errors[Object.keys(errors)[0]];
+                toast.error(firstError || 'Ошибка при обновлении настройки downtimeSite.');
             }
         });
     }

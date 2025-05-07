@@ -75,27 +75,6 @@ watch(
                     @toggle-modal="toggleModal"
                 />
 
-                <!-- Компонент для настройки locale -->
-                <LocaleSetting
-                    v-if="localeSetting"
-                    :setting="localeSetting"
-                    @toggle-modal="toggleModal"
-                />
-
-                <!-- Компонент для настройки widgetHexColor -->
-                <WidgetHexColorSetting
-                    v-if="widgetHexColorSetting"
-                    :setting="widgetHexColorSetting"
-                    @toggle-modal="toggleModal"
-                />
-
-                <!-- Компонент для настройки widgetOpacitySettings -->
-                <WidgetOpacitySettings
-                    v-if="widgetOpacitySetting"
-                    :setting="widgetOpacitySetting"
-                    @toggle-modal="toggleModal"
-                />
-
             </div>
         </div>
 

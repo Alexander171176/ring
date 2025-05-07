@@ -6,9 +6,13 @@ import InputText from '@/Components/Admin/Setting/Input/InputText.vue';
 import InputError from '@/Components/Admin/Input/InputError.vue';
 import IconSaveButton from '@/Components/Admin/Buttons/IconSaveButton.vue';
 import InfoIconButton from '@/Components/Admin/Setting/Button/InfoIconButton.vue';
+import { useToast } from "vue-toastification";
 import { useI18n } from 'vue-i18n';
 
+// --- Инициализация ---
+const toast = useToast();
 const { t } = useI18n();
+
 const props = defineProps({
     setting: Object
 });
@@ -21,12 +25,15 @@ const siteLayoutForm = useForm({
 
 const submitSiteLayoutForm = async () => {
     if (siteLayoutSetting.value) {
-        siteLayoutForm.put(route('settings.update', siteLayoutSetting.value.id), {
+        siteLayoutForm.put(route('admin.actions.settings.updateValue', siteLayoutSetting.value.id), {
             onSuccess: () => {
                 // console.log('Настройка siteLayout успешно обновлена');
+                toast.success('Настройка siteLayout успешно обновлена!');
             },
             onError: (errors) => {
                 // console.error('Ошибка при обновлении настройки siteLayout:', errors);
+                const firstError = errors[Object.keys(errors)[0]];
+                toast.error(firstError || 'Ошибка при обновлении настройки siteLayout.');
             }
         });
     }

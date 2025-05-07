@@ -116,12 +116,14 @@
     `docker exec ring-php-app php artisan db:seed --class=SettingSeeder` <br>
     `docker exec ring-php-app php artisan make:resource Admin/Setting/SettingResource` <br>
     `docker exec ring-php-app php artisan make:request Admin/Setting/SettingRequest` <br>
+    `docker exec ring-php-app php artisan make:request Admin/Parameter/ParameterRequest` <br>
     `docker exec ring-php-app php artisan make:request Admin/Setting/UpdateLocaleRequest` <br>
     `docker exec ring-php-app php artisan make:request Admin/Setting/UpdateCountSettingRequest` <br>
     `docker exec ring-php-app php artisan make:request Admin/Setting/UpdateSortSettingRequest` <br>
     `docker exec ring-php-app php artisan make:request Admin/Setting/UpdateWidgetPanelRequest` <br>
     `docker exec ring-php-app php artisan make:request Admin/Setting/UpdateSidebarSettingsRequest` <br>
     `docker exec ring-php-app php artisan make:controller Admin/Setting/SettingController --resource` <br>
+    `docker exec ring-php-app php artisan make:request Admin/Setting/UpdateSettingValueRequest` <br>
     `docker exec ring-php-app php artisan make:request Admin/Parameter/UpdateParameterValueRequest` <br>
     `docker exec ring-php-app php artisan make:controller Admin/Parameter/ParameterController --resource` <br>
  
