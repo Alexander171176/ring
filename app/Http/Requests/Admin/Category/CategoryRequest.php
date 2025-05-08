@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Requests\Admin\Page;
+namespace App\Http\Requests\Admin\Category;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Validation\Rule;
-use App\Models\Admin\Page\Page; // Импортируем модель
+use App\Models\Admin\Category\Category; // Импортируем модель
 
-class PageRequest extends FormRequest
+class CategoryRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -15,7 +15,7 @@ class PageRequest extends FormRequest
     public function authorize(): bool
     {
         // Пример проверки прав доступа через Spatie/Laravel-Permissions
-        // $permission = $this->isMethod('post') ? 'create pages' : 'update pages';
+        // $permission = $this->isMethod('post') ? 'create categories' : 'update categories';
         // return $this->user()->can($permission);
 
         // Пока разрешаем, если пользователь аутентифицирован
@@ -29,17 +29,17 @@ class PageRequest extends FormRequest
      */
     public function rules(): array
     {
-        // Получаем модель Page из маршрута (для update) или null (для store)
-        // Важно: имя параметра 'page' должно совпадать с тем, что в web.php/api.php
-        // Например: Route::put('pages/{page}', ...);
-        $page = $this->route('page');
-        $pageId = $page?->id; // ID текущей редактируемой страницы (null при создании)
+        // Получаем модель Category из маршрута (для update) или null (для store)
+        // Важно: имя параметра 'category' должно совпадать с тем, что в web.php/api.php
+        // Например: Route::put('categories/{category}', ...);
+        $category = $this->route('category');
+        $categoryId = $category?->id; // ID текущей редактируемой ктегории (null при создании)
 
         // Получаем локаль из запроса
         $locale = $this->input('locale'); // Мы ожидаем, что локаль будет передана в запросе
 
-        // Правило для проверки, что parent_id не указывает на саму редактируемую страницу
-        $notSelf = $pageId ? Rule::notIn([$pageId]) : null; // Применяем только при обновлении
+        // Правило для проверки, что parent_id не указывает на саму редактируемую категорию
+        $notSelf = $categoryId ? Rule::notIn([$categoryId]) : null; // Применяем только при обновлении
 
         return [
             'sort' => [
@@ -62,10 +62,10 @@ class PageRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                // Уникальность в пределах локали, игнорируя текущую страницу при обновлении
-                Rule::unique('pages', 'title')
+                // Уникальность в пределах локали, игнорируя текущую категорию при обновлении
+                Rule::unique('categories', 'title')
                     ->where('locale', $locale) // Используем $locale из input
-                    ->ignore($pageId) // Игнорируем текущий ID при обновлении
+                    ->ignore($categoryId) // Игнорируем текущий ID при обновлении
             ],
             'url' => [
                 'required',
@@ -74,10 +74,10 @@ class PageRequest extends FormRequest
                 // Ваше регулярное выражение (строчные буквы, цифры, дефисы)
                 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
                 // Если нужны слеши для иерархии: 'regex:/^[a-z0-9\-\/]+$/i',
-                // Уникальность в пределах локали, игнорируя текущую страницу при обновлении
-                Rule::unique('pages', 'url')
+                // Уникальность в пределах локали, игнорируя текущую категорию при обновлении
+                Rule::unique('categories', 'url')
                     ->where('locale', $locale) // Используем $locale из input
-                    ->ignore($pageId) // Игнорируем текущий ID при обновлении
+                    ->ignore($categoryId) // Игнорируем текущий ID при обновлении
             ],
             'short' => [
                 'nullable',
@@ -103,19 +103,19 @@ class PageRequest extends FormRequest
                 'string'
             ],
             'parent_id' => [
-                'nullable', // Корневые страницы разрешены
+                'nullable', // Корневые категории разрешены
                 'integer',
-                // Проверка на то, что страница не является родителем самой себе (только при обновлении)
+                // Проверка на то, что категория не является родителем самой себе (только при обновлении)
                 $notSelf, // Добавляем правило $notSelf (будет проигнорировано если null)
                 // Проверка существования parent_id И соответствия локали
-                Rule::exists('pages', 'id')
+                Rule::exists('categories', 'id')
                     ->where(function ($query) use ($locale) {
-                        // Это условие гарантирует, что родительская страница
-                        // принадлежит той же локали, что и текущая страница
+                        // Это условие гарантирует, что родительская категория
+                        // принадлежит той же локали, что и текущая категория
                         $query->where('locale', $locale);
                     }),
                 // Важно: Убедитесь, что в вашем lang файле есть сообщение для not_in
-                // 'parent_id.not_in' => 'Страница не может быть родителем самой себе.'
+                // 'parent_id.not_in' => 'Категория не может быть родителем самой себе.'
             ],
         ];
     }
@@ -128,16 +128,16 @@ class PageRequest extends FormRequest
     public function messages(): array
     {
         // Загружаем сообщения из lang файла
-        $messages = Lang::get('admin/requests/PageRequest');
+        $messages = Lang::get('admin/requests/CategoryRequest');
 
         // Добавляем сообщение для правила not_in, если его нет в lang файле
         if (!isset($messages['parent_id.not_in'])) {
-            $messages['parent_id.not_in'] = 'Страница не может быть дочерней для самой себя.';
+            $messages['parent_id.not_in'] = 'Категория не может быть дочерней для самой себя.';
         }
 
         // Уточняем сообщение для exists, чтобы оно включало проверку локали
         if (isset($messages['parent_id.exists'])) {
-            $messages['parent_id.exists'] = 'Выбранная родительская страница не существует или принадлежит другой локали.';
+            $messages['parent_id.exists'] = 'Выбранная родительская категория не существует или принадлежит другой локали.';
         }
 
 

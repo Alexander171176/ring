@@ -22,7 +22,7 @@ import ActivityCheckbox from "@/Components/Admin/Checkbox/ActivityCheckbox.vue";
 import InputNumber from "@/Components/Admin/Input/InputNumber.vue";
 import CKEditor from "@/Components/Admin/CKEditor/CKEditor.vue";
 import TinyEditor from "@/Components/Admin/TinyEditor/TinyEditor.vue";
-import SelectParentCategory from "@/Components/Admin/Page/Select/SelectParentCategory.vue";
+import SelectParentCategory from "@/Components/Admin/Category/Select/SelectParentCategory.vue";
 
 // --- Инициализация ---
 const toast = useToast();
@@ -48,16 +48,16 @@ const form = useForm({
 /**
  * Опции для select.
  */
-const page = usePage();
-const parentOptions = buildParentOptions(page.props.potentialParents);
+const category = usePage();
+const parentOptions = buildParentOptions(category.props.potentialParents);
 
 /**
  * Преобразует страницы в плоский массив с отступами по уровню вложенности.
  */
-function buildParentOptions(flatPages, parentId = null, level = 0) {
+function buildParentOptions(flatCategories, parentId = null, level = 0) {
     let result = [];
 
-    flatPages
+    flatCategories
         .filter(p => p.parent_id === parentId)
         .sort((a, b) => (a.sort || 0) - (b.sort || 0))
         .forEach(p => {
@@ -66,7 +66,7 @@ function buildParentOptions(flatPages, parentId = null, level = 0) {
                 title: `${'— '.repeat(level)}${p.title}`,
             });
 
-            const children = buildParentOptions(flatPages, p.id, level + 1);
+            const children = buildParentOptions(flatCategories, p.id, level + 1);
             result = result.concat(children);
         });
 
@@ -147,12 +147,12 @@ const submit = () => {
 
     // console.log("Форма для отправки заполнена:", form.data());
 
-    form.post(route('admin.pages.store'), {
-        errorBag: 'createPage', // Имя для ошибок валидации
+    form.post(route('admin.categories.store'), {
+        errorBag: 'createCategory', // Имя для ошибок валидации
         preserveScroll: true, // Сохранять позицию скролла
         onSuccess: () => {
             // Действия при успехе (toast уведомление обычно делается через flash в HandleInertiaRequests)
-            toast.success('Страница успешно создана!');
+            toast.success('Категория успешно создана!');
             // console.log("Форма успешно отправлена.");
         },
         onError: (errors) => {
@@ -167,10 +167,10 @@ const submit = () => {
 </script>
 
 <template>
-    <AdminLayout :title="t('addPage')">
+    <AdminLayout :title="t('addCategory')">
         <template #header>
             <TitlePage>
-                {{ t('addPage') }}
+                {{ t('addCategory') }}
             </TitlePage>
         </template>
         <div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-12xl mx-auto">
@@ -180,7 +180,7 @@ const submit = () => {
                         bg-opacity-95 dark:bg-opacity-95">
                 <div class="sm:flex sm:justify-between sm:items-center mb-2">
                     <!-- Кнопка назад -->
-                    <DefaultButton :href="route('admin.pages.index', { locale: page.props.targetLocale })">
+                    <DefaultButton :href="route('admin.categories.index', { locale: category.props.targetLocale })">
                         <template #icon>
                             <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">
                                 <path
@@ -346,7 +346,7 @@ const submit = () => {
                     </div>
 
                     <div class="flex items-center justify-center mt-4">
-                        <DefaultButton :href="route('admin.pages.index', { locale: page.props.targetLocale })"
+                        <DefaultButton :href="route('admin.categories.index', { locale: category.props.targetLocale })"
                                        class="mb-3">
                             <template #icon>
                                 <!-- SVG -->

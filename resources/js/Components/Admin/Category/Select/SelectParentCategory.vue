@@ -29,7 +29,7 @@ const { t } = useI18n();
 
 <template>
     <div class="flex flex-col items-start w-full mb-3">
-        <LabelInput :for="'parent_id'" :value="label || t('parentPage')" />
+        <LabelInput :for="'parent_id'" :value="label || t('parentCategory')" />
 
         <select
             id="parent_id"

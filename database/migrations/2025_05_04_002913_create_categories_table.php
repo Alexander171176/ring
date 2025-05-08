@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('pages', function (Blueprint $table) {
+        Schema::create('categories', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('parent_id')->nullable(); // Индекс будет ниже
             $table->unsignedInteger('sort')->default(0); // Индекс будет ниже
@@ -39,13 +39,13 @@ return new class extends Migration
             // Foreign key (остается без изменений на уровне DB, проверка locale - на уровне приложения)
             $table->foreign('parent_id')
                 ->references('id')
-                ->on('pages')
+                ->on('categories')
                 ->nullOnDelete(); // Или cascadeOnDelete
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('pages');
+        Schema::dropIfExists('categories');
     }
 };

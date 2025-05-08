@@ -13,8 +13,8 @@ import TitlePage from '@/Components/Admin/Headlines/TitlePage.vue';
 import DefaultButton from "@/Components/Admin/Buttons/DefaultButton.vue";
 import DangerModal from '@/Components/Admin/Modal/DangerModal.vue';
 import CountTable from '@/Components/Admin/Count/CountTable.vue';
-import BulkActionSelect from "@/Components/Admin/Page/Select/BulkActionSelect.vue";
-import PageTreeItem from "@/Components/Admin/Page/Tree/PageTreeItem.vue"; // <-- Новый компонент
+import BulkActionSelect from "@/Components/Admin/Category/Select/BulkActionSelect.vue";
+import CategoryTreeItem from "@/Components/Admin/Category/Tree/CategoryTreeItem.vue"; // <-- Новый компонент
 
 // --- Инициализация экземпляр i18n, toast ---
 const {t} = useI18n();
@@ -24,19 +24,19 @@ const toast = useToast();
  * Входные свойства компонента.
  */
 const props = defineProps({
-    pages: Array,           // Теперь это иерархический массив
-    pagesCount: Number,
+    categories: Array,           // Теперь это иерархический массив
+    categoriesCount: Number,
     currentLocale: String,
     availableLocales: Array,
     errors: Object // Ошибки валидации от Laravel (если есть)
 });
 
 // --- Локальная реактивная копия дерева для vuedraggable ---
-const localPages = ref([]);
+const localCategories = ref([]);
 
-watch(() => props.pages, (newVal) => {
+watch(() => props.categories, (newVal) => {
     // Глубокая копия для мутабельности
-    localPages.value = JSON.parse(JSON.stringify(newVal || []));
+    localCategories.value = JSON.parse(JSON.stringify(newVal || []));
 }, {immediate: true, deep: true});
 
 /**
@@ -47,19 +47,19 @@ const showConfirmDeleteModal = ref(false);
 /**
  * ID для удаления.
  */
-const pageToDeleteId = ref(null);
+const categoryToDeleteId = ref(null);
 
 /**
  * Название для отображения в модальном окне.
  */
-const pageToDeleteTitle = ref('');
+const categoryToDeleteTitle = ref('');
 
 /**
  * Открывает модальное окно подтверждения удаления с входными переменными.
  */
-const confirmDelete = (page) => { // Принимаем весь объект page
-    pageToDeleteId.value = page.id;
-    pageToDeleteTitle.value = page.title; // Берем title из объекта
+const confirmDelete = (category) => { // Принимаем весь объект category
+    categoryToDeleteId.value = category.id;
+    categoryToDeleteTitle.value = category.title; // Берем title из объекта
     showConfirmDeleteModal.value = true;
 };
 
@@ -68,24 +68,24 @@ const confirmDelete = (page) => { // Принимаем весь объект pa
  */
 const closeModal = () => {
     showConfirmDeleteModal.value = false;
-    pageToDeleteId.value = null;
-    pageToDeleteTitle.value = '';
+    categoryToDeleteId.value = null;
+    categoryToDeleteTitle.value = '';
 };
 
 /**
  * Отправляет запрос на удаление страницы на сервер.
  */
-const deletePage = () => {
-    if (pageToDeleteId.value === null) return;
-    const idToDelete = pageToDeleteId.value;
-    const titleToDelete = pageToDeleteTitle.value;
+const deleteCategory = () => {
+    if (categoryToDeleteId.value === null) return;
+    const idToDelete = categoryToDeleteId.value;
+    const titleToDelete = categoryToDeleteTitle.value;
 
-    router.delete(route('admin.pages.destroy', {page: idToDelete}), {
+    router.delete(route('admin.categories.destroy', {category: idToDelete}), {
         preserveScroll: true,
         // preserveState: false, // Перезагружаем данные после удаления
         onSuccess: () => {
             toast.success(`Страница "${titleToDelete || 'ID: ' + idToDelete}" удалена.`);
-            // localPages обновятся через watch(props.pages), так как preserveState: false
+            // localCategories обновятся через watch(props.categories), так как preserveState: false
         },
         onError: (errors) => {
             const errorMsg = errors.general || errors[Object.keys(errors)[0]] || 'Произошла ошибка при удалении.';
@@ -100,11 +100,11 @@ const deletePage = () => {
 /**
  * Отправляет запрос для изменения статуса активности.
  */
-const toggleActivity = (page) => {
-    const newActivity = !page.activity;
+const toggleActivity = (category) => {
+    const newActivity = !category.activity;
     const actionText = newActivity ? t('activated') : t('deactivated'); // Используем t()
 
-    router.put(route('admin.actions.pages.updateActivity', {page: page.id}),
+    router.put(route('admin.actions.categories.updateActivity', {category: category.id}),
         {activity: newActivity},
         {
             preserveScroll: true,
@@ -126,12 +126,12 @@ const toggleActivity = (page) => {
                     }
                     return false;
                 };
-                findAndUpdateActivity(localPages.value, page.id, newActivity);
+                findAndUpdateActivity(localCategories.value, category.id, newActivity);
 
-                toast.success(`Страница "${page.title}" ${actionText}.`);
+                toast.success(`Страница "${category.title}" ${actionText}.`);
             },
             onError: (errors) => {
-                toast.error(errors.activity || errors.general || `Ошибка изменения активности для "${page.title}".`);
+                toast.error(errors.activity || errors.general || `Ошибка изменения активности для "${category.title}".`);
             },
         }
     );
@@ -185,7 +185,7 @@ const handleDragEnd = (event) => {
     };
 
     // Вызываем функцию для всего дерева, начиная с корневого уровня (parentId = null)
-    updateSortAndCollectChanges(localPages.value, null);
+    updateSortAndCollectChanges(localCategories.value, null);
 
     // Убираем дубликаты, если элемент попал в changes несколько раз (маловероятно при правильной логике)
     // const uniqueChanges = Array.from(new Map(changes.map(item => [item.id, item])).values());
@@ -204,21 +204,21 @@ const handleDragEnd = (event) => {
 
     // --- Этап 2: Отправка на бэкенд ---
     if (uniqueChanges.length > 0) {
-        router.put(route('admin.actions.pages.updateSortBulk'), {
-            pages: uniqueChanges,
+        router.put(route('admin.actions.categories.updateSortBulk'), {
+            categories: uniqueChanges,
             locale: props.currentLocale // Передаем текущую локаль
         }, {
             preserveScroll: true,
             preserveState: true, // Чтобы не перерисовывать все дерево при успехе
             onSuccess: () => {
                 toast.success('Иерархия успешно обновлена');
-                // Данные в localPages уже обновлены локально
+                // Данные в localCategories уже обновлены локально
             },
             onError: (errors) => {
                 console.error("Ошибка обновления сортировки:", errors);
                 toast.error(errors.message || 'Ошибка обновления иерархии');
                 // Откатить изменения локально сложно, проще перезагрузить данные с сервера
-                router.reload({only: ['pages'], preserveScroll: true});
+                router.reload({only: ['categories'], preserveScroll: true});
             },
         });
     } else {
@@ -229,7 +229,7 @@ const handleDragEnd = (event) => {
 /**
  * Массив выбранных ID для массовых действий.
  */
-const selectedPages = ref([]);
+const selectedCategories = ref([]);
 
 /**
  * Функция для рекурсивного поиска всех ID в дереве.
@@ -250,24 +250,24 @@ const getAllIds = (nodes) => {
  */
 const toggleAll = (event) => {
     const checked = event.target?.checked; // Проверяем событие чекбокса
-    const allNodeIds = getAllIds(localPages.value); // Получаем все ID в текущем дереве
+    const allNodeIds = getAllIds(localCategories.value); // Получаем все ID в текущем дереве
 
     if (checked === true) { // Явная проверка на true
-        selectedPages.value = allNodeIds;
+        selectedCategories.value = allNodeIds;
     } else if (checked === false) { // Явная проверка на false
-        selectedPages.value = [];
+        selectedCategories.value = [];
     }
 };
 
 /**
  * Обрабатывает событие выбора/снятия выбора одной строки.
  */
-const toggleSelectPage = (pageId) => {
-    const index = selectedPages.value.indexOf(pageId);
+const toggleSelectCategory = (categoryId) => {
+    const index = selectedCategories.value.indexOf(categoryId);
     if (index > -1) {
-        selectedPages.value.splice(index, 1);
+        selectedCategories.value.splice(index, 1);
     } else {
-        selectedPages.value.push(pageId);
+        selectedCategories.value.push(categoryId);
     }
 };
 
@@ -289,14 +289,14 @@ const updateActivityByIds = (nodes, ids, activity) => {
  * Выполняет массовое включение/выключение активности выбранных.
  */
 const bulkToggleActivity = (newActivity) => {
-    if (!selectedPages.value.length) {
+    if (!selectedCategories.value.length) {
         toast.warning('Выберите страницы для активации/деактивации');
         return;
     }
 
-    const idsToUpdate = [...selectedPages.value]; // Копируем массив ID
+    const idsToUpdate = [...selectedCategories.value]; // Копируем массив ID
 
-    router.put(route('admin.actions.pages.bulkUpdateActivity'), {
+    router.put(route('admin.actions.categories.bulkUpdateActivity'), {
         ids: idsToUpdate,
         activity: newActivity,
     }, {
@@ -304,8 +304,8 @@ const bulkToggleActivity = (newActivity) => {
         preserveState: true, // Остаемся на месте
         onSuccess: () => {
             // Оптимистично обновляем локальные данные
-            updateActivityByIds(localPages.value, idsToUpdate, newActivity);
-            selectedPages.value = []; // Очищаем выбор
+            updateActivityByIds(localCategories.value, idsToUpdate, newActivity);
+            selectedCategories.value = []; // Очищаем выбор
             toast.success('Статус активации массово обновлены'); // Нужен перевод
         },
         onError: () => {
@@ -335,16 +335,16 @@ const handleBulkAction = (event) => {
  * Генерация ссылок для переключения локалей.
  */
 const localeLink = (locale) => {
-    return route('admin.pages.index', {locale: locale});
+    return route('admin.categories.index', {locale: locale});
 };
 
 </script>
 
 <template>
-    <AdminLayout :title="t('pages')">
+    <AdminLayout :title="t('categories')">
         <template #header>
             <TitlePage>
-                {{ t('pages') }}
+                {{ t('categories') }}
             </TitlePage>
         </template>
         <div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-12xl mx-auto">
@@ -353,16 +353,16 @@ const localeLink = (locale) => {
                         bg-opacity-95 dark:bg-opacity-95">
 
                 <div class="sm:flex sm:justify-between sm:items-center mb-2">
-                    <DefaultButton :href="route('admin.pages.create', { locale: currentLocale })">
+                    <DefaultButton :href="route('admin.categories.create', { locale: currentLocale })">
                         <template #icon>
                             <svg class="w-4 h-4 fill-current opacity-50 shrink-0" viewBox="0 0 16 16">
                                 <path
                                     d="M15 7H9V1c0-.6-.4-1-1-1S7 .4 7 1v6H1c-.6 0-1 .4-1 1s.4 1 1 1h6v6c0 .6.4 1 1 1s1-.4 1-1V9h6c.6 0 1-.4 1-1s-.4-1-1-1z"></path>
                             </svg>
                         </template>
-                        {{ t('addPage') }}
+                        {{ t('addCategory') }}
                     </DefaultButton>
-                    <BulkActionSelect v-if="pagesCount > 0" @change="handleBulkAction"/>
+                    <BulkActionSelect v-if="categoriesCount > 0" @change="handleBulkAction"/>
                 </div>
                 <div class="flex items-center justify-between mt-5">
                     <!-- Переключатель локалей -->
@@ -383,7 +383,7 @@ const localeLink = (locale) => {
                         </template>
                     </div>
                     <div class="flex items-center">
-                        <CountTable v-if="pagesCount">{{ pagesCount }}</CountTable>
+                        <CountTable v-if="categoriesCount">{{ categoriesCount }}</CountTable>
                         <input type="checkbox" id="select-all-header" @change="toggleAll"
                                class="form-checkbox rounded-sm text-indigo-500 ml-2" :title="t('selectAll')">
                     </div>
@@ -392,32 +392,32 @@ const localeLink = (locale) => {
                 <!-- Корневой Draggable -->
                 <div class="bg-gray-300 dark:bg-gray-900 border border-gray-400 relative">
 
-                    <draggable v-model="localPages"
+                    <draggable v-model="localCategories"
                                tag="div"
                                item-key="id"
                                handle=".handle"
-                               group="pages"
+                               group="categories"
                                @end="handleDragEnd"
-                               class="page-tree-root"
+                               class="category-tree-root"
                                :data-parent-id="null">
 
-                        <template #item="{ element: page }">
-                            <PageTreeItem :page="page"
+                        <template #item="{ element: category }">
+                            <CategoryTreeItem :category="category"
                                           :level="0"
-                                          :selected-pages="selectedPages"
+                                          :selected-categories="selectedCategories"
                                           @toggle-activity="toggleActivity"
                                           @delete="confirmDelete"
-                                          @toggle-select="toggleSelectPage"
+                                          @toggle-select="toggleSelectCategory"
                                           @request-drag-end="handleDragEnd"/>
                         </template>
 
-                        <template #header v-if="localPages.length === 0 && pagesCount > 0">
+                        <template #header v-if="localCategories.length === 0 && categoriesCount > 0">
                             <div class="p-4 text-center text-slate-500 dark:text-slate-400">
                                 {{ t('loading') }}...
                             </div>
                         </template>
 
-                        <template #footer v-if="localPages.length === 0 && pagesCount === 0">
+                        <template #footer v-if="localCategories.length === 0 && categoriesCount === 0">
                             <div class="p-4 text-center text-slate-900 dark:text-slate-100">
                                 {{ t('noData') }}
                             </div>
@@ -433,7 +433,7 @@ const localeLink = (locale) => {
             :show="showConfirmDeleteModal"
             @close="closeModal"
             :onCancel="closeModal"
-            :onConfirm="deletePage"
+            :onConfirm="deleteCategory"
             :cancelText="t('cancel')"
             :confirmText="t('yesDelete')"
         />
@@ -442,7 +442,7 @@ const localeLink = (locale) => {
 
 <style scoped>
 /* Стили для визуализации дерева, можно вынести */
-.page-tree-root {
+.category-tree-root {
     padding: 5px;
 }
 </style>

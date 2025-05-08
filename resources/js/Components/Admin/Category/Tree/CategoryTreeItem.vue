@@ -10,9 +10,9 @@ import {useI18n} from 'vue-i18n';
 const {t} = useI18n();
 
 const props = defineProps({
-    page: Object,
+    category: Object,
     level: Number,
-    selectedPages: Array,
+    selectedCategories: Array,
 });
 
 const emits = defineEmits([
@@ -25,35 +25,35 @@ const emits = defineEmits([
 const isExpanded = ref(true);
 
 // Логируем входящие props
-// console.log('[PageTreeItem] page:', props.page);
-// console.log('[PageTreeItem] level:', props.level);
-// console.log('[PageTreeItem] selectedPages:', props.selectedPages);
+// console.log('[CategoryTreeItem] category:', props.category);
+// console.log('[CategoryTreeItem] level:', props.level);
+// console.log('[CategoryTreeItem] selectedCategories:', props.selectedCategories);
 
-// Слежение за изменениями props.page
-watch(() => props.page, (newVal, oldVal) => {
-    // console.log('[PageTreeItem] props.page изменился:', newVal);
+// Слежение за изменениями props.category
+watch(() => props.category, (newVal, oldVal) => {
+    // console.log('[CategoryTreeItem] props.category изменился:', newVal);
 }, {deep: true});
 
-// Слежение за selectedPages
-watch(() => props.selectedPages, (newVal, oldVal) => {
-    // console.log('[PageTreeItem] selectedPages изменился:', newVal);
+// Слежение за selectedCategories
+watch(() => props.selectedCategories, (newVal, oldVal) => {
+    // console.log('[CategoryTreeItem] selectedCategories изменился:', newVal);
 }, {deep: true});
 
 const handleInnerDragEnd = (event) => {
-    // console.log('[PageTreeItem] handleInnerDragEnd event:', event);
+    // console.log('[CategoryTreeItem] handleInnerDragEnd event:', event);
     emits('request-drag-end', event);
 };
 
 const toggleExpand = () => {
     isExpanded.value = !isExpanded.value;
-    // console.log('[PageTreeItem] isExpanded:', isExpanded.value);
+    // console.log('[CategoryTreeItem] isExpanded:', isExpanded.value);
 };
 </script>
 
 <template>
     <div>
-        <!-- Элемент страницы -->
-        <div class="page-item mb-1" :style="{ marginLeft: level * 20 + 'px' }">
+        <!-- Элемент категории -->
+        <div class="category-item mb-1" :style="{ marginLeft: level * 20 + 'px' }">
 
             <div class="flex items-center justify-between py-1 px-3
                         border border-gray-400 rounded-sm
@@ -72,7 +72,7 @@ const toggleExpand = () => {
                         </svg>
                     </span>
 
-                    <button v-if="page.children && page.children.length"
+                    <button v-if="category.children && category.children.length"
                             :title="isExpanded ? t('collapse') : t('expand')"
                             @click="toggleExpand"
                             class="flex-shrink-0 text-slate-900 hover:text-red-500
@@ -89,58 +89,58 @@ const toggleExpand = () => {
 
                     <span v-else class="w-4 h-4 inline-block flex-shrink-0"></span>
 
-                    <input type="checkbox" :checked="selectedPages.includes(page.id)"
-                           @change="$emit('toggle-select', page.id)"
+                    <input type="checkbox" :checked="selectedCategories.includes(category.id)"
+                           @change="$emit('toggle-select', category.id)"
                            class="form-checkbox rounded-sm text-indigo-500 flex-shrink-0"/>
 
                     <span class="font-semibold text-sm text-amber-600 dark:text-amber-200 mr-1 flex-shrink-0">
-                        {{ page.id }}
+                        {{ category.id }}
                     </span>
 
-                    <Link :href="route('admin.pages.edit', page.id)"
+                    <Link :href="route('admin.categories.edit', category.id)"
                           class="font-medium text-teal-600 dark:text-teal-100
                                  hover:text-indigo-600 dark:hover:text-indigo-300 truncate"
-                          :title="page.url">
-                        {{ page.title }}
+                          :title="category.url">
+                        {{ category.title }}
                     </Link>
 
                     <span class="text-xs ml-1 px-1.5 py-0.5 rounded-sm border border-slate-400 flex-shrink-0"
-                          :class="page.activity
+                          :class="category.activity
                           ? 'bg-amber-100 dark:bg-amber-700/50 text-amber-700 dark:text-amber-300'
                           : 'bg-blue-200 dark:bg-blue-900/50 text-gray-900 dark:text-gray-100'">
-                        {{ page.locale.toUpperCase() }}
+                        {{ category.locale.toUpperCase() }}
                     </span>
                 </div>
 
                 <!-- Правая часть -->
                 <div class="flex items-center space-x-1 flex-shrink-0 ml-4">
-                    <ActivityToggle :isActive="page.activity"
-                        @toggle-activity="$emit('toggle-activity', page)"
-                        :title="page.activity ? t('enabled') : t('disabled')"/>
-                    <IconEdit :href="route('admin.pages.edit', page.id)"/>
-                    <DeleteIconButton @click.stop="$emit('delete', page)"/>
+                    <ActivityToggle :isActive="category.activity"
+                        @toggle-activity="$emit('toggle-activity', category)"
+                        :title="category.activity ? t('enabled') : t('disabled')"/>
+                    <IconEdit :href="route('admin.categories.edit', category.id)"/>
+                    <DeleteIconButton @click.stop="$emit('delete', category)"/>
                 </div>
             </div>
         </div>
 
         <!-- Дочерние элементы -->
-        <div v-show="isExpanded && page.children && page.children.length"
+        <div v-show="isExpanded && category.children && category.children.length"
              class="children-container mt-1">
 
-            <draggable v-model="page.children"
+            <draggable v-model="category.children"
                        tag="div"
                        item-key="id"
                        handle=".handle"
-                       group="pages"
+                       group="categories"
                        @end="handleInnerDragEnd"
-                       class="page-tree-children"
-                       :data-parent-id="page.id">
+                       class="category-tree-children"
+                       :data-parent-id="category.id">
 
-                <template #item="{ element: childPage }">
+                <template #item="{ element: childCategory }">
 
-                    <PageTreeItem :page="childPage"
+                    <CategoryTreeItem :category="childCategory"
                                   :level="level + 1"
-                                  :selected-pages="selectedPages"
+                                  :selected-categories="selectedCategories"
                                   @toggle-activity="(p) => $emit('toggle-activity', p)"
                                   @delete="(p) => $emit('delete', p)"
                                   @toggle-select="(id) => $emit('toggle-select', id)"

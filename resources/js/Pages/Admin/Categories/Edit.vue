@@ -24,7 +24,7 @@ import ActivityCheckbox from "@/Components/Admin/Checkbox/ActivityCheckbox.vue";
 import InputNumber from "@/Components/Admin/Input/InputNumber.vue";
 import CKEditor from "@/Components/Admin/CKEditor/CKEditor.vue";
 import TinyEditor from "@/Components/Admin/TinyEditor/TinyEditor.vue";
-import SelectParentCategory from "@/Components/Admin/Page/Select/SelectParentCategory.vue";
+import SelectParentCategory from "@/Components/Admin/Category/Select/SelectParentCategory.vue";
 
 // --- Инициализация ---
 const toast = useToast();
@@ -34,28 +34,29 @@ const { t } = useI18n();
  * Входные свойства компонента.
  */
 const props = defineProps({
-    page: {
+    category: {
         type: Object,
         required: true
     },
 });
+
 
 /**
  * Формируем форму редактирования.
  */
 const form = useForm({
     _method: 'PUT',
-    parent_id: props.page.parent_id ?? null,
-    sort: props.page.sort ?? 0,
-    title: props.page?.title,
-    locale: props.page.locale ?? '',
-    url: props.page.url ?? '',
-    short: props.page.short ?? '',
-    description: props.page.description ?? '',
-    meta_title: props.page.meta_title ?? '',
-    meta_keywords: props.page.meta_keywords ?? '',
-    meta_desc: props.page.meta_desc ?? '',
-    activity: Boolean(props.page.activity ?? false),
+    parent_id: props.category.parent_id ?? null,
+    sort: props.category.sort ?? 0,
+    title: props.category?.title,
+    locale: props.category.locale ?? '',
+    url: props.category.url ?? '',
+    short: props.category.short ?? '',
+    description: props.category.description ?? '',
+    meta_title: props.category.meta_title ?? '',
+    meta_keywords: props.category.meta_keywords ?? '',
+    meta_desc: props.category.meta_desc ?? '',
+    activity: Boolean(props.category.activity ?? false),
 });
 
 /**
@@ -64,13 +65,16 @@ const form = useForm({
 const page = usePage();
 const parentOptions = buildParentOptions(page.props.potentialParents);
 
+// console.log('parent_id:', form.parent_id);
+// console.log('parentOptions:', parentOptions); // []
+
 /**
  * Преобразует страницы в плоский массив с отступами по уровню вложенности.
  */
-function buildParentOptions(flatPages, parentId = null, level = 0) {
+function buildParentOptions(flatCategories, parentId = null, level = 0) {
     let result = [];
 
-    flatPages
+    flatCategories
         .filter(p => p.parent_id === parentId)
         .sort((a, b) => (a.sort || 0) - (b.sort || 0))
         .forEach(p => {
@@ -79,7 +83,7 @@ function buildParentOptions(flatPages, parentId = null, level = 0) {
                 title: `${'— '.repeat(level)}${p.title}`,
             });
 
-            const children = buildParentOptions(flatPages, p.id, level + 1);
+            const children = buildParentOptions(flatCategories, p.id, level + 1);
             result = result.concat(children);
         });
 
@@ -165,12 +169,12 @@ const submit = () => {
         ...data,
         activity: data.activity ? 1 : 0,
     }));
-    form.put(route('admin.pages.update', props.page.id), {
-        errorBag: 'editPage',
+    form.put(route('admin.categories.update', props.category.id), {
+        errorBag: 'editCategory',
         preserveScroll: true,
         onSuccess: () => {
             // console.log("Форма успешно отправлена.");
-            toast.success('Страница успешно обновлена!'); // Можно добавить, если нужно кастомное
+            toast.success('Категория успешно обновлена!'); // Можно добавить, если нужно кастомное
         },
         onError: (errors) => {
             console.error("Не удалось отправить форму:", errors);
@@ -183,10 +187,10 @@ const submit = () => {
 </script>
 
 <template>
-    <AdminLayout :title="t('editPage')">
+    <AdminLayout :title="t('editCategory')">
         <template #header>
             <TitlePage>
-                {{ t('editPage') }} ID:{{ props.page.id }}
+                {{ t('editCategory') }} ID:{{ props.category.id }}
             </TitlePage>
         </template>
         <div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-12xl mx-auto">
@@ -196,7 +200,7 @@ const submit = () => {
                         bg-opacity-95 dark:bg-opacity-95">
                 <div class="sm:flex sm:justify-between sm:items-center mb-2">
                     <!-- Кнопка назад -->
-                    <DefaultButton :href="route('admin.pages.index', { locale: page.props.targetLocale })">
+                    <DefaultButton :href="route('admin.categories.index', { locale: props.category.locale })">
                         <template #icon>
                             <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">
                                 <path
@@ -371,7 +375,7 @@ const submit = () => {
                     </div>
 
                     <div class="flex items-center justify-center mt-4">
-                        <DefaultButton :href="route('admin.pages.index', { locale: page.props.targetLocale })"
+                        <DefaultButton :href="route('admin.categories.index', { locale: props.category.locale })"
                                        class="mb-3">
                             <template #icon>
                                 <!-- SVG -->

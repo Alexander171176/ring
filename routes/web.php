@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\Log\LogController;
-use App\Http\Controllers\Admin\Page\PageController;
+use App\Http\Controllers\Admin\Category\CategoryController;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
 use App\Http\Controllers\Admin\Article\ArticleController;
@@ -133,7 +133,7 @@ Route::group([
             Route::prefix('settings')->name('settings.')->group(function () {
 
                 // Количество на странице
-                Route::put('/update-count/pages', [SettingController::class, 'updateAdminCountPages'])->name('updateAdminCountPages');
+                Route::put('/update-count/categories', [SettingController::class, 'updateAdminCountCategories'])->name('updateAdminCountCategories');
                 Route::put('/update-count/rubrics', [SettingController::class, 'updateAdminCountRubrics'])->name('updateAdminCountRubrics');
                 Route::put('/update-count/sections', [SettingController::class, 'updateAdminCountSections'])->name('updateAdminCountSections');
                 Route::put('/update-count/articles', [SettingController::class, 'updateAdminCountArticles'])->name('updateAdminCountArticles');
@@ -149,7 +149,7 @@ Route::group([
                 Route::put('/update-count/settings', [SettingController::class, 'updateAdminCountSettings'])->name('updateAdminCountSettings');
 
                 // Тип сортировки
-                Route::put('/update-sort/pages', [SettingController::class, 'updateAdminSortPages'])->name('updateAdminSortPages');
+                Route::put('/update-sort/categories', [SettingController::class, 'updateAdminSortCategories'])->name('updateAdminSortCategories');
                 Route::put('/update-sort/rubrics', [SettingController::class, 'updateAdminSortRubrics'])->name('updateAdminSortRubrics');
                 Route::put('/update-sort/sections', [SettingController::class, 'updateAdminSortSections'])->name('updateAdminSortSections');
                 Route::put('/update-sort/articles', [SettingController::class, 'updateAdminSortArticles'])->name('updateAdminSortArticles');
@@ -170,7 +170,7 @@ Route::group([
             Route::resource('/users', UserController::class);
             Route::resource('/roles', RoleController::class);
             Route::resource('/permissions', PermissionController::class);
-            Route::resource('/pages', PageController::class);
+            Route::resource('/categories', CategoryController::class);
             Route::resource('/rubrics', RubricController::class);
             Route::resource('/sections', SectionController::class);
             Route::resource('/articles', ArticleController::class);
@@ -209,7 +209,7 @@ Route::group([
                 Route::post('/articles/{article}/clone', [ArticleController::class, 'clone'])->name('articles.clone');
 
                 // Переключение активности (Используем имена моделей для параметров RMB)
-                Route::put('/pages/{page}/activity', [PageController::class, 'updateActivity'])->name('pages.updateActivity');
+                Route::put('/categories/{category}/activity', [CategoryController::class, 'updateActivity'])->name('categories.updateActivity');
                 Route::put('/rubrics/{rubric}/activity', [RubricController::class, 'updateActivity'])->name('rubrics.updateActivity');
                 Route::put('/sections/{section}/activity', [SectionController::class, 'updateActivity'])->name('sections.updateActivity');
                 Route::put('/articles/{article}/activity', [ArticleController::class, 'updateActivity'])->name('articles.updateActivity');
@@ -221,8 +221,8 @@ Route::group([
                 Route::put('/comments/{comment}/activity', [CommentController::class, 'updateActivity'])->name('comments.updateActivity');
 
                 // Переключение активности массово
-                Route::put('/admin/actions/pages/bulk-activity', [PageController::class, 'bulkUpdateActivity'])
-                    ->name('pages.bulkUpdateActivity');
+                Route::put('/admin/actions/categories/bulk-activity', [CategoryController::class, 'bulkUpdateActivity'])
+                    ->name('categories.bulkUpdateActivity');
                 Route::put('/admin/actions/rubrics/bulk-activity', [RubricController::class, 'bulkUpdateActivity'])
                     ->name('rubrics.bulkUpdateActivity');
                 Route::put('/admin/actions/sections/bulk-activity', [SectionController::class, 'bulkUpdateActivity'])
@@ -273,7 +273,7 @@ Route::group([
                     ->name('videos.bulkUpdateRight');
 
                 // Обновление сортировки для Drag and Drop
-                Route::put('/pages/update-sort-bulk', [PageController::class, 'updateSortBulk'])->name('pages.updateSortBulk');
+                Route::put('/categories/update-sort-bulk', [CategoryController::class, 'updateSortBulk'])->name('categories.updateSortBulk');
                 Route::put('/rubrics/update-sort-bulk', [RubricController::class, 'updateSortBulk'])->name('rubrics.updateSortBulk');
                 Route::put('/sections/update-sort-bulk', [SectionController::class, 'updateSortBulk'])->name('sections.updateSortBulk');
                 Route::put('/articles/update-sort-bulk', [ArticleController::class, 'updateSortBulk'])->name('articles.updateSortBulk');
@@ -284,7 +284,7 @@ Route::group([
                 Route::put('/settings/update-sort-bulk', [ParameterController::class, 'updateSortBulk'])->name('settings.updateSortBulk');
 
                 // Обновление сортировки (Имена параметров уже были правильные)
-                Route::put('/pages/{page}/sort', [RubricController::class, 'updateSort'])->name('pages.updateSort');
+                Route::put('/categories/{category}/sort', [CategoryController::class, 'updateSort'])->name('categories.updateSort');
                 Route::put('/rubrics/{rubric}/sort', [RubricController::class, 'updateSort'])->name('rubrics.updateSort');
                 Route::put('/sections/{section}/sort', [SectionController::class, 'updateSort'])->name('sections.updateSort');
                 Route::put('/tags/{tag}/sort', [TagController::class, 'updateSort'])->name('tags.updateSort');

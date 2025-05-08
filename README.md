@@ -277,15 +277,15 @@
     `docker exec ring-php-app php artisan make:model User/Like/VideoLike` <br>
     `docker exec ring-php-app php artisan migrate` <br>
 
-38) creating business logic ap Page
-    `docker exec ring-php-app php artisan make:model Admin/Page/Page -mf` <br>
+38) creating business logic ap Category
+    `docker exec ring-php-app php artisan make:model Admin/Category/Category -mf` <br>
     `docker exec ring-php-app php artisan migrate` <br>
-    `docker exec ring-php-app php artisan make:seeder PageSeeder` <br>
-    `docker exec ring-php-app php artisan db:seed --class=PageSeeder` <br>
-    `docker exec ring-php-app php artisan make:resource Admin/Page/PageResource` <br>
-    `docker exec ring-php-app php artisan make:resource Admin/Page/PageSharedResource` <br>
-    `docker exec ring-php-app php artisan make:request Admin/Page/PageRequest` <br>
-    `docker exec ring-php-app php artisan make:controller Admin/Page/PageController --resource` <br>
+    `docker exec ring-php-app php artisan make:seeder CategorySeeder` <br>
+    `docker exec ring-php-app php artisan db:seed --class=CategorySeeder` <br>
+    `docker exec ring-php-app php artisan make:resource Admin/Category/CategoryResource` <br>
+    `docker exec ring-php-app php artisan make:resource Admin/Category/CategorySharedResource` <br>
+    `docker exec ring-php-app php artisan make:request Admin/Category/CategoryRequest` <br>
+    `docker exec ring-php-app php artisan make:controller Admin/Category/CategoryController --resource` <br>
 
 39) creating business logic app API <br>
     `composer require "darkaonline/l5-swagger` <br>

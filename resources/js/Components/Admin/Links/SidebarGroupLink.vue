@@ -127,8 +127,8 @@ const {t} = useI18n();
             {{ t('permissions') }}
         </template>
     </SidebarLink>
-    <SidebarLink :href="route('admin.pages.index')"
-                 :active="route().current('pages.index')"
+    <SidebarLink :href="route('admin.categories.index')"
+                 :active="route().current('categories.index')"
                  :expanded="props.expanded">
         <template #default>
             <svg class="shrink-0 h-6 w-6" viewBox="0 0 24 24">
@@ -137,7 +137,7 @@ const {t} = useI18n();
             </svg>
         </template>
         <template #text>
-            {{ t('pages') }}
+            {{ t('categories') }}
         </template>
     </SidebarLink>
     <SidebarLink :href="route('admin.rubrics.index')"

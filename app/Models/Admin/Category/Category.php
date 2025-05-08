@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models\Admin\Page;
+namespace App\Models\Admin\Category;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -8,11 +8,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Builder; // Импортируем Builder для скоупов
 
-class Page extends Model
+class Category extends Model
 {
     use HasFactory;
 
-    protected $table = 'pages';
+    protected $table = 'categories';
 
     protected $fillable = [
         'parent_id',
@@ -36,23 +36,23 @@ class Page extends Model
     ];
 
     /**
-     * Родительская страница
+     * Родительская категория
      *
-     * Get the parent page.
+     * Get the parent category.
      *
      * @return BelongsTo
      */
     public function parent(): BelongsTo
     {
-        // Связь с той же моделью Page
+        // Связь с той же моделью Category
         // foreignKey: 'parent_id', ownerKey: 'id' (по умолчанию)
-        return $this->belongsTo(Page::class, 'parent_id');
+        return $this->belongsTo(Category::class, 'parent_id');
     }
 
     /**
-     * Дочерние страницы
+     * Дочерние категории
      *
-     * Get the direct children pages, ordered by sort.
+     * Get the direct children categories, ordered by sort.
      * Важно: Эта связь выбирает дочерние элементы *без* учета локали родителя.
      * Фильтрация по локали должна происходить при запросе дерева.
      *
@@ -60,9 +60,9 @@ class Page extends Model
      */
     public function children(): HasMany
     {
-        // Связь с той же моделью Page
+        // Связь с той же моделью Category
         // foreignKey: 'parent_id', localKey: 'id' (по умолчанию)
-        return $this->hasMany(Page::class, 'parent_id')->orderBy('sort');
+        return $this->hasMany(Category::class, 'parent_id')->orderBy('sort');
     }
 
     /**
@@ -82,7 +82,7 @@ class Page extends Model
     // ------------------------------------------------------------------------
 
     /**
-     * Scope a query to only include pages of a given locale.
+     * Scope a query to only include categories of a given locale.
      *
      * @param Builder $query
      * @param string $locale
@@ -94,7 +94,7 @@ class Page extends Model
     }
 
     /**
-     * Scope a query to only include root pages (those without a parent).
+     * Scope a query to only include root categories (those without a parent).
      *
      * @param Builder $query
      * @return Builder
@@ -105,7 +105,7 @@ class Page extends Model
     }
 
     /**
-     * Scope a query to only include active pages.
+     * Scope a query to only include active categories.
      *
      * @param Builder $query
      * @return Builder
@@ -120,7 +120,7 @@ class Page extends Model
     // ------------------------------------------------------------------------
 
     /**
-     * Проверяет, является ли страница корневой.
+     * Проверяет, является ли категория корневой.
      *
      * @return bool
      */
@@ -130,7 +130,7 @@ class Page extends Model
     }
 
     /**
-     * Проверяет, есть ли у страницы дочерние элементы.
+     * Проверяет, есть ли у категории дочерние элементы.
      * Полезно для отображения иконки "развернуть" в аккордеоне.
      *
      * @return bool
