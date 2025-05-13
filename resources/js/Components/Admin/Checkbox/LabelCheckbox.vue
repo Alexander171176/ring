@@ -13,6 +13,6 @@ const props = defineProps({
 </script>
 
 <template>
-    <label class="ml-2 font-medium text-sm text-blue-600 dark:text-sky-500">{{ text }}</label>
+    <label class="ml-2 font-medium text-sm text-indigo-600 dark:text-sky-500">{{ text }}</label>
 </template>
 

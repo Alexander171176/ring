@@ -244,17 +244,36 @@ class SettingController extends Controller
     }
 
     /**
-     * Обновление количества элементов в страницах
+     * Обновление количества элементов в спортсменах
      *
      * @param UpdateCountSettingRequest $request
      * @return RedirectResponse
      */
-    public function updateAdminCountPages(UpdateCountSettingRequest $request): RedirectResponse
+    public function updateAdminCountAthletes(UpdateCountSettingRequest $request): RedirectResponse
     {
         return $this->updateSettingAndRedirect(
             $request,
-            'AdminCountPages',
-            'site_settings.AdminCountPages',
+            'AdminCountAthletes',
+            'site_settings.AdminCountAthletes',
+            'number',
+            'admin_display',
+            'Количество элементов на странице успешно обновлено.',
+            'Ошибка обновления настройки количества элементов.'
+        );
+    }
+
+    /**
+     * Обновление количества элементов в категориях
+     *
+     * @param UpdateCountSettingRequest $request
+     * @return RedirectResponse
+     */
+    public function updateAdminCountCategories(UpdateCountSettingRequest $request): RedirectResponse
+    {
+        return $this->updateSettingAndRedirect(
+            $request,
+            'AdminCountCategories',
+            'site_settings.AdminCountCategories',
             'number',
             'admin_display',
             'Количество элементов на странице успешно обновлено.',
@@ -508,17 +527,36 @@ class SettingController extends Controller
     }
 
     /**
-     * Обновляет сортировку элементов в страницах
+     * Обновляет сортировку элементов в спортсменах
      *
      * @param UpdateSortRequest $request
      * @return RedirectResponse
      */
-    public function updateAdminSortPages(UpdateSortRequest $request): RedirectResponse
+    public function updateAdminSortAthletes(UpdateSortRequest $request): RedirectResponse
     {
         return $this->updateSettingAndRedirect(
             $request,
-            'AdminSortPages',
-            'site_settings.AdminSortPages',
+            'AdminSortAthletes',
+            'site_settings.AdminSortAthletes',
+            'string',
+            'admin_sort',
+            'Сортировка по умолчанию успешно обновлена.',
+            'Ошибка обновления настройки сортировки.'
+        );
+    }
+
+    /**
+     * Обновляет сортировку элементов в категориях
+     *
+     * @param UpdateSortRequest $request
+     * @return RedirectResponse
+     */
+    public function updateAdminSortCategories(UpdateSortRequest $request): RedirectResponse
+    {
+        return $this->updateSettingAndRedirect(
+            $request,
+            'AdminSortCategories',
+            'site_settings.AdminSortCategories',
             'string',
             'admin_sort',
             'Сортировка по умолчанию успешно обновлена.',

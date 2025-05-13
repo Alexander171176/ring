@@ -7,7 +7,7 @@ defineProps({
 </script>
 
 <template>
-    <label class="mb-1 block font-medium text-sm text-blue-600 dark:text-sky-500">
+    <label class="mb-1 block font-medium text-sm text-indigo-600 dark:text-sky-500">
         <template v-if="$slots.default">
             <slot />
         </template>

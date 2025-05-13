@@ -1,7 +1,9 @@
 1) `php artisan key:generate --ansi` <br><br>
 
 2) Install Webp, Spatie Media Library <br>
+`прежде отключить файрвол антивируса, потом снова включить` <br>
 `composer require intervention/image:^2.7` <br>
+`composer require spatie/laravel-image-optimizer` <br>
 `composer require mcamara/laravel-localization` <br>
 `docker exec ring-php-app php artisan vendor:publish --provider="Mcamara\LaravelLocalization\LaravelLocalizationServiceProvider"` <br>
 `docker exec -it ring-php-app composer require spatie/laravel-medialibrary:"^11.0" --with-all-dependencies` <br>
@@ -341,3 +343,17 @@
     `docker exec -it ring-php-app composer install --no-cache --no-interaction --prefer-dist` <br> пересборка зависимостей composer
     `composer config --global disable-tls false` <br> включение сертификатов обратно
 ____________________________
+
+42) creating business logic ap Athlete and Tournament
+    `docker exec ring-php-app php artisan make:model Admin/Athlete/Athlete -mfs` <br>
+    `docker exec ring-php-app php artisan make:model Admin/TournamentType/TournamentType -mfs` <br>
+    `docker exec ring-php-app php artisan make:model Admin/Tournament/Tournament -mfs` <br>
+    `docker exec ring-php-app php artisan make:migration create_athlete_has_tournament_table` <br>
+    `docker exec ring-php-app php artisan make:model Admin/Athlete/AthleteImage -mfs` <br>
+    `docker exec ring-php-app php artisan make:migration create_athlete_has_images_table --create=athlete_has_images` <br>
+    `docker exec ring-php-app php artisan make:resource Admin/Athlete/AthleteResource` <br>
+    `docker exec ring-php-app php artisan make:resource Admin/Athlete/AthleteSharedResource` <br>
+    `docker exec ring-php-app php artisan make:resource Admin/Athlete/AthleteImageResource` <br>
+    `docker exec ring-php-app php artisan make:request Admin/Athlete/AthleteRequest` <br>
+    `docker exec ring-php-app php artisan make:controller Admin/Athlete/AthleteController --resource` <br>
+    `docker exec ring-php-app php artisan db:seed --class=AthleteSeeder` <br>

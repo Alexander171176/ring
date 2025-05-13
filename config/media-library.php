@@ -29,7 +29,7 @@ return [
     /*
      * By default all conversions will be performed on a queue.
      */
-    'queue_conversions_by_default' => false,
+    'queue_conversions_by_default' => env('QUEUE_CONVERSIONS_BY_DEFAULT', false), // Для продакшена true и настроить очереди
 
     /*
      * Should database transactions be run after database commits?
@@ -148,16 +148,6 @@ return [
             '-mt', // multithreading for some speed improvements.
             '-q 90', // quality factor that brings the least noticeable changes.
         ],
-        Spatie\ImageOptimizer\Optimizers\Avifenc::class => [
-            '-a cq-level=23', // constant quality level, lower values mean better quality and greater file size (0-63).
-            '-j all', // number of jobs (worker threads, "all" uses all available cores).
-            '--min 0', // min quantizer for color (0-63).
-            '--max 63', // max quantizer for color (0-63).
-            '--minalpha 0', // min quantizer for alpha (0-63).
-            '--maxalpha 63', // max quantizer for alpha (0-63).
-            '-a end-usage=q', // rate control mode set to Constant Quality mode.
-            '-a tune=ssim', // SSIM as tune the encoder for distortion metric.
-        ],
     ],
 
     /*
@@ -166,7 +156,6 @@ return [
     'image_generators' => [
         Spatie\MediaLibrary\Conversions\ImageGenerators\Image::class,
         Spatie\MediaLibrary\Conversions\ImageGenerators\Webp::class,
-        Spatie\MediaLibrary\Conversions\ImageGenerators\Avif::class,
         Spatie\MediaLibrary\Conversions\ImageGenerators\Pdf::class,
         Spatie\MediaLibrary\Conversions\ImageGenerators\Svg::class,
         Spatie\MediaLibrary\Conversions\ImageGenerators\Video::class,
@@ -182,7 +171,7 @@ return [
      * The engine that should perform the image conversions.
      * Should be either `gd` or `imagick`.
      */
-    'image_driver' => env('IMAGE_DRIVER', 'gd'),
+    'image_driver' => env('IMAGE_DRIVER', 'imagick'), // Рекомендуется imagick, т.к. он установлен
 
     /*
      * FFMPEG & FFProbe binaries paths, only used if you try to generate video
@@ -269,7 +258,7 @@ return [
      *
      * More info: https://css-tricks.com/native-lazy-loading/
      */
-    'default_loading_attribute_value' => null,
+    'default_loading_attribute_value' => 'lazy', // Включаем нативную ленивую загрузку
 
     /*
      * You can specify a prefix for that is used for storing all media.

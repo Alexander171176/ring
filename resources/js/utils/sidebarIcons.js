@@ -29,9 +29,12 @@ export const sidebarIcons = {
         <circle class="fill-current text-blue-600" cx="18.5" cy="18.5" r="4.5"></circle>
         <circle class="fill-current text-blue-400" cx="5.5" cy="18.5" r="4.5"></circle>
     `,
-    categories: `
-        <path class="fill-current text-blue-400" d="M22,24H13a2,2,0,0,1-2-2V11a2,2,0,0,1,2-2h9a2,2,0,0,1,2,2V22A2,2,0,0,1,22,24ZM13,11h0V21h9V11Z"></path>
-        <path class="fill-current text-blue-600" d="M9,18H2V2H16V7h2V2a2,2,0,0,0-2-2H2A2,2,0,0,0,0,2V20a2,2,0,0,0,2,2H9Z"></path>
+    athletes: `
+        <path class="fill-current text-blue-600" d="M3,7H1V2A1,1,0,0,1,2,1H7V3H3Z"></path>
+        <path class="fill-current text-blue-600" d="M23,7H21V3H17V1h5a1,1,0,0,1,1,1Z"></path>
+        <path class="fill-current text-blue-600" d="M7,23H2a1,1,0,0,1-1-1V17H3v4H7Z"></path>
+        <path class="fill-current text-blue-600" d="M22,23H17V21h4V17h2v5A1,1,0,0,1,22,23Z"></path>
+        <path class="fill-current text-blue-400" d="M18.242,18.03l-2.727-.681a1,1,0,0,1-.744-.806l-.249-1.491A6.792,6.792,0,0,0,17,10V9A5,5,0,0,0,7,9v1a6.792,6.792,0,0,0,2.478,5.052l-.249,1.491a1,1,0,0,1-.743.806l-2.728.681A1,1,0,0,0,6,20H18a1,1,0,0,0,.242-1.97Z"></path>
     `,
     rubrics: `
         <circle class="fill-current text-blue-600" cx="16" cy="8" r="8"></circle>
