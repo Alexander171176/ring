@@ -33,7 +33,7 @@ class AthleteResource extends JsonResource
             'stance' => $this->stance,
             'bio' => $this->bio,
             // 'avatar' => $this->avatar ? asset('storage/' . $this->avatar) : null, // Если avatar хранится в public/storage
-            // 'avatar' => $this->avatar, // Или если 'avatar' это полный URL, то просто $this->avatar
+            'avatar' => $this->avatar, // Или если 'avatar' это полный URL, то просто $this->avatar
             'wins' => $this->wins,
             'losses' => $this->losses,
             'draws' => $this->draws,

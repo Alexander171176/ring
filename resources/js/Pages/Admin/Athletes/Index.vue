@@ -98,7 +98,7 @@ const closeModal = () => {
 
 // --- Логика удаления ---
 /**
- * Отправляет запрос на удаление тега на сервер.
+ * Отправляет запрос на удаление спортсмена на сервер.
  */
 const deleteAthlete = () => {
     if (athleteToDeleteId.value === null) return;
@@ -111,13 +111,13 @@ const deleteAthlete = () => {
         preserveState: false,
         onSuccess: (page) => {
             closeModal(); // Закрываем модалку
-            toast.success(`Тег "${nicknameToDelete || 'ID: ' + idToDelete}" удален.`);
+            toast.success(`Спортсмен "${nicknameToDelete || 'ID: ' + idToDelete}" удален.`);
             // console.log('Удаление успешно.');
         },
         onError: (errors) => {
             closeModal();
             const errorMsg = errors.general || errors[Object.keys(errors)[0]] || 'Произошла ошибка при удалении.';
-            toast.error(`${errorMsg} (Тег: ${nicknameToDelete || 'ID: ' + idToDelete})`);
+            toast.error(`${errorMsg} (Спортсмен: ${nicknameToDelete || 'ID: ' + idToDelete})`);
             console.error('Ошибка удаления:', errors);
         },
         onFinish: () => {
@@ -146,7 +146,7 @@ const toggleActivity = (athlete) => {
                 // Обновляем состояние локально СРАЗУ ЖЕ (оптимистичное обновление)
                 // Или дожидаемся обновления props, если preserveState: false
                 // athlete.activity = newActivity; // Уже не нужно, если preserveState: false
-                toast.success(`Тег "${athlete.nickname}" ${actionText}.`);
+                toast.success(`Спортсмен "${athlete.nickname}" ${actionText}.`);
             },
             onError: (errors) => {
                 toast.error(errors.activity || errors.general || `Ошибка изменения активности для "${athlete.nickname}".`);
@@ -257,13 +257,13 @@ const handleSortOrderUpdate = (orderedIds) => {
             preserveScroll: true,
             preserveState: true, // Сохраняем состояние, т.к. на сервере нет редиректа
             onSuccess: () => {
-                toast.success("Порядок тегов успешно обновлен.");
+                toast.success("Порядок спортсменов успешно обновлен.");
                 // Обновляем локальные данные (если нужно, но Inertia должна прислать обновленные props)
                 // Возможно, лучше сделать preserveState: false и дождаться обновления props
             },
             onError: (errors) => {
                 console.error("Ошибка обновления сортировки:", errors);
-                toast.error(errors.general || errors.athletes || "Не удалось обновить порядок тегов.");
+                toast.error(errors.general || errors.athletes || "Не удалось обновить порядок спортсменов.");
                 // TODO: Откатить порядок на фронтенде? Сложно без сохранения исходного состояния.
                 // Проще сделать preserveState: false или router.reload при ошибке.
                 router.reload({only: ['athletes'], preserveScroll: true}); // Перезагружаем данные при ошибке
@@ -307,7 +307,7 @@ const toggleSelectAthlete = (athleteId) => {
  */
 const bulkToggleActivity = (newActivity) => {
     if (!selectedAthletes.value.length) {
-        toast.warning('Выберите теги для активации/деактивации тегов');
+        toast.warning('Выберите спортсменов для активации/деактивации спортсменов');
         return;
     }
     axios
@@ -337,7 +337,7 @@ const bulkToggleActivity = (newActivity) => {
  */
 const bulkDelete = () => {
     if (selectedAthletes.value.length === 0) {
-        toast.warning('Выберите хотя бы один тег для удаления.'); // <--- Используем toast
+        toast.warning('Выберите хотя бы одного спортсмена для удаления.'); // <--- Используем toast
         return;
     }
     if (!confirm(`Вы уверены, что хотите их удалить ?`)) {
@@ -349,14 +349,14 @@ const bulkDelete = () => {
         preserveState: false, // Перезагружаем данные страницы
         onSuccess: (page) => {
             selectedAthletes.value = []; // Очищаем выбор
-            toast.success('Массовое удаление тегов успешно завершено.');
+            toast.success('Массовое удаление спортсменов успешно завершено.');
             // console.log('Массовое удаление статей успешно завершено.');
         },
         onError: (errors) => {
             console.error("Ошибка массового удаления:", errors);
             // Отображаем первую ошибку
             const errorKey = Object.keys(errors)[0];
-            const errorMessage = errors[errorKey] || 'Произошла ошибка при удалении тегов.';
+            const errorMessage = errors[errorKey] || 'Произошла ошибка при удалении спортсменов.';
             toast.error(errorMessage);
         },
     });

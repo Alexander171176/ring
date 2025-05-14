@@ -5,8 +5,7 @@
  */
 import { useToast } from 'vue-toastification';
 import { useI18n } from 'vue-i18n';
-import {transliterate} from '@/utils/transliteration';
-import { defineProps } from 'vue';
+import {computed, defineProps, onMounted, ref} from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import TitlePage from '@/Components/Admin/Headlines/TitlePage.vue';
@@ -15,15 +14,19 @@ import LabelInput from '@/Components/Admin/Input/LabelInput.vue';
 import InputText from '@/Components/Admin/Input/InputText.vue';
 import InputError from '@/Components/Admin/Input/InputError.vue';
 import PrimaryButton from '@/Components/Admin/Buttons/PrimaryButton.vue';
-import SelectLocale from "@/Components/Admin/Select/SelectLocale.vue";
 import MetaDescTextarea from "@/Components/Admin/Textarea/MetaDescTextarea.vue";
-import MetatagsButton from "@/Components/Admin/Buttons/MetatagsButton.vue";
-import ClearMetaButton from "@/Components/Admin/Buttons/ClearMetaButton.vue";
 import LabelCheckbox from "@/Components/Admin/Checkbox/LabelCheckbox.vue";
 import ActivityCheckbox from "@/Components/Admin/Checkbox/ActivityCheckbox.vue";
 import InputNumber from "@/Components/Admin/Input/InputNumber.vue";
 import CKEditor from "@/Components/Admin/CKEditor/CKEditor.vue";
 import TinyEditor from "@/Components/Admin/TinyEditor/TinyEditor.vue";
+
+// Импорт двух отдельных компонентов для работы с изображениями:
+import MultiImageUpload from '@/Components/Admin/Image/MultiImageUpload.vue'; // для загрузки новых изображений
+import MultiImageEdit from '@/Components/Admin/Image/MultiImageEdit.vue';
+import AvatarEditUpload from "@/Components/Admin/Athlete/Avatar/AvatarEditUpload.vue";
+import StanceSelect from "@/Components/Admin/Athlete/Select/StanceSelect.vue";     // для редактирования существующего аватара
+
 
 // --- Инициализация ---
 const toast = useToast();
@@ -33,10 +36,7 @@ const { t } = useI18n();
  * Входные свойства компонента.
  */
 const props = defineProps({
-    tag: {
-        type: Object,
-        required: true
-    },
+    athlete: { type: Object, required: true }
 });
 
 /**
@@ -44,87 +44,96 @@ const props = defineProps({
  */
 const form = useForm({
     _method: 'PUT',
-    sort: props.tag.sort ?? 0,
-    name: props.tag?.name,
-    locale: props.tag.locale ?? '',
-    slug: props.tag.slug ?? '',
-    short: props.tag.short ?? '',
-    description: props.tag.description ?? '',
-    meta_title: props.tag.meta_title ?? '',
-    meta_keywords: props.tag.meta_keywords ?? '',
-    meta_desc: props.tag.meta_desc ?? '',
-    activity: Boolean(props.tag.activity ?? false),
+    sort: props.athlete.sort ?? 0,
+    nickname: props.athlete.nickname ?? '',
+    first_name: props.athlete.first_name ?? '',
+    last_name: props.athlete.last_name ?? '',
+    date_of_birth: props.athlete.date_of_birth ?? '',
+    nationality: props.athlete.nationality ?? '',
+    height_cm: props.athlete.height_cm ?? 0,
+    reach_cm: props.athlete.reach_cm ?? 0,
+    stance: props.athlete.stance ?? null,
+    bio: props.athlete.bio ?? '',
+    short: props.athlete.short ?? '',
+    description: props.athlete.description ?? '',
+    wins: props.athlete.wins ?? 0,
+    losses: props.athlete.losses ?? 0,
+    draws: props.athlete.draws ?? 0,
+    no_contests: props.athlete.no_contests ?? 0,
+    wins_by_ko: props.athlete.wins_by_ko ?? 0,
+    wins_by_submission: props.athlete.wins_by_submission ?? 0,
+    wins_by_decision: props.athlete.wins_by_decision ?? 0,
+    activity: Boolean(props.athlete.activity),
+    avatar: null,
+    deletedImages: [] // массив для хранения ID удалённых изображений
+});
+
+const avatarUrl = computed(() => {
+    return props.athlete.avatar
+        ? `/storage/${props.athlete.avatar}`
+        : null;
+});
+
+// console.log(props.athlete.avatar);
+
+const formatDate = (dateStr) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return '';
+    return date.toISOString().split('T')[0];
+};
+
+onMounted(() => {
+    if (form.date_of_birth) {
+        form.date_of_birth = formatDate(form.date_of_birth);
+    }
 });
 
 /**
- * Автоматически генерирует slug из поля title, если slug пуст.
+ * Массив существующих изображений.
  */
-const handleUrlInputFocus = () => {
-    if (form.name) {
-        form.slug = transliterate(form.name.toLowerCase());
-    }
+const existingImages = ref(
+    (props.athlete.images || [])
+        .filter(img => img.url) // фильтруем изображения, у которых есть URL
+        .map(img => ({
+            id: img.id,
+            // Если есть WebP-версия, используем её, иначе — оригинальный URL
+            url: img.webp_url || img.url,
+            order: img.order || 0,
+            alt: img.alt || '',
+            caption: img.caption || ''
+        }))
+);
+
+/**
+ * Массив для новых изображений (будут содержать свойство file).
+ */
+const newImages = ref([]);
+
+/**
+ * Обработчик обновления существующих изображений, приходящих из компонента MultiImageEdit.
+ */
+const handleExistingImagesUpdate = (images) => {
+    existingImages.value = images;
 };
 
 /**
- * Обрезает текст до заданной длины, стараясь не разрывать слова при генерации мета-тегов.
+ * Обработчик удаления изображения из существующего списка.
  */
-const truncateText = (text, maxLength, addEllipsis = false) => {
-    if (text.length <= maxLength) return text;
-    const truncated = text.substr(0, text.lastIndexOf(' ', maxLength));
-    return addEllipsis ? `${truncated}...` : truncated;
+const handleDeleteExistingImage = (deletedId) => {
+    if (!form.deletedImages.includes(deletedId)) {
+        form.deletedImages.push(deletedId);
+    }
+    existingImages.value = existingImages.value.filter(img => img.id !== deletedId);
+    // console.log("Deleted IDs:", form.deletedImages);
+    // console.log("Remaining images:", existingImages.value);
 };
 
 /**
- * очистка мета-тегов.
+ * Обработчик обновления новых изображений из компонента MultiImageUpload.
  */
-const clearMetaFields = () => {
-    form.meta_title = '';
-    form.meta_keywords = '';
-    form.meta_desc = '';
-};
-
-/**
- * Генерирует значения для мета-полей (title, keywords, description),
- * если они не были заполнены вручную.
- */
-const generateMetaFields = () => {
-    // Генерация meta_title
-    if (form.name && !form.meta_title) {
-        form.meta_title = truncateText(form.name, 160); // Используем вашу функцию truncateText
-    }
-
-    // Генерация meta_keywords из form.short
-    if (!form.meta_keywords && form.short) {
-        // 1. Удаляем HTML-теги (на случай, если они есть в form.short)
-        let text = form.short.replace(/(<([^>]+)>)/gi, "");
-
-        // 2. Удаляем знаки препинания, кроме дефисов внутри слов (опционально)
-        //    Оставляем буквы (включая кириллицу/другие языки), цифры, дефисы и пробелы
-        text = text.replace(/[.,!?;:()\[\]{}"'«»]/g, ''); // Удаляем основную пунктуацию
-        // text = text.replace(/[^\p{L}\p{N}\s-]/gu, ''); // Более строгий вариант: оставить только буквы, цифры, пробелы, дефис
-
-        // 3. Разбиваем текст на слова по пробелам
-        const words = text.split(/\s+/)
-            // 4. Фильтруем пустые строки и короткие слова (например, менее 3 символов), если нужно
-            .filter(word => word && word.length >= 3)
-            // 5. Приводим к нижнему регистру (стандартно для ключевых слов)
-            .map(word => word.toLowerCase())
-            // 6. Удаляем дубликаты слов
-            .filter((value, index, self) => self.indexOf(value) === index);
-
-        // 7. Объединяем слова через запятую и пробел
-        const keywords = words.join(', ');
-
-        // 8. Обрезаем результат до максимальной длины (если нужно)
-        form.meta_keywords = truncateText(keywords, 255); // Используем вашу функцию truncateText
-    }
-
-    // Генерация meta_desc из form.short
-    if (form.short && !form.meta_desc) {
-        // Убираем HTML-теги для описания
-        const descText = form.short.replace(/(<([^>]+)>)/gi, "");
-        form.meta_desc = truncateText(descText, 200, true); // Используем другую длину и добавление ...
-    }
+const handleNewImagesUpdate = (images) => {
+    newImages.value = images;
 };
 
 /**
@@ -134,18 +143,34 @@ const submit = () => {
     form.transform((data) => ({
         ...data,
         activity: data.activity ? 1 : 0,
+        images: [
+            ...newImages.value.map(img => ({
+                file: img.file,
+                order: img.order,
+                alt: img.alt,
+                caption: img.caption
+            })),
+            ...existingImages.value.map(img => ({
+                id: img.id,
+                order: img.order,
+                alt: img.alt,
+                caption: img.caption
+            }))
+        ],
+        deletedImages: form.deletedImages
     }));
-    form.put(route('admin.tags.update', props.tag.id), {
-        errorBag: 'editTag',
+
+    form.post(route('admin.athletes.update', props.athlete.id), {
+        forceFormData: true,
+        errorBag: 'editAthlete',
         preserveScroll: true,
         onSuccess: () => {
-            // console.log("Форма успешно отправлена.");
-            toast.success('Тег успешно обновлен!'); // Можно добавить, если нужно кастомное
+            toast.success('Спортсмен успешно обновлён!');
         },
         onError: (errors) => {
-            console.error("Не удалось отправить форму:", errors);
+            console.error('❌ Ошибки валидации:', errors);
             const firstError = errors[Object.keys(errors)[0]];
-            toast.error(firstError || 'Пожалуйста, проверьте правильность заполнения полей.')
+            toast.error(firstError || 'Пожалуйста, проверьте правильность заполнения полей.');
         }
     });
 };
@@ -153,10 +178,10 @@ const submit = () => {
 </script>
 
 <template>
-    <AdminLayout :title="t('editTag')">
+    <AdminLayout :title="t('editAthlete')">
         <template #header>
             <TitlePage>
-                {{ t('editTag') }} ID:{{ props.tag.id }}
+                {{ t('editAthlete') }} ID:{{ props.athlete.id }}
             </TitlePage>
         </template>
         <div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-12xl mx-auto">
@@ -166,7 +191,7 @@ const submit = () => {
                         bg-opacity-95 dark:bg-opacity-95">
                 <div class="sm:flex sm:justify-between sm:items-center mb-2">
                     <!-- Кнопка назад -->
-                    <DefaultButton :href="route('admin.tags.index')">
+                    <DefaultButton :href="route('admin.athletes.index')">
                         <template #icon>
                             <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">
                                 <path
@@ -181,7 +206,7 @@ const submit = () => {
                         <!-- Datepicker built with flatpickr -->
                     </div>
                 </div>
-                <form @submit.prevent="submit" class="p-3 w-full">
+                <form @submit.prevent="submit" enctype="multipart/form-data" class="p-3 w-full">
 
                     <div class="mb-3 flex justify-between flex-col lg:flex-row items-center gap-4">
 
@@ -189,12 +214,6 @@ const submit = () => {
                         <div class="flex flex-row items-center gap-2">
                             <ActivityCheckbox v-model="form.activity"/>
                             <LabelCheckbox for="activity" :text="t('activity')" class="text-sm h-8 flex items-center"/>
-                        </div>
-
-                        <!-- Локализация -->
-                        <div class="flex flex-row items-center w-auto">
-                            <SelectLocale v-model="form.locale" :errorMessage="form.errors.locale"/>
-                            <InputError class="mt-2 lg:mt-0" :message="form.errors.locale"/>
                         </div>
 
                         <!-- Сортировка -->
@@ -214,42 +233,267 @@ const submit = () => {
 
                     </div>
 
+                    <!-- Поле Псевдоним -->
                     <div class="mb-3 flex flex-col items-start">
                         <div class="flex justify-between w-full">
-                            <LabelInput for="name">
-                                <span class="text-red-500 dark:text-red-300 font-semibold">*</span> {{ t('name') }}
+                            <LabelInput for="nickname">
+                                {{ t('nickname') }}
                             </LabelInput>
                             <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
-                                {{ form.name.length }} / 100 {{ t('characters') }}
+                                {{ form.nickname.length }} / 100 {{ t('characters') }}
                             </div>
                         </div>
                         <InputText
-                            id="name"
+                            id="nickname"
                             type="text"
-                            v-model="form.name"
+                            v-model="form.nickname"
                             maxlength="100"
                             required
-                            autocomplete="name"
+                            autocomplete="nickname"
                         />
-                        <InputError class="mt-2" :message="form.errors.name"/>
+                        <InputError class="mt-2" :message="form.errors.nickname"/>
                     </div>
 
-                    <!-- Поле slug -->
+                    <!-- Поле Имя -->
                     <div class="mb-3 flex flex-col items-start">
-                        <LabelInput for="slug">
-                            <span class="text-red-500 dark:text-red-300 font-semibold">*</span> {{ t('url') }}
-                        </LabelInput>
+                        <div class="flex justify-between w-full">
+                            <LabelInput for="first_name">
+                                <span class="text-red-500 dark:text-red-300 font-semibold">*</span> {{ t('name') }}
+                            </LabelInput>
+                            <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
+                                {{ form.first_name.length }} / 100 {{ t('characters') }}
+                            </div>
+                        </div>
                         <InputText
-                            id="slug"
+                            id="first_name"
                             type="text"
-                            v-model="form.slug"
+                            v-model="form.first_name"
+                            maxlength="100"
                             required
-                            autocomplete="slug"
-                            @focus="handleUrlInputFocus"
+                            autocomplete="first_name"
                         />
-                        <InputError class="mt-2" :message="form.errors.slug"/>
+                        <InputError class="mt-2" :message="form.errors.first_name"/>
                     </div>
 
+                    <!-- Поле Фамилия -->
+                    <div class="mb-3 flex flex-col items-start">
+                        <div class="flex justify-between w-full">
+                            <LabelInput for="last_name">
+                                <span class="text-red-500 dark:text-red-300 font-semibold">*</span> {{ t('lastName') }}
+                            </LabelInput>
+                            <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
+                                {{ form.last_name.length }} / 100 {{ t('characters') }}
+                            </div>
+                        </div>
+                        <InputText
+                            id="last_name"
+                            type="text"
+                            v-model="form.last_name"
+                            maxlength="100"
+                            required
+                            autocomplete="last_name"
+                        />
+                        <InputError class="mt-2" :message="form.errors.last_name"/>
+                    </div>
+
+                    <div class="mb-3 flex justify-between flex-col lg:flex-row items-center gap-4">
+
+                        <!-- Дата рождения -->
+                        <div class="mt-3 flex flex-col items-start w-full">
+                            <div class="flex justify-start w-full">
+                                <LabelInput for="date_of_birth" :value="t('dateBirth')"
+                                            class="mb-1 lg:mb-0 lg:mr-2"/>
+                                <InputText
+                                    id="date_of_birth"
+                                    type="date"
+                                    v-model="form.date_of_birth"
+                                    autocomplete="date_of_birth"
+                                    class="w-full max-w-56"
+                                />
+                                <InputError class="mt-1 sm:mt-0" :message="form.errors.date_of_birth"/>
+                            </div>
+                        </div>
+
+                        <!-- Поле Страна -->
+                        <div class="flex flex-row items-center justify-end w-full">
+                            <LabelInput for="nationality" class="mt-4 mr-2">
+                                {{ t('country') }}
+                            </LabelInput>
+                            <div class="mb-3 flex flex-col items-end w-96">
+                                <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
+                                    {{ form.nationality.length }} / 100 {{ t('characters') }}
+                                </div>
+                                <InputText
+                                    id="nationality"
+                                    type="text"
+                                    v-model="form.nationality"
+                                    maxlength="100"
+                                    required
+                                    autocomplete="nationality"
+                                />
+                                <InputError class="mt-2" :message="form.errors.nationality"/>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="mb-3 flex justify-between flex-col lg:flex-row items-center gap-4">
+
+                        <StanceSelect v-model="form.stance" :error="form.errors.stance" class="mt-3" />
+
+                        <!-- рост в сантиметрах -->
+                        <div class="flex flex-row items-center gap-2">
+                            <div class="h-8 flex items-center">
+                                <LabelInput for="height_cm" :value="t('cmHeight')" class="text-sm"/>
+                            </div>
+                            <InputNumber
+                                id="height_cm"
+                                type="number"
+                                v-model="form.height_cm"
+                                autocomplete="height_cm"
+                                class="w-full lg:w-28"
+                            />
+                            <InputError class="mt-2 lg:mt-0" :message="form.errors.height_cm"/>
+                        </div>
+
+                        <!-- размах рук в сантиметрах -->
+                        <div class="flex flex-row items-center gap-2">
+                            <div class="h-8 flex items-center">
+                                <LabelInput for="reach_cm" :value="t('cmReach')" class="text-sm"/>
+                            </div>
+                            <InputNumber
+                                id="reach_cm"
+                                type="number"
+                                v-model="form.reach_cm"
+                                autocomplete="reach_cm"
+                                class="w-full lg:w-28"
+                            />
+                            <InputError class="mt-2 lg:mt-0" :message="form.errors.reach_cm"/>
+                        </div>
+
+                    </div>
+
+                    <div class="mb-3 flex justify-between flex-col lg:flex-row items-center gap-4">
+
+                        <!-- Количество поражений -->
+                        <div class="flex flex-row items-center gap-2">
+                            <div class="h-8 flex items-center">
+                                <LabelInput for="losses" :value="t('losses')" class="text-sm"/>
+                            </div>
+                            <InputNumber
+                                id="losses"
+                                type="number"
+                                v-model="form.losses"
+                                autocomplete="losses"
+                                class="w-full lg:w-28"
+                            />
+                            <InputError class="mt-2 lg:mt-0" :message="form.errors.losses"/>
+                        </div>
+
+                        <!-- Количество ничьих -->
+                        <div class="flex flex-row items-center gap-2">
+                            <div class="h-8 flex items-center">
+                                <LabelInput for="draws" :value="t('draws')" class="text-sm"/>
+                            </div>
+                            <InputNumber
+                                id="draws"
+                                type="number"
+                                v-model="form.draws"
+                                autocomplete="draws"
+                                class="w-full lg:w-28"
+                            />
+                            <InputError class="mt-2 lg:mt-0" :message="form.errors.draws"/>
+                        </div>
+
+                        <!-- Количество побед -->
+                        <div class="flex flex-row items-center gap-2">
+                            <div class="h-8 flex items-center">
+                                <LabelInput for="wins" :value="t('wins')" class="text-sm"/>
+                            </div>
+                            <InputNumber
+                                id="wins"
+                                type="number"
+                                v-model="form.wins"
+                                autocomplete="wins"
+                                class="w-full lg:w-28"
+                            />
+                            <InputError class="mt-2 lg:mt-0" :message="form.errors.wins"/>
+                        </div>
+
+                    </div>
+
+                    <div class="mb-3 flex justify-between flex-col lg:flex-row items-center gap-4">
+
+                        <!-- Количество побед нокаутом -->
+                        <div class="flex flex-row items-center gap-2">
+                            <div class="h-8 flex items-center">
+                                <LabelInput for="wins_by_ko" :value="t('winsByKo')" class="text-sm"/>
+                            </div>
+                            <InputNumber
+                                id="wins_by_ko"
+                                type="number"
+                                v-model="form.wins_by_ko"
+                                autocomplete="wins_by_ko"
+                                class="w-full lg:w-28"
+                            />
+                            <InputError class="mt-2 lg:mt-0" :message="form.errors.wins_by_ko"/>
+                        </div>
+
+                        <!-- Количество побед сдачей (сабмишном) -->
+                        <div class="flex flex-row items-center gap-2">
+                            <div class="h-8 flex items-center">
+                                <LabelInput for="wins_by_submission" :value="t('winsBySubmission')" class="text-sm"/>
+                            </div>
+                            <InputNumber
+                                id="wins_by_submission"
+                                type="number"
+                                v-model="form.wins_by_submission"
+                                autocomplete="wins_by_submission"
+                                class="w-full lg:w-28"
+                            />
+                            <InputError class="mt-2 lg:mt-0" :message="form.errors.wins_by_submission"/>
+                        </div>
+
+                        <!-- Количество побед решением судей -->
+                        <div class="flex flex-row items-center gap-2">
+                            <div class="h-8 flex items-center">
+                                <LabelInput for="wins_by_decision" :value="t('winsByDecision')" class="text-sm"/>
+                            </div>
+                            <InputNumber
+                                id="wins_by_decision"
+                                type="number"
+                                v-model="form.wins_by_decision"
+                                autocomplete="wins_by_decision"
+                                class="w-full lg:w-28"
+                            />
+                            <InputError class="mt-2 lg:mt-0" :message="form.errors.wins_by_decision"/>
+                        </div>
+
+                    </div>
+
+                    <!-- Количество боев признанных несостоявшимися -->
+                    <div class="flex flex-row items-center gap-2">
+                        <div class="h-8 flex items-center">
+                            <LabelInput for="no_contests" :value="t('noContests')" class="text-sm"/>
+                        </div>
+                        <InputNumber
+                            id="no_contests"
+                            type="number"
+                            v-model="form.no_contests"
+                            autocomplete="no_contests"
+                            class="w-full lg:w-28"
+                        />
+                        <InputError class="mt-2 lg:mt-0" :message="form.errors.no_contests"/>
+                    </div>
+
+                    <!-- Биография -->
+                    <div class="mb-3 flex flex-col items-start">
+                        <LabelInput for="bio" :value="t('bio')" class="w-full flex justify-center"/>
+                        <TinyEditor v-model="form.bio" :height="500"/>
+                        <InputError class="mt-2" :message="form.errors.bio"/>
+                    </div>
+
+                    <!-- Краткое описание -->
                     <div class="mb-3 flex flex-col items-start">
                         <div class="flex justify-between w-full">
                             <LabelInput for="short" :value="t('shortDescription')"/>
@@ -261,81 +505,36 @@ const submit = () => {
                         <InputError class="mt-2" :message="form.errors.short"/>
                     </div>
 
+                    <!-- Описание -->
                     <div class="mb-3 flex flex-col items-start">
                         <LabelInput for="description" :value="t('description')"/>
-                        <TinyEditor v-model="form.description" :height="500" />
+                        <TinyEditor v-model="form.description" :height="500"/>
                         <!-- <CKEditor v-model="form.description" class="w-full"/> -->
                         <InputError class="mt-2" :message="form.errors.description"/>
                     </div>
 
-                    <div class="mb-3 flex flex-col items-start">
-                        <div class="flex justify-between w-full">
-                            <LabelInput for="meta_title" :value="t('metaTitle')"/>
-                            <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
-                                {{ form.meta_title.length }} / 160 {{ t('characters') }}
-                            </div>
-                        </div>
-                        <InputText
-                            id="meta_title"
-                            type="text"
-                            v-model="form.meta_title"
-                            maxlength="160"
-                            autocomplete="url"
-                        />
-                        <InputError class="mt-2" :message="form.errors.meta_title"/>
+                    <!-- Аватар -->
+                    <AvatarEditUpload
+                        v-model="form.avatar"
+                        :current-avatar="props.athlete.avatar"
+                        :error="form.errors.avatar"
+                    />
+
+                    <!-- Блок редактирования существующих изображений -->
+                    <div class="mt-4">
+                        <MultiImageEdit
+                            :images="existingImages"
+                            @update:images="handleExistingImagesUpdate"
+                            @delete-image="handleDeleteExistingImage" />
                     </div>
 
-                    <div class="mb-3 flex flex-col items-start">
-                        <div class="flex justify-between w-full">
-                            <LabelInput for="meta_keywords" :value="t('metaKeywords')"/>
-                            <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
-                                {{ form.meta_keywords.length }} / 255 {{ t('characters') }}
-                            </div>
-                        </div>
-                        <InputText
-                            id="meta_keywords"
-                            type="text"
-                            v-model="form.meta_keywords"
-                            maxlength="255"
-                            autocomplete="url"
-                        />
-                        <InputError class="mt-2" :message="form.errors.meta_keywords"/>
-                    </div>
-
-                    <div class="mb-3 flex flex-col items-start">
-                        <div class="flex justify-between w-full">
-                            <LabelInput for="meta_desc" :value="t('metaDescription')"/>
-                            <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
-                                {{ form.meta_desc.length }} / 200 {{ t('characters') }}
-                            </div>
-                        </div>
-                        <MetaDescTextarea v-model="form.meta_desc" maxlength="200" class="w-full"/>
-                        <InputError class="mt-2" :message="form.errors.meta_desc"/>
-                    </div>
-
-                    <div class="flex justify-end mt-4">
-                        <!-- Кнопка очистки мета-полей -->
-                        <ClearMetaButton @clear="clearMetaFields" class="mr-4">
-                            <template #default>
-                                <svg class="w-4 h-4 fill-current text-gray-500 shrink-0 mr-2" viewBox="0 0 16 16">
-                                    <path d="M8 0C3.58 0 0 3.58 0 8s3.58 8 8 8 8-3.58 8-8-3.58-8-8-8zm3 9H5V7h6v2z"/>
-                                </svg>
-                                {{ t('clearMetaFields') }}
-                            </template>
-                        </ClearMetaButton>
-                        <MetatagsButton @click.prevent="generateMetaFields">
-                            <template #icon>
-                                <svg class="w-4 h-4 fill-current text-slate-600 shrink-0 mr-2" viewBox="0 0 16 16">
-                                    <path
-                                        d="M13 7h2v6a1 1 0 01-1 1H4v2l-4-3 4-3v2h9V7zM3 9H1V3a1 1 0 011-1h10V0l4 3-4 3V4H3v5z"></path>
-                                </svg>
-                            </template>
-                            {{ t('generateMetaTags') }}
-                        </MetatagsButton>
+                    <!-- Блок загрузки новых изображений -->
+                    <div class="mt-4">
+                        <MultiImageUpload @update:images="handleNewImagesUpdate" />
                     </div>
 
                     <div class="flex items-center justify-center mt-4">
-                        <DefaultButton :href="route('admin.tags.index')" class="mb-3">
+                        <DefaultButton :href="route('admin.athletes.index')" class="mb-3">
                             <template #icon>
                                 <!-- SVG -->
                                 <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">

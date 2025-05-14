@@ -27,7 +27,6 @@ const {t} = useI18n();
             <option value="deselectAll">{{ t('deselectAll') }}</option>
             <option value="activate">{{ t('activate') }}</option>
             <option value="deactivate">{{ t('deactivate') }}</option>
-            <option value="delete">{{ t('deleteSelected') }}</option>
         </select>
     </div>
 </template>

@@ -14,31 +14,25 @@ class AthleteImageResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        if (is_null($this->resource)) {
-            return [];
-        }
-
         return [
-            'id' => $this->id,
-            'order' => $this->order, // Порядок самого объекта AthleteImage
-            'alt' => $this->alt,
-            'caption' => $this->caption,
-            'image_url' => $this->image_url, // Аксессор getImageUrlAttribute()
-            'webp_responsive_url' => $this->webp_responsive_url, // Аксессор
-            // Если вы хотите передавать готовый HTML тег:
-            // 'webp_responsive_image_tag' => $this->webp_responsive_image_tag,
-            // Если вы хотите передавать srcset для Vue:
-            // 'webp_srcset' => $this->whenLoaded('media', fn() => $this->getFirstMedia('images')?->getSrcset('webp_responsive')),
-            'thumb_url' => $this->thumb_url, // Аксессор
+            'id'         => $this->id,
+            'order'      => $this->order, // Уже integer из $casts
+            'alt'        => $this->alt,
+            'caption'    => $this->caption,
+
+            // Используем аксессоры из модели ArticleImage
+            'url'        => $this->image_url, // Оригинал
+            'webp_url'   => $this->webp_url,  // WebP версия
+            'thumb_url'  => $this->thumb_url, // Thumbnail версия <-- ДОБАВЛЕНО
+
+            // Даты в стандартном формате ISO 8601
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
 
-            // Информация о пивотной таблице, если ресурс используется в контексте Athlete
-            // 'pivot_order' будет доступно, если вы загрузили связь с withPivot('order')
-            // и используете этот ресурс при выводе Athlete->images
-            'pivot_order' => $this->whenPivotLoaded('athlete_has_images', function () {
-                return $this->pivot->order;
-            }),
+            // Дополнительные свойства, если нужны
+            'mime_type'  => $this->whenLoaded('media', fn() => $this->getFirstMedia('images')?->mime_type), // Получаем через getFirstMedia
+            'size'       => $this->whenLoaded('media', fn() => $this->getFirstMedia('images')?->size),      // Получаем через getFirstMedia
+            'size_human' => $this->whenLoaded('media', fn() => $this->getFirstMedia('images')?->humanReadableSize), // Размер в читаемом виде
         ];
     }
 }

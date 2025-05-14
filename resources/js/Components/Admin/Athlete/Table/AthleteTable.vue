@@ -47,15 +47,18 @@ const toggleAll = (event) => {
 
 // Функция изображения
 const getPrimaryImage = (athlete) => {
-    if (Array.isArray(athlete.images) && athlete.images.length > 0) {
+    // 1. Если есть изображения — использовать первое
+    if (Array.isArray(athlete.images) && athlete.images.length > 0 && athlete.images[0].url) {
         return athlete.images[0].url;
     }
 
+    // 2. Если есть аватар — построить путь
     if (athlete.avatar) {
-        return athlete.avatar;
+        return `/storage/${athlete.avatar}`;
     }
 
-    return null;
+    // 3. Если ничего нет — показать заглушку
+    return '/storage/athlete_avatar/default-image.png';
 };
 
 </script>

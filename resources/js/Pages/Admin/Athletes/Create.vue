@@ -5,7 +5,7 @@
  */
 import {useToast} from 'vue-toastification';
 import {useI18n} from 'vue-i18n';
-import {onMounted} from "vue";
+import {onMounted, ref} from "vue";
 import {useForm} from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import TitlePage from '@/Components/Admin/Headlines/TitlePage.vue';
@@ -20,6 +20,8 @@ import ActivityCheckbox from "@/Components/Admin/Checkbox/ActivityCheckbox.vue";
 import InputNumber from "@/Components/Admin/Input/InputNumber.vue";
 import TinyEditor from "@/Components/Admin/TinyEditor/TinyEditor.vue";
 import MultiImageUpload from "@/Components/Admin/Image/MultiImageUpload.vue";
+import AvatarCreateUpload from "@/Components/Admin/Athlete/Avatar/AvatarCreateUpload.vue";
+import StanceSelect from "@/Components/Admin/Athlete/Select/StanceSelect.vue";
 
 // --- Инициализация ---
 const toast = useToast();
@@ -44,17 +46,19 @@ const form = useForm({
     nationality: '', // Страна
     height_cm: '0', // рост в сантиметрах
     reach_cm: '0', // размах рук в сантиметрах
+    stance: null,
     bio: '', // Биография
     short: '', // Краткое Описание
     description: '', // Описание
-    wins: '0',
-    losses: '0',
-    draws: '0',
-    no_contests: '0',
-    wins_by_ko: '0',
-    wins_by_submission: '0',
-    wins_by_decision: '0',
-    activity: false,
+    wins: '0', // Количество побед
+    losses: '0', // Количество поражений
+    draws: '0', // Количество ничьих
+    no_contests: '0', // Количество боев признанных несостоявшимися
+    wins_by_ko: '0', // Количество побед нокаутом
+    wins_by_submission: '0', // Количество побед сдачей (сабмишном)
+    wins_by_decision: '0', // Количество побед решением судей
+    activity: false, // Активность
+    avatar: null, // Аватар png
     images: [] // Добавляем массив для загруженных изображений
 });
 
@@ -81,25 +85,23 @@ onMounted(() => {
  * Отправляет данные формы для создания.
  */
 const submit = () => {
-
     form.transform((data) => ({
         ...data,
         activity: data.activity ? 1 : 0,
     }));
 
-    // console.log("Форма для отправки заполнена:", form.data());
+    // console.log('📝 Отправка формы со следующими данными:', form.data());
 
     form.post(route('admin.athletes.store'), {
-        errorBag: 'createAthlete', // Имя для ошибок валидации
-        preserveScroll: true, // Сохранять позицию скролла
-        onSuccess: () => {
-            // Действия при успехе (toast уведомление обычно делается через flash в HandleInertiaRequests)
+        forceFormData: true,
+        errorBag: 'createAthlete',
+        preserveScroll: true,
+        onSuccess: (response) => {
+            // console.log('✅ Сервер вернул успешный ответ:', response);
             toast.success('Спортсмен успешно создан!');
-            // console.log("Форма успешно отправлена.");
         },
         onError: (errors) => {
-            console.error("Не удалось отправить форму:", errors);
-            // Можно показать toast с общей ошибкой или первой ошибкой из списка
+            console.error('❌ Ошибки валидации:', errors);
             const firstError = errors[Object.keys(errors)[0]];
             toast.error(firstError || 'Пожалуйста, проверьте правильность заполнения полей.');
         }
@@ -137,7 +139,7 @@ const submit = () => {
                         <!-- Datepicker built with flatpickr -->
                     </div>
                 </div>
-                <form @submit.prevent="submit" class="p-3 w-full">
+                <form @submit.prevent="submit" enctype="multipart/form-data" class="p-3 w-full">
 
                     <div class="mb-3 flex justify-between flex-col lg:flex-row items-center gap-4">
 
@@ -270,6 +272,8 @@ const submit = () => {
 
                     <div class="mb-3 flex justify-between flex-col lg:flex-row items-center gap-4">
 
+                        <StanceSelect v-model="form.stance" :error="form.errors.stance"/>
+
                         <!-- рост в сантиметрах -->
                         <div class="flex flex-row items-center gap-2">
                             <div class="h-8 flex items-center">
@@ -400,7 +404,7 @@ const submit = () => {
 
                     </div>
 
-                    <!-- Сортировка -->
+                    <!-- Количество боев признанных несостоявшимися -->
                     <div class="flex flex-row items-center gap-2">
                         <div class="h-8 flex items-center">
                             <LabelInput for="no_contests" :value="t('noContests')" class="text-sm"/>
@@ -422,6 +426,7 @@ const submit = () => {
                         <InputError class="mt-2" :message="form.errors.bio"/>
                     </div>
 
+                    <!-- Краткое описание -->
                     <div class="mb-3 flex flex-col items-start">
                         <div class="flex justify-between w-full">
                             <LabelInput for="short" :value="t('shortDescription')"/>
@@ -433,6 +438,7 @@ const submit = () => {
                         <InputError class="mt-2" :message="form.errors.short"/>
                     </div>
 
+                    <!-- Описание -->
                     <div class="mb-3 flex flex-col items-start">
                         <LabelInput for="description" :value="t('description')"/>
                         <TinyEditor v-model="form.description" :height="500"/>
@@ -440,6 +446,14 @@ const submit = () => {
                         <InputError class="mt-2" :message="form.errors.description"/>
                     </div>
 
+                    <!-- Аватар -->
+                    <AvatarCreateUpload
+                        v-model="form.avatar"
+                        :label="t('avatar')"
+                        :error="form.errors.avatar"
+                    />
+
+                    <!-- Изображения спортсмена -->
                     <MultiImageUpload @update:images="form.images = $event" />
 
                     <div class="flex items-center justify-center mt-4">

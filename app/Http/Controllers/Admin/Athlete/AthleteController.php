@@ -96,24 +96,37 @@ class AthleteController extends Controller
     public function store(AthleteRequest $request): RedirectResponse
     {
         $data = $request->validated();
-        $imagesData   = $data['images'] ?? [];
+        // Log::debug('🔍 Валидация пройдена', ['validated' => $data]);
+
+        if ($request->hasFile('avatar')) {
+            $path = $request->file('avatar')->store('athlete_avatar', 'public');
+            $data['avatar'] = $path;
+            // Log::debug('📦 Аватар загружен', ['path' => $path]);
+        }
+
+        $imagesData = $data['images'] ?? [];
         unset($data['images']);
 
         DB::beginTransaction();
         try {
-            DB::beginTransaction();
             $athlete = Athlete::create($data);
 
-            // Обработка изображений
+            if (!$athlete || !$athlete->exists) {
+                Log::error('❌ Спортсмен не создан!', ['data' => $data]);
+                throw new \Exception('Модель спортсмена не была создана');
+            }
+
+            // Log::debug('✅ Спортсмен создан', ['id' => $athlete->id, 'nickname' => $athlete->nickname]);
+
             $imageSyncData = [];
-            $imageIndex    = 0;
+            $imageIndex = 0;
 
             foreach ($imagesData as $imageData) {
                 $fileKey = "images.{$imageIndex}.file";
+                // Log::debug('🖼️ Обработка изображения', ['index' => $imageIndex, 'data' => $imageData]);
 
                 if ($request->hasFile($fileKey)) {
-                    // Сначала создаём запись
-                    $image = Athlete::create([
+                    $image = AthleteImage::create([
                         'order'   => $imageData['order']   ?? 0,
                         'alt'     => $imageData['alt']     ?? '',
                         'caption' => $imageData['caption'] ?? '',
@@ -123,27 +136,23 @@ class AthleteController extends Controller
                         $file = $request->file($fileKey);
 
                         if ($file->isValid()) {
-                            $media = $image
-                                ->addMedia($file)
-                                ->toMediaCollection('images');
-
+                            $image->addMedia($file)->toMediaCollection('images');
                             $imageSyncData[$image->id] = ['order' => $image->order];
+                            // Log::debug('✅ Изображение добавлено в медиатеку', ['image_id' => $image->id]);
                         } else {
-                            Log::warning("Недопустимый файл изображения с индексом {$imageIndex} для статьи {$athlete->id}", [
+                            Log::warning("⚠️ Файл изображения невалиден", [
+                                'index' => $imageIndex,
                                 'fileKey' => $fileKey,
-                                'error'   => $file->getErrorMessage(),
+                                'error' => $file->getErrorMessage()
                             ]);
-                            // Откатили создание ArticleImage
                             $image->delete();
-                            continue;
                         }
                     } catch (Throwable $e) {
-                        Log::error("Ошибка Spatie media-library спортсмена {$athlete->id}, индекс изображения - {$imageIndex}: {$e->getMessage()}", [
-                            'trace' => $e->getTraceAsString(),
+                        Log::error("❗ Ошибка Spatie при обработке изображения", [
+                            'index' => $imageIndex,
+                            'message' => $e->getMessage()
                         ]);
-                        // Откатили создание ArticleImage
                         $image->delete();
-                        continue;
                     }
                 }
 
@@ -153,13 +162,14 @@ class AthleteController extends Controller
             $athlete->images()->sync($imageSyncData);
             DB::commit();
 
-            Log::info('Спортсмен успешно создан', ['id' => $athlete->id, 'title' => $athlete->nickname]);
+            // Log::info('🏁 Спортсмен успешно создан', ['id' => $athlete->id]);
             return redirect()->route('admin.athletes.index')->with('success', __('admin/controllers/athletes.created'));
 
         } catch (Throwable $e) {
             DB::rollBack();
-            Log::error("Ошибка при создании спортсмена: {$e->getMessage()}", [
-                'trace' => $e->getTraceAsString(),
+            Log::error("💥 Ошибка при создании спортсмена", [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
             return back()->withInput()->withErrors(['general' => __('admin/controllers/athletes.create_error')]);
         }
@@ -222,10 +232,22 @@ class AthleteController extends Controller
                 $this->deleteImages($deletedImageIds);
             }
 
-            // 2) Обновляем базовые поля
+            // 2) Обработка аватара (обязательно ДО update)
+            if ($request->hasFile('avatar')) {
+                // удалить старый файл (если нужно)
+                if ($athlete->avatar && Storage::disk('public')->exists($athlete->avatar)) {
+                    Storage::disk('public')->delete($athlete->avatar);
+                }
+
+                // загрузить новый
+                $path = $request->file('avatar')->store('athlete_avatar', 'public');
+                $data['avatar'] = $path;
+            }
+
+            // 3) Обновляем базовые поля
             $athlete->update($data);
 
-            // 3) Обработка изображений
+            // 4) Обработка изображений
             $syncData = [];
             foreach ($imagesData as $index => $imageData) {
                 $fileKey = "images.{$index}.file";
@@ -270,7 +292,7 @@ class AthleteController extends Controller
                 }
             }
 
-            // 4) Синхронизируем оставшиеся и новые изображения в pivot
+            // 5) Синхронизируем оставшиеся и новые изображения в pivot
             $athlete->images()->sync($syncData);
 
             DB::commit();
@@ -449,4 +471,5 @@ class AthleteController extends Controller
         }
         Log::info('Удалены записи AthleteImage и их медиа: ', ['image_ids' => $imageIds]);
     }
+
 }
