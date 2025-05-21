@@ -64,6 +64,7 @@ const linkInfo = {
     roles: {label: t('roles'), route: 'admin.roles.index'},
     permissions: {label: t('permissions'), route: 'admin.permissions.index'},
     athletes: {label: t('athletes'), route: 'admin.athletes.index'},
+    tournaments: {label: t('tournaments'), route: 'admin.tournaments.index'},
     rubrics: {label: t('rubrics'), route: 'admin.rubrics.index'},
     sections: {label: t('sections'), route: 'admin.sections.index'},
     articles: {label: t('posts'), route: 'admin.articles.index'},

@@ -20,6 +20,7 @@ class AthleteSeeder extends Seeder
             Athlete::create([
                 'sort' => $i,
                 'activity' => rand(0, 1),
+                'locale' => 'ru',
                 'first_name' => 'Имя' . $i,
                 'last_name' => 'Фамилия' . $i,
                 'nickname' => 'Прозвище' . $i,

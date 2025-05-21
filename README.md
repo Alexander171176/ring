@@ -346,9 +346,7 @@ ____________________________
 
 42) creating business logic ap Athlete and Tournament
     `docker exec ring-php-app php artisan make:model Admin/Athlete/Athlete -mfs` <br>
-    `docker exec ring-php-app php artisan make:model Admin/TournamentType/TournamentType -mfs` <br>
     `docker exec ring-php-app php artisan make:model Admin/Tournament/Tournament -mfs` <br>
-    `docker exec ring-php-app php artisan make:migration create_athlete_has_tournament_table` <br>
     `docker exec ring-php-app php artisan make:model Admin/Athlete/AthleteImage -mfs` <br>
     `docker exec ring-php-app php artisan make:migration create_athlete_has_images_table --create=athlete_has_images` <br>
     `docker exec ring-php-app php artisan make:resource Admin/Athlete/AthleteResource` <br>
@@ -356,4 +354,15 @@ ____________________________
     `docker exec ring-php-app php artisan make:resource Admin/Athlete/AthleteImageResource` <br>
     `docker exec ring-php-app php artisan make:request Admin/Athlete/AthleteRequest` <br>
     `docker exec ring-php-app php artisan make:controller Admin/Athlete/AthleteController --resource` <br>
+    `docker exec ring-php-app php artisan make:seeder AthleteSeeder` <br>
     `docker exec ring-php-app php artisan db:seed --class=AthleteSeeder` <br>
+    `docker exec ring-php-app php artisan make:seeder TournamentSeeder` <br>
+    `docker exec ring-php-app php artisan db:seed --class=TournamentSeeder` <br>
+    `docker exec ring-php-app php artisan make:resource Admin/Tournament/TournamentResource` <br>
+    `docker exec ring-php-app php artisan make:resource Admin/Tournament/TournamentSharedResource` <br>
+    `docker exec ring-php-app php artisan make:migration create_tournament_has_images_table --create=tournament_has_images` <br>
+    `docker exec ring-php-app php artisan migrate`<br>
+    `docker exec ring-php-app php artisan make:model Admin/Tournament/TournamentImage -mfs` <br>
+    `docker exec ring-php-app php artisan make:resource Admin/Tournament/TournamentImageResource` <br>
+    `docker exec ring-php-app php artisan make:request Admin/Tournament/TournamentRequest` <br>
+    `docker exec ring-php-app php artisan make:controller Admin/Tournament/TournamentController --resource` <br>

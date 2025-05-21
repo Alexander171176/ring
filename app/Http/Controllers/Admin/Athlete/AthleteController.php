@@ -91,7 +91,7 @@ class AthleteController extends Controller
      *
      *  POST /admin/athletes
      * @param AthleteRequest $request
-     * @return RedirectResponse Редирект на список статей с сообщением.
+     * @return RedirectResponse Редирект на список спортсменов с сообщением.
      */
     public function store(AthleteRequest $request): RedirectResponse
     {

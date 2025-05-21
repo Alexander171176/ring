@@ -172,7 +172,7 @@ class SettingController extends Controller
      * @param string $optionKey Ключ опции в БД (напр., 'AdminCountRubrics')
      * @param string $configKey Ключ в runtime конфиге (напр., 'site_settings.AdminCountRubrics')
      * @param string $settingType Тип значения для поля 'type' в БД ('number' или 'string')
-     * @param string $settingCategory Категория настройки в БД ('admin_display' или 'admin_sort')
+     * @param string $settingCategory Категория настройки в БД ('admin' или 'admin')
      * @param string $successMessage Сообщение для flash об успехе
      * @param string $errorMessage Сообщение для flash об ошибке
      * @return RedirectResponse
@@ -237,7 +237,7 @@ class SettingController extends Controller
             'AdminCountSettings',
             'site_settings.AdminCountSettings',
             'number',
-            'admin_display',
+            'admin',
             'Количество элементов на странице успешно обновлено.',
             'Ошибка обновления настройки количества элементов.'
         );
@@ -256,7 +256,26 @@ class SettingController extends Controller
             'AdminCountAthletes',
             'site_settings.AdminCountAthletes',
             'number',
-            'admin_display',
+            'admin',
+            'Количество элементов на странице успешно обновлено.',
+            'Ошибка обновления настройки количества элементов.'
+        );
+    }
+
+    /**
+     * Обновление количества элементов в турнирах
+     *
+     * @param UpdateCountSettingRequest $request
+     * @return RedirectResponse
+     */
+    public function updateAdminCountTournaments(UpdateCountSettingRequest $request): RedirectResponse
+    {
+        return $this->updateSettingAndRedirect(
+            $request,
+            'AdminCountTournaments',
+            'site_settings.AdminCountTournaments',
+            'number',
+            'admin',
             'Количество элементов на странице успешно обновлено.',
             'Ошибка обновления настройки количества элементов.'
         );
@@ -275,7 +294,7 @@ class SettingController extends Controller
             'AdminCountCategories',
             'site_settings.AdminCountCategories',
             'number',
-            'admin_display',
+            'admin',
             'Количество элементов на странице успешно обновлено.',
             'Ошибка обновления настройки количества элементов.'
         );
@@ -294,7 +313,7 @@ class SettingController extends Controller
             'AdminCountRubrics',
             'site_settings.AdminCountRubrics',
             'number',
-            'admin_display',
+            'admin',
             'Количество элементов на странице успешно обновлено.',
             'Ошибка обновления настройки количества элементов.'
         );
@@ -312,7 +331,7 @@ class SettingController extends Controller
             $request,
             'AdminCountSections',
             'site_settings.AdminCountSections',
-            'number', 'admin_display',
+            'number', 'admin',
             'Количество элементов на странице успешно обновлено.',
             'Ошибка обновления настройки количества элементов.'
         );
@@ -331,7 +350,7 @@ class SettingController extends Controller
             'AdminCountArticles',
             'site_settings.AdminCountArticles',
             'number',
-            'admin_display',
+            'admin',
             'Количество элементов на странице успешно обновлено.',
             'Ошибка обновления настройки количества элементов.'
         );
@@ -349,7 +368,7 @@ class SettingController extends Controller
             $request,
             'AdminCountTags',
             'site_settings.AdminCountTags',
-            'number', 'admin_display',
+            'number', 'admin',
             'Количество элементов на странице успешно обновлено.',
             'Ошибка обновления настройки количества элементов.');
     }
@@ -367,7 +386,7 @@ class SettingController extends Controller
             'AdminCountComments',
             'site_settings.AdminCountComments',
             'number',
-            'admin_display',
+            'admin',
             'Количество элементов на странице успешно обновлено.',
             'Ошибка обновления настройки количества элементов.');
     }
@@ -385,7 +404,7 @@ class SettingController extends Controller
             'AdminCountBanners',
             'site_settings.AdminCountBanners',
             'number',
-            'admin_display',
+            'admin',
             'Количество элементов на странице успешно обновлено.',
             'Ошибка обновления настройки количества элементов.'
         );
@@ -404,7 +423,7 @@ class SettingController extends Controller
             'AdminCountVideos',
             'site_settings.AdminCountVideos',
             'number',
-            'admin_display',
+            'admin',
             'Количество элементов на странице успешно обновлено.',
             'Ошибка обновления настройки количества элементов.'
         );
@@ -423,7 +442,7 @@ class SettingController extends Controller
             'AdminCountUsers',
             'site_settings.AdminCountUsers',
             'number',
-            'admin_display',
+            'admin',
             'Количество элементов на странице успешно обновлено.',
             'Ошибка обновления настройки количества элементов.'
         );
@@ -442,7 +461,7 @@ class SettingController extends Controller
             'AdminCountRoles',
             'site_settings.AdminCountRoles',
             'number',
-            'admin_display',
+            'admin',
             'Количество элементов на странице успешно обновлено.',
             'Ошибка обновления настройки количества элементов.'
         );
@@ -461,7 +480,7 @@ class SettingController extends Controller
             'AdminCountPermissions',
             'site_settings.AdminCountPermissions',
             'number',
-            'admin_display',
+            'admin',
             'Количество элементов на странице успешно обновлено.',
             'Ошибка обновления настройки количества элементов.'
         );
@@ -480,7 +499,7 @@ class SettingController extends Controller
             'AdminCountPlugins',
             'site_settings.AdminCountPlugins',
             'number',
-            'admin_display',
+            'admin',
             'Количество элементов на странице успешно обновлено.',
             'Ошибка обновления настройки количества элементов.'
         );
@@ -508,7 +527,7 @@ class SettingController extends Controller
                     'value' => $newValue,
                     'type' => 'string',
                     'constant' => strtoupper($optionKey),
-                    'category' => 'admin_sort',
+                    'category' => 'admin',
                     'activity' => true,
                 ]
             );
@@ -539,7 +558,26 @@ class SettingController extends Controller
             'AdminSortAthletes',
             'site_settings.AdminSortAthletes',
             'string',
-            'admin_sort',
+            'admin',
+            'Сортировка по умолчанию успешно обновлена.',
+            'Ошибка обновления настройки сортировки.'
+        );
+    }
+
+    /**
+     * Обновляет сортировку элементов в турнирах
+     *
+     * @param UpdateSortRequest $request
+     * @return RedirectResponse
+     */
+    public function updateAdminSortTournaments(UpdateSortRequest $request): RedirectResponse
+    {
+        return $this->updateSettingAndRedirect(
+            $request,
+            'AdminSortTournaments',
+            'site_settings.AdminSortTournaments',
+            'string',
+            'admin',
             'Сортировка по умолчанию успешно обновлена.',
             'Ошибка обновления настройки сортировки.'
         );
@@ -558,7 +596,7 @@ class SettingController extends Controller
             'AdminSortCategories',
             'site_settings.AdminSortCategories',
             'string',
-            'admin_sort',
+            'admin',
             'Сортировка по умолчанию успешно обновлена.',
             'Ошибка обновления настройки сортировки.'
         );
@@ -577,7 +615,7 @@ class SettingController extends Controller
             'AdminSortRubrics',
             'site_settings.AdminSortRubrics',
             'string',
-            'admin_sort',
+            'admin',
             'Сортировка по умолчанию успешно обновлена.',
             'Ошибка обновления настройки сортировки.'
         );
@@ -596,7 +634,7 @@ class SettingController extends Controller
             'AdminSortSections',
             'site_settings.AdminSortSections',
             'string',
-            'admin_sort',
+            'admin',
             'Сортировка по умолчанию успешно обновлена.',
             'Ошибка обновления настройки сортировки.'
         );
@@ -615,7 +653,7 @@ class SettingController extends Controller
             'AdminSortArticles',
             'site_settings.AdminSortArticles',
             'string',
-            'admin_sort',
+            'admin',
             'Сортировка по умолчанию успешно обновлена.',
             'Ошибка обновления настройки сортировки.'
         );
@@ -634,7 +672,7 @@ class SettingController extends Controller
             'AdminSortTags',
             'site_settings.AdminSortTags',
             'string',
-            'admin_sort',
+            'admin',
             'Сортировка по умолчанию успешно обновлена.',
             'Ошибка обновления настройки сортировки.'
         );
@@ -653,7 +691,7 @@ class SettingController extends Controller
             'AdminSortComments',
             'site_settings.AdminSortComments',
             'string',
-            'admin_sort',
+            'admin',
             'Сортировка по умолчанию успешно обновлена.',
             'Ошибка обновления настройки сортировки.'
         );
@@ -672,7 +710,7 @@ class SettingController extends Controller
             'AdminSortBanners',
             'site_settings.AdminSortBanners',
             'string',
-            'admin_sort',
+            'admin',
             'Сортировка по умолчанию успешно обновлена.',
             'Ошибка обновления настройки сортировки.'
         );
@@ -691,7 +729,7 @@ class SettingController extends Controller
             'AdminSortVideos',
             'site_settings.AdminSortVideos',
             'string',
-            'admin_sort',
+            'admin',
             'Сортировка по умолчанию успешно обновлена.',
             'Ошибка обновления настройки сортировки.'
         );
@@ -710,7 +748,7 @@ class SettingController extends Controller
             'AdminSortUsers',
             'site_settings.AdminSortUsers',
             'string',
-            'admin_sort',
+            'admin',
             'Сортировка по умолчанию успешно обновлена.',
             'Ошибка обновления настройки сортировки.'
         );
@@ -729,7 +767,7 @@ class SettingController extends Controller
             'AdminSortRoles',
             'site_settings.AdminSortRoles',
             'string',
-            'admin_sort',
+            'admin',
             'Сортировка по умолчанию успешно обновлена.',
             'Ошибка обновления настройки сортировки.'
         );
@@ -748,7 +786,7 @@ class SettingController extends Controller
             'AdminSortPermissions',
             'site_settings.AdminSortPermissions',
             'string',
-            'admin_sort',
+            'admin',
             'Сортировка по умолчанию успешно обновлена.',
             'Ошибка обновления настройки сортировки.'
         );
@@ -767,7 +805,7 @@ class SettingController extends Controller
             'AdminSortPlugins',
             'site_settings.AdminSortPlugins',
             'string',
-            'admin_sort',
+            'admin',
             'Сортировка по умолчанию успешно обновлена.',
             'Ошибка обновления настройки сортировки.'
         );

@@ -8,6 +8,8 @@ use App\Models\Admin\Athlete\Athlete;
 use App\Models\Admin\Athlete\AthleteImage;
 use App\Models\Admin\Banner\Banner;
 use App\Models\Admin\Banner\BannerImage;
+use App\Models\Admin\Tournament\Tournament;
+use App\Models\Admin\Tournament\TournamentImage;
 use App\Models\Admin\Video\Video;
 use App\Models\Admin\Video\VideoImage;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -50,13 +52,22 @@ class CustomPathGenerator implements PathGenerator
 
         // Если медиа привязано к сущности Athlete ---
         if ($media->model_type === Athlete::class) {
-            // Имя папки можно сделать таким же, как имя коллекции ('videos')
             return 'athletes/' . $media->model_id . '/';
         }
 
         // Если медиа привязано к сущности AthleteImage
         if ($media->model_type === AthleteImage::class) {
             return 'athlete_images/' . $media->model_id . '/';
+        }
+
+        // Если медиа привязано к сущности Tournament ---
+        if ($media->model_type === Tournament::class) {
+            return 'tournaments/' . $media->model_id . '/';
+        }
+
+        // Если медиа привязано к сущности TournamentImage
+        if ($media->model_type === TournamentImage::class) {
+            return 'tournament_images/' . $media->model_id . '/';
         }
 
 

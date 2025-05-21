@@ -1,13 +1,13 @@
 <?php
 
-namespace Database\Factories\Admin\TournamentType;
+namespace Database\Factories\Admin\Tournament;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Admin\TournamentType\TournamentType>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Admin\Tournament\TournamentImage>
  */
-class TournamentTypeFactory extends Factory
+class TournamentImageFactory extends Factory
 {
     /**
      * Define the model's default state.

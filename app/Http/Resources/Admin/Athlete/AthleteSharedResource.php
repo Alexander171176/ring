@@ -20,6 +20,7 @@ class AthleteSharedResource extends JsonResource
 
         return [
             'id' => $this->id,
+            'locale' => $this->locale,
             'full_name' => $this->full_name, // Аксессор
             'nickname' => $this->nickname,
             'activity' => (bool) $this->activity,

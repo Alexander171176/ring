@@ -45,6 +45,7 @@ class Athlete extends Model
         'date_of_birth' => 'date', // Преобразование в объект Carbon/Date
         'activity' => 'boolean',   // Преобразование в boolean
         'sort' => 'integer',
+        'locale',
         'height_cm' => 'integer',
         'reach_cm' => 'integer',
         'wins' => 'integer',

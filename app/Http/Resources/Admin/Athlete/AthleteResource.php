@@ -22,6 +22,7 @@ class AthleteResource extends JsonResource
             'id' => $this->id,
             'sort' => $this->sort,
             'activity' => (bool) $this->activity,
+            'locale' => $this->locale,
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
             'full_name' => $this->full_name, // Аксессор

@@ -16,6 +16,8 @@ return new class extends Migration
             $table->unsignedInteger('sort')->default(0)->index(); // Сортировка
             $table->boolean('activity')->default(false)->index(); // Активность
 
+            $table->string('locale', 2)->index(); // index
+
             $table->string('first_name'); // Строковое поле для имени спортсмена.
             $table->string('last_name');  // Строковое поле для фамилии спортсмена.
             $table->string('nickname')->nullable(); // Строковое поле для прозвища спортсмена, может быть NULL.
@@ -46,6 +48,9 @@ return new class extends Migration
             $table->text('description')->nullable();
 
             $table->timestamps(); // Временные метки 'created_at' и 'updated_at'.
+
+            // Композитные уникальные ключи
+            $table->unique(['locale', 'nickname']);
 
             // Добавляет столбец 'deleted_at' для "мягкого удаления".
             // Записи не удаляются физически, а помечаются как удаленные.

@@ -3,6 +3,8 @@
 use App\Http\Controllers\Admin\Athlete\AthleteController;
 use App\Http\Controllers\Admin\Log\LogController;
 use App\Http\Controllers\Admin\Category\CategoryController;
+use App\Http\Controllers\Admin\Tournament\TournamentController;
+use App\Models\Admin\Tournament\Tournament;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
 use App\Http\Controllers\Admin\Article\ArticleController;
@@ -135,12 +137,12 @@ Route::group([
 
                 // Количество на странице
                 Route::put('/update-count/athletes', [SettingController::class, 'updateAdminCountAthletes'])->name('updateAdminCountAthletes');
+                Route::put('/update-count/tournaments', [SettingController::class, 'updateAdminCountTournaments'])->name('updateAdminCountTournaments');
                 Route::put('/update-count/categories', [SettingController::class, 'updateAdminCountCategories'])->name('updateAdminCountCategories');
                 Route::put('/update-count/rubrics', [SettingController::class, 'updateAdminCountRubrics'])->name('updateAdminCountRubrics');
                 Route::put('/update-count/sections', [SettingController::class, 'updateAdminCountSections'])->name('updateAdminCountSections');
                 Route::put('/update-count/articles', [SettingController::class, 'updateAdminCountArticles'])->name('updateAdminCountArticles');
                 Route::put('/update-count/tags', [SettingController::class, 'updateAdminCountTags'])->name('updateAdminCountTags');
-                // Дублирование имени маршрута для comments, исправим
                 Route::put('/update-count/comments', [SettingController::class, 'updateAdminCountComments'])->name('updateAdminCountComments'); // Исправлено имя
                 Route::put('/update-count/banners', [SettingController::class, 'updateAdminCountBanners'])->name('updateAdminCountBanners');
                 Route::put('/update-count/videos', [SettingController::class, 'updateAdminCountVideos'])->name('updateAdminCountVideos');
@@ -151,8 +153,8 @@ Route::group([
                 Route::put('/update-count/settings', [SettingController::class, 'updateAdminCountSettings'])->name('updateAdminCountSettings');
 
                 // Тип сортировки
-
                 Route::put('/update-sort/athletes', [SettingController::class, 'updateAdminSortAthletes'])->name('updateAdminSortAthletes');
+                Route::put('/update-sort/tournaments', [SettingController::class, 'updateAdminSortTournaments'])->name('updateAdminSortTournaments');
                 Route::put('/update-sort/categories', [SettingController::class, 'updateAdminSortCategories'])->name('updateAdminSortCategories');
                 Route::put('/update-sort/rubrics', [SettingController::class, 'updateAdminSortRubrics'])->name('updateAdminSortRubrics');
                 Route::put('/update-sort/sections', [SettingController::class, 'updateAdminSortSections'])->name('updateAdminSortSections');
@@ -175,6 +177,7 @@ Route::group([
             Route::resource('/roles', RoleController::class);
             Route::resource('/permissions', PermissionController::class);
             Route::resource('/athletes', AthleteController::class);
+            Route::resource('/tournaments', TournamentController::class);
             Route::resource('/categories', CategoryController::class);
             Route::resource('/rubrics', RubricController::class);
             Route::resource('/sections', SectionController::class);
@@ -215,6 +218,7 @@ Route::group([
 
                 // Переключение активности (Используем имена моделей для параметров RMB)
                 Route::put('/athletes/{athlete}/activity', [AthleteController::class, 'updateActivity'])->name('athletes.updateActivity');
+                Route::put('/tournaments/{tournament}/activity', [TournamentController::class, 'updateActivity'])->name('tournaments.updateActivity');
                 Route::put('/categories/{category}/activity', [CategoryController::class, 'updateActivity'])->name('categories.updateActivity');
                 Route::put('/rubrics/{rubric}/activity', [RubricController::class, 'updateActivity'])->name('rubrics.updateActivity');
                 Route::put('/sections/{section}/activity', [SectionController::class, 'updateActivity'])->name('sections.updateActivity');
@@ -229,6 +233,8 @@ Route::group([
                 // Переключение активности массово
                 Route::put('/admin/actions/athletes/bulk-activity', [AthleteController::class, 'bulkUpdateActivity'])
                     ->name('athletes.bulkUpdateActivity');
+                Route::put('/admin/actions/tournaments/bulk-activity', [TournamentController::class, 'bulkUpdateActivity'])
+                    ->name('tournaments.bulkUpdateActivity');
                 Route::put('/admin/actions/categories/bulk-activity', [CategoryController::class, 'bulkUpdateActivity'])
                     ->name('categories.bulkUpdateActivity');
                 Route::put('/admin/actions/rubrics/bulk-activity', [RubricController::class, 'bulkUpdateActivity'])
@@ -281,8 +287,8 @@ Route::group([
                     ->name('videos.bulkUpdateRight');
 
                 // Обновление сортировки для Drag and Drop
-
                 Route::put('/athletes/update-sort-bulk', [AthleteController::class, 'updateSortBulk'])->name('athletes.updateSortBulk');
+                Route::put('/tournaments/update-sort-bulk', [TournamentController::class, 'updateSortBulk'])->name('tournaments.updateSortBulk');
                 Route::put('/categories/update-sort-bulk', [CategoryController::class, 'updateSortBulk'])->name('categories.updateSortBulk');
                 Route::put('/rubrics/update-sort-bulk', [RubricController::class, 'updateSortBulk'])->name('rubrics.updateSortBulk');
                 Route::put('/sections/update-sort-bulk', [SectionController::class, 'updateSortBulk'])->name('sections.updateSortBulk');
@@ -295,6 +301,7 @@ Route::group([
 
                 // Обновление сортировки (Имена параметров уже были правильные)
                 Route::put('/athletes/{athlete}/sort', [AthleteController::class, 'updateSort'])->name('athletes.updateSort');
+                Route::put('/tournaments/{tournament}/sort', [TournamentController::class, 'updateSort'])->name('tournaments.updateSort');
                 Route::put('/categories/{category}/sort', [CategoryController::class, 'updateSort'])->name('categories.updateSort');
                 Route::put('/rubrics/{rubric}/sort', [RubricController::class, 'updateSort'])->name('rubrics.updateSort');
                 Route::put('/sections/{section}/sort', [SectionController::class, 'updateSort'])->name('sections.updateSort');

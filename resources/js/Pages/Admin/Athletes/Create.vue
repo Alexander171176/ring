@@ -22,6 +22,7 @@ import TinyEditor from "@/Components/Admin/TinyEditor/TinyEditor.vue";
 import MultiImageUpload from "@/Components/Admin/Image/MultiImageUpload.vue";
 import AvatarCreateUpload from "@/Components/Admin/Athlete/Avatar/AvatarCreateUpload.vue";
 import StanceSelect from "@/Components/Admin/Athlete/Select/StanceSelect.vue";
+import SelectLocale from "@/Components/Admin/Select/SelectLocale.vue";
 
 // --- Инициализация ---
 const toast = useToast();
@@ -39,6 +40,7 @@ defineProps({
  */
 const form = useForm({
     sort: '0',
+    locale: '',
     nickname: '', // Псевдоним
     first_name: '', // Имя
     last_name: '', // Фамилия
@@ -147,6 +149,12 @@ const submit = () => {
                         <div class="flex flex-row items-center gap-2">
                             <ActivityCheckbox v-model="form.activity"/>
                             <LabelCheckbox for="activity" :text="t('activity')" class="text-sm h-8 flex items-center"/>
+                        </div>
+
+                        <!-- Локализация -->
+                        <div class="flex flex-row items-center gap-2 w-auto">
+                            <SelectLocale v-model="form.locale" :errorMessage="form.errors.locale"/>
+                            <InputError class="mt-2 lg:mt-0" :message="form.errors.locale"/>
                         </div>
 
                         <!-- Сортировка -->

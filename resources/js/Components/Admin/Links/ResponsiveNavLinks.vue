@@ -13,6 +13,7 @@ const { t } = useI18n();
         <ResponsiveNavLink :href="route('admin.roles.index')" :active="route().current('admin.roles.index')">{{ t('roles') }}</ResponsiveNavLink>
         <ResponsiveNavLink :href="route('admin.permissions.index')" :active="route().current('admin.permissions.index')">{{ t('permissions') }}</ResponsiveNavLink>
         <ResponsiveNavLink :href="route('admin.athletes.index')" :active="route().current('admin.athletes.index')">{{ t('athletes') }}</ResponsiveNavLink>
+        <ResponsiveNavLink :href="route('admin.tournaments.index')" :active="route().current('admin.tournaments.index')">{{ t('tournaments') }}</ResponsiveNavLink>
         <ResponsiveNavLink :href="route('admin.rubrics.index')" :active="route().current('admin.rubrics.index')">{{ t('rubrics') }}</ResponsiveNavLink>
         <ResponsiveNavLink :href="route('admin.sections.index')" :active="route().current('admin.sections.index')">{{ t('sections') }}</ResponsiveNavLink> <!-- ИСПРАВЛЕНО -->
         <ResponsiveNavLink :href="route('admin.articles.index')" :active="route().current('admin.articles.index')">{{ t('posts') }}</ResponsiveNavLink>

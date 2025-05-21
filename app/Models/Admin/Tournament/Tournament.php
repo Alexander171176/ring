@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Admin\Athlete\Athlete; // Импортируем модель Athlete
-use App\Models\Admin\TournamentType\TournamentType; // Импортируем модель TournamentType
 
 class Tournament extends Model
 {
@@ -36,8 +35,9 @@ class Tournament extends Model
     protected $fillable = [
         'sort',
         'activity',
+        'locale',
+        'type',
         'parent_tournament_id',
-        'tournament_type_id',
         'name',
         'tournament_date_time',
         'status',
@@ -71,9 +71,20 @@ class Tournament extends Model
         'rounds_scheduled' => 'integer',
         'round_of_finish' => 'integer', // Может быть и string, если "N/A" или что-то такое
         'parent_tournament_id' => 'integer',
-        'tournament_type_id' => 'integer',
         'winner_id' => 'integer',
+        'type' => 'string',
     ];
+
+    /**
+     * Связь с "обертками" изображений TournamentImage.
+     * Турнир имеет много TournamentImage через пивотную таблицу.
+     */
+    public function images(): BelongsToMany
+    {
+        return $this->belongsToMany(TournamentImage::class, 'tournament_has_images', 'tournament_id', 'image_id')
+            ->withPivot('order')
+            ->orderByPivot('order', 'asc');
+    }
 
     /**
      * Связь с родительским турниром (если это поединок в карде или сам кард).
@@ -91,15 +102,6 @@ class Tournament extends Model
     public function childTournaments(): HasMany
     {
         return $this->hasMany(Tournament::class, 'parent_tournament_id');
-    }
-
-    /**
-     * Тип этого турнира/поединка.
-     * Связь "принадлежит-к".
-     */
-    public function tournamentType(): BelongsTo
-    {
-        return $this->belongsTo(TournamentType::class, 'tournament_type_id');
     }
 
     /**

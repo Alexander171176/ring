@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
-class TournamentTypeSeeder extends Seeder
+class TournamentImageSeeder extends Seeder
 {
     /**
      * Run the database seeds.

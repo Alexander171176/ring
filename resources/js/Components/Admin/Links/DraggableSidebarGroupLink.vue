@@ -46,6 +46,7 @@ const { t } = useI18n();
 const mainLinks = ref(JSON.parse(localStorage.getItem('mainLinks')) || [
     'admin',
     'athletes',
+    'tournaments',
     'rubrics',
     'sections',
     'articles',
