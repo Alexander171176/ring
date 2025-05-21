@@ -78,6 +78,10 @@ const linkInfo = {
     settings: {label: t('settings'), route: 'admin.settings.index'},
     parameters: {label: t('parameters'), route: 'admin.parameters.index'},
     logs: {label: t('logs'), route: 'admin.logs.index'},
+    phpinfo: {label: 'phpinfo', route: 'admin.phpinfo.index'},
+    composer: {label: 'composer', route: 'admin.composer.index'},
+    package: {label: 'package', route: 'admin.package.index'},
+    env: {label: 'env', route: 'admin.env.index'},
     components: {label: t('components'), route: 'admin.components.index'},
     plugins: {label: t('plugins'), route: 'admin.plugins.index'},
 };

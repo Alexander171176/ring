@@ -131,6 +131,10 @@
 
 20) creating business logic app System <br>
     `docker exec ring-php-app php artisan make:controller Admin/Log/LogController` <br>
+    `docker exec ring-php-app php artisan make:controller Admin/System/PhpInfoController` <br>
+    `docker exec ring-php-app php artisan make:controller Admin/System/ComposerController` <br>
+    `docker exec ring-php-app php artisan make:controller Admin/System/PackageController` <br>
+    `docker exec ring-php-app php artisan make:controller Admin/System/EnvController` <br>
 
 21)  Create middleware ShareSettings <br>
      `docker exec ring-php-app php artisan make:resource Admin/Setting/SettingSharedResource` <br>

@@ -3,6 +3,10 @@
 use App\Http\Controllers\Admin\Athlete\AthleteController;
 use App\Http\Controllers\Admin\Log\LogController;
 use App\Http\Controllers\Admin\Category\CategoryController;
+use App\Http\Controllers\Admin\System\ComposerController;
+use App\Http\Controllers\Admin\System\EnvController;
+use App\Http\Controllers\Admin\System\PackageController;
+use App\Http\Controllers\Admin\System\PhpInfoController;
 use App\Http\Controllers\Admin\Tournament\TournamentController;
 use App\Models\Admin\Tournament\Tournament;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
@@ -131,6 +135,11 @@ Route::group([
             Route::get('/logs', [LogController::class, 'index'])->name('logs.index');
             Route::delete('/logs', [LogController::class, 'clear'])->name('logs.clear');
             Route::get('/logs/download', [LogController::class, 'download'])->name('logs.download');
+
+            Route::get('/phpinfo', [PhpInfoController::class, 'index'])->name('phpinfo.index');
+            Route::get('/composer', [ComposerController::class, 'index'])->name('composer.index');
+            Route::get('/package', [PackageController::class, 'index'])->name('package.index');
+            Route::get('/env', [EnvController::class, 'index'])->name('env.index');
 
             // --- Настройки отображения в админке ---
             Route::prefix('settings')->name('settings.')->group(function () {

@@ -26,6 +26,10 @@ const { t } = useI18n();
         <ResponsiveNavLink :href="route('admin.settings.index')" :active="route().current('admin.settings.index')">{{ t('settings') }}</ResponsiveNavLink>
         <ResponsiveNavLink :href="route('admin.parameters.index')" :active="route().current('admin.parameters.index')">{{ t('parameters') }}</ResponsiveNavLink>
         <ResponsiveNavLink :href="route('admin.logs.index')" :active="route().current('admin.logs.index')">{{ t('logs') }}</ResponsiveNavLink>
+        <ResponsiveNavLink :href="route('admin.phpinfo.index')" :active="route().current('admin.phpinfo.index')">phpinfo</ResponsiveNavLink>
+        <ResponsiveNavLink :href="route('admin.composer.index')" :active="route().current('admin.composer.index')">composer</ResponsiveNavLink>
+        <ResponsiveNavLink :href="route('admin.package.index')" :active="route().current('admin.package.index')">package</ResponsiveNavLink>
+        <ResponsiveNavLink :href="route('admin.env.index')" :active="route().current('admin.env.index')">env</ResponsiveNavLink>
         <ResponsiveNavLink :href="route('admin.components.index')" :active="route().current('admin.components.index')">{{ t('components') }}</ResponsiveNavLink>
         <ResponsiveNavLink :href="route('admin.diagrams.index')" :active="route().current('admin.diagrams.index')">{{ t('diagrams') }}</ResponsiveNavLink>
         <ResponsiveNavLink :href="route('admin.plugins.index')" :active="route().current('admin.plugins.index')">{{ t('plugins') }}</ResponsiveNavLink>
