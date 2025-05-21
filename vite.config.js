@@ -38,10 +38,12 @@ export default defineConfig({
     build: {
         rollupOptions: {
             output: {
-                manualChunks: {
-                    // Убираем vue-router, если он не используется в проекте
-                    vue: ['vue'],
-                    vendor: ['axios', 'lodash'],
+                manualChunks(id) {
+                    if (id.includes('node_modules')) {
+                        if (id.includes('axios')) return 'vendor-axios';
+                        if (id.includes('lodash')) return 'vendor-lodash';
+                        return 'vendor';
+                    }
                 },
             },
         },

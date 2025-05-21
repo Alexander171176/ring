@@ -13,7 +13,6 @@
 # Vite
 /node_modules
 /public/hot
-/public/build
 
 # IDE и служебные
 /.idea
