@@ -1,12 +1,7 @@
 /.phpunit.cache
-/bootstrap/ssr
-/node_modules
-/public/build
-/public/hot
-/public/storage
-/storage/*.key
-/vendor
 .env.backup
+.env.dev
+.env.example
 .env.production
 .phpunit.result.cache
 Homestead.json
@@ -18,8 +13,7 @@ yarn-error.log
 /.idea
 /.vscode
 storage/docker
-/storage/api-docs/*
-/storage/app/public/*
 /docker
 docker-compose.yml
 /storage/docker
+/public/storage
