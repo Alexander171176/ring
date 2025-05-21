@@ -1,1 +1,0 @@
-import{x as t,P as s,J as r}from"./vue-DrbZvlgE.js";const a={class:"ml-2 font-medium text-sm text-blue-600 dark:text-sky-500"},n={__name:"LabelCheckbox",props:{customClass:{type:String,required:!1,default:""},text:{type:String,required:!0}},setup(e){return(l,o)=>(s(),t("label",a,r(e.text),1))}};export{n as default};

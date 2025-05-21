@@ -1,1 +1,0 @@
-import{_ as t}from"./_plugin-vue_export-helper-DlAUqK2U.js";import{x as r,P as s,I as o,Q as a}from"./vue-DrbZvlgE.js";const c={},n={class:"tracking-wider text-center font-semibold text-slate-800 dark:text-slate-300 text-lg leading"};function l(e,d){return s(),r("h2",n,[o(" ✨ "),a(e.$slots,"default")])}const f=t(c,[["render",l]]);export{f as T};
