@@ -20,4 +20,6 @@ yarn-error.log
 storage/docker
 /storage/api-docs/*
 /storage/app/public/*
-
+/docker
+docker-compose.yml
+/storage/docker
