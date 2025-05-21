@@ -35,3 +35,9 @@ L5_SWAGGER_UI_ASSETS_PATH
 Homestead.yaml
 Homestead.json
 
+# Docker
+docker-compose.yml
+docker-compose*.yml
+Dockerfile
+.dockerignore
+docker/
