@@ -42,7 +42,7 @@ class TagController extends Controller
      */
     public function index(): Response
     {
-        // TODO: Проверка прав $this->authorize('view-tag', Tag::class);
+        // TODO: Проверка прав $this->authorize('show-tags', Tag::class);
 
         $adminCountTags = config('site_settings.AdminCountTags', 15);
         $adminSortTags = config('site_settings.AdminSortTags', 'idAsc'); // idAsc по умолчанию
@@ -72,7 +72,7 @@ class TagController extends Controller
      */
     public function create(): Response
     {
-        // TODO: Проверка прав $this->authorize('create-tag', Tag::class);
+        // TODO: Проверка прав $this->authorize('create-tags', Tag::class);
         return Inertia::render('Admin/Tags/Create');
     }
 
@@ -111,7 +111,7 @@ class TagController extends Controller
      */
     public function edit(Tag $tag): Response // Используем RMB
     {
-        // TODO: Проверка прав $this->authorize('update-tag', $tag);
+        // TODO: Проверка прав $this->authorize('edit-tags', $tag);
 
         return Inertia::render('Admin/Tags/Edit', [
             'tag' => new TagResource($tag), // Передаем ресурс тега
@@ -154,7 +154,7 @@ class TagController extends Controller
      */
     public function destroy(Tag $tag): RedirectResponse // Используем RMB
     {
-        // TODO: Проверка прав $this->authorize('delete-tag', $tag);
+        // TODO: Проверка прав $this->authorize('delete-tags', $tag);
         try {
             DB::beginTransaction();
             $tag->delete();
@@ -244,6 +244,7 @@ class TagController extends Controller
      */
     public function bulkUpdateActivity(Request $request): JsonResponse
     {
+        // TODO: Проверка прав $this->authorize('edit-tags', Tag::class);
         $data = $request->validate([
             'ids'      => 'required|array',
             'ids.*'    => 'required|integer|exists:tags,id',

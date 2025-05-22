@@ -11,6 +11,7 @@ use App\Models\Admin\Article\Article;
 use App\Models\Admin\Rubric\Rubric;
 use App\Models\Admin\Section\Section;
 use App\Models\Admin\Setting\Setting;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response; // Для streamDownload
@@ -20,6 +21,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
+use InvalidArgumentException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Throwable; // Для обработки ошибок генерации
 
@@ -33,8 +35,8 @@ class ReportController extends Controller
      */
     public function index(Request $request): JsonResponse|InertiaResponse
     {
-        // TODO: Проверка прав 'view reports'
-        // $this->authorize('view reports');
+        // TODO: Проверка прав 'show-reports'
+        // $this->authorize('show-reports');
 
         $locale = $this->getCurrentLocale();
         $type = $request->query('type', 'page'); // 'page' - для Inertia view по умолчанию
@@ -48,7 +50,7 @@ class ReportController extends Controller
             // Пока оставим get() для простоты, но лучше оптимизировать под нужды страницы/JSON
             $data = $query->get();
 
-        } catch (\InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
             if ($request->expectsJson()) {
                 return response()->json(['error' => $e->getMessage()], 400);
             }
@@ -101,8 +103,8 @@ class ReportController extends Controller
      */
     public function download(Request $request): StreamedResponse
     {
-        // TODO: Проверка прав 'download reports'
-        // $this->authorize('download reports');
+        // TODO: Проверка прав 'download-reports'
+        // $this->authorize('download-reports');
 
         // Валидация входных данных
         $validated = $request->validate([
@@ -140,7 +142,7 @@ class ReportController extends Controller
                 echo $content;
             }, $filename, $headers);
 
-        } catch (\InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
             Log::warning("Неподдерживаемый формат отчета запрошен: " . $format);
             abort(400, $e->getMessage()); // Возвращаем ошибку клиенту
         } catch (Throwable $e) {
@@ -155,10 +157,10 @@ class ReportController extends Controller
      *
      * @param string $type Тип отчета ('rubrics', 'sections', 'articles')
      * @param string $locale Локаль
-     * @return \Illuminate\Database\Eloquent\Builder
-     * @throws \InvalidArgumentException
+     * @return Builder
+     * @throws InvalidArgumentException
      */
-    private function getBaseReportQuery(string $type, string $locale): \Illuminate\Database\Eloquent\Builder
+    private function getBaseReportQuery(string $type, string $locale): Builder
     {
         // TODO: Оптимизировать выборку полей и связей для КАЖДОГО типа отчета
         // Выбирать только то, что реально нужно для отчета/экспорта
@@ -201,7 +203,7 @@ class ReportController extends Controller
                 return Article::query(); // Или вернуть null/выбросить исключение
 
             default:
-                throw new \InvalidArgumentException('Неподдерживаемый тип отчета: ' . $type);
+                throw new InvalidArgumentException('Неподдерживаемый тип отчета: ' . $type);
         }
     }
 

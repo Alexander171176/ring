@@ -60,13 +60,6 @@ const mainLinks = ref(JSON.parse(localStorage.getItem('mainLinks')) || [
     'roles',
     'permissions',
     'settings',
-    'parameters',
-    'logs',
-    'phpinfo',
-    'composer',
-    'package',
-    'env',
-    'components',
     'diagrams',
     'plugins',
 ]);

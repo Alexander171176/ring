@@ -33,6 +33,8 @@ class UserController extends Controller
      */
     public function index(): Response
     {
+        // TODO: Проверка прав $this->authorize('show-users', User::class);
+
         // Прямой запрос без кэширования
         $users = User::with(['roles', 'permissions'])->get();
         $usersCount = User::count();
@@ -54,6 +56,8 @@ class UserController extends Controller
      */
     public function create(): Response
     {
+        // TODO: Проверка прав доступа $this->authorize('create-users', User::class);
+
         // Прямой запрос без кэширования
         $roles = Role::all();
         $permissions = Permission::all();
@@ -104,6 +108,8 @@ class UserController extends Controller
      */
     public function edit(User $user): Response
     {
+        // TODO: Проверка прав доступа $this->authorize('update-users', $user);
+
         $user->load(['roles', 'permissions']);
         $roles = Role::all();
         $permissions = Permission::all();
@@ -153,6 +159,8 @@ class UserController extends Controller
      */
     public function destroy(User $user): RedirectResponse
     {
+        // TODO: Проверка прав доступа $this->authorize('delete-users', $user);
+
         if ($user->hasRole('super-admin')) {
             return redirect()->route('admin.users.index')
                 ->with('error', __('admin/controllers/users.cannot_delete_superadmin'));

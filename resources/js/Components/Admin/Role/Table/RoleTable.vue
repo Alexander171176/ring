@@ -34,7 +34,7 @@ const emits = defineEmits(['edit', 'delete']);
                 </tr>
                 </thead>
                 <tbody>
-                <tr v-for="role in roles.filter(r => r.id !== 1)" :key="role.id"
+                <tr v-for="role in roles" :key="role.id"
                     class="text-sm font-semibold
                             border-b-2
                             hover:bg-slate-100 dark:hover:bg-cyan-800">

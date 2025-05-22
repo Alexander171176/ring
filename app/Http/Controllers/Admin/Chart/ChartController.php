@@ -21,7 +21,7 @@ class ChartController extends Controller
      */
     public function index(Request $request): Response
     {
-        // TODO: Авторизация
+        // TODO: Проверка прав $this->authorize('show-charts');
 
         // --- 1. Данные для графика "Статьи по Рубрикам" (количество) ---
         $rubricsWithArticleCount = Rubric::query()

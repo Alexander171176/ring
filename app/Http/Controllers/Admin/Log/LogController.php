@@ -27,6 +27,8 @@ class LogController extends Controller
      */
     public function index(Request $request): Response
     {
+        // TODO: Проверка прав $this->authorize('show-logs');
+
         $selected = $request->query('file', 'laravel'); // По умолчанию laravel.log
 
         $relativePath = $this->files[$selected] ?? $this->files['laravel'];
@@ -47,6 +49,8 @@ class LogController extends Controller
      */
     public function clear(Request $request): RedirectResponse
     {
+        // TODO: Проверка прав $this->authorize('clear-logs');
+
         $selected = $request->query('file', 'laravel');
 
         $relativePath = $this->files[$selected] ?? $this->files['laravel'];

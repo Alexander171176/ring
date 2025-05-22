@@ -44,7 +44,7 @@ class SectionController extends Controller
      */
     public function index(): Response
     {
-        // TODO: Проверка прав $this->authorize('view-section', Section::class);
+        // TODO: Проверка прав $this->authorize('show-sections', Section::class);
 
         // Получаем настройки для фронтенда (дефолтные значения)
         $adminCountSections = config('site_settings.AdminCountSections', 15);
@@ -77,7 +77,7 @@ class SectionController extends Controller
      */
     public function create(): Response
     {
-        // TODO: Проверка прав $this->authorize('create-section', Section::class);
+        // TODO: Проверка прав $this->authorize('create-sections', Section::class);
 
         // Передаем список рубрик (только нужные поля)
         $rubrics = Rubric::select('id', 'title', 'locale')->orderBy('title')->get();
@@ -128,7 +128,7 @@ class SectionController extends Controller
      */
     public function edit(Section $section): Response // Используем RMB
     {
-        // TODO: Проверка прав $this->authorize('update', $section);
+        // TODO: Проверка прав $this->authorize('update-sections', $section);
 
         // Загружаем связанные рубрики
         $section->load('rubrics');
@@ -185,7 +185,7 @@ class SectionController extends Controller
      */
     public function destroy(Section $section): RedirectResponse // Используем RMB
     {
-        // TODO: Проверка прав доступа $this->authorize('delete-section', $section);
+        // TODO: Проверка прав доступа $this->authorize('delete-sections', $section);
         try {
             DB::beginTransaction();
             // Связи (rubrics, articles, banners, videos) удалятся каскадно из pivot таблиц
@@ -275,6 +275,7 @@ class SectionController extends Controller
      */
     public function bulkUpdateActivity(Request $request): JsonResponse
     {
+        // TODO: Проверка прав доступа $this->authorize('update-sections', Section::class);
         $data = $request->validate([
             'ids'      => 'required|array',
             'ids.*'    => 'required|integer|exists:sections,id',
@@ -320,7 +321,7 @@ class SectionController extends Controller
      */
     public function updateSortBulk(Request $request): RedirectResponse
     {
-        // TODO: Проверка прав $this->authorize('update-sections');
+        // TODO: Проверка прав доступа $this->authorize('update-sections', Section::class);
 
         // Валидируем входящий массив (Можно вынести в отдельный FormRequest: UpdateSortBulkRequest)
         $validated = $request->validate([
@@ -358,7 +359,7 @@ class SectionController extends Controller
      */
     public function clone(Request $request, Section $section): RedirectResponse
     {
-        // TODO: Проверка прав $this->authorize('clone-section', $section);
+        // TODO: Проверка прав $this->authorize('create-sections', $section);
         DB::beginTransaction();
         try {
             $clonedSection = $section->replicate();

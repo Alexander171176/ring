@@ -411,6 +411,7 @@ export default {
     supportService: 'Служба поддержки',
     svg: 'SVG Иконка',
     switchTeams: 'Переключение Группы',
+    systems: 'Системные',
     tags: 'Теги',
     teamInformation: 'Информация о группе',
     teamManagement: 'Управление Группы',

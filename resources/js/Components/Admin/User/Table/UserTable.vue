@@ -38,7 +38,7 @@ const emits = defineEmits(['edit', 'delete']);
                 </tr>
                 </thead>
                 <tbody>
-                <tr v-for="user in users.filter(u => u.id !== 1)" :key="user.id"
+                <tr v-for="user in users" :key="user.id"
                     class="text-sm font-semibold border-b-2">
                     <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap
                                 text-teal-600 dark:text-violet-200

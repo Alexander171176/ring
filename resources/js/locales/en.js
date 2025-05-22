@@ -411,6 +411,7 @@ export default {
     supportService: 'Support Service',
     svg: 'SVG Icon',
     switchTeams: 'Switch Teams',
+    systems: 'Systems',
     tags: 'Tags',
     teamInformation: 'Team Information',
     teamManagement: 'Team Management',

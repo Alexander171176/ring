@@ -4,6 +4,7 @@ import { defineProps, defineEmits } from 'vue';
 import {Link, usePage} from '@inertiajs/vue3';
 import ApplicationMark from '@/Components/ApplicationMark.vue';
 import DraggableSidebarGroupLink from '@/Components/Admin/Links/DraggableSidebarGroupLink.vue';
+import DraggableSidebarSystemLinks from "@/Components/Admin/Links/DraggableSidebarSystemLinks.vue";
 import SidebarLinkPlugin from '@/Components/Admin/Links/SidebarLinkPlugin.vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { library } from '@fortawesome/fontawesome-svg-core';
@@ -97,25 +98,29 @@ const isActive = (path) => {
 <template>
     <div>
         <div
-            class="fixed inset-0 z-20 bg-cyan-800 dark:bg-gray-700 dark:border-r dark:border-gray-600 bg-opacity-30 md:hidden md:z-auto transition-opacity duration-200"
+            class="fixed inset-0 z-20 bg-cyan-800 dark:bg-gray-700 dark:border-r dark:border-gray-600 bg-opacity-30
+                   md:hidden md:z-auto transition-opacity duration-200"
             :class="sidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'" aria-hidden="true"></div>
 
         <div id="sidebar" ref="sidebar"
-             :class="[bgColorClass, { 'translate-x-0': sidebarOpen, '-translate-x-64': !sidebarOpen, 'hidden md:flex': true, 'md:w-16': !sidebarExpanded, 'md:!w-64 2xl:!w-64': sidebarExpanded }]"
-             class="h-screen absolute z-40 w-64 left-0 top-0 pb-16 p-2 flex flex-col
-            dark:border-r dark:border-gray-600 md:static md:left-auto md:top-auto md:translate-x-0 md:overflow-y-auto overflow-y-scroll no-scrollbar transition-all duration-200 ease-in-out">
+             :class="[bgColorClass, { 'translate-x-0': sidebarOpen, '-translate-x-58': !sidebarOpen, 'hidden md:flex': true, 'md:w-16': !sidebarExpanded, 'md:!w-58 2xl:!w-58': sidebarExpanded }]"
+             class="h-screen absolute z-40 w-58 left-0 top-0 pb-16 p-2 flex flex-col
+                    dark:border-r dark:border-gray-600
+                    md:static md:left-auto md:top-auto md:translate-x-0 md:overflow-y-auto
+                    overflow-y-scroll no-scrollbar transition-all duration-200 ease-in-out">
 
             <div class="flex justify-around items-center mb-5 pr-3 md:px-0">
                 <button @click.prevent="sidebarExpanded = !sidebarExpanded" title="t('toggleSidebar')">
                     <svg :class="{ 'rotate-180': sidebarExpanded }"
-                         class="mx-1 w-6 h-6 py-1 fill-current transition-transform duration-200 border border-gray-400 hover:border-red-400"
+                         class="mx-1 w-6 h-6 py-1 fill-current transition-transform duration-200
+                                border border-gray-400 hover:border-red-400"
                          viewBox="0 0 24 24">
                         <path class="text-slate-400 hover:text-red-400"
                               d="M19.586 11l-5-5L16 4.586 23.414 12 16 19.414 14.586 18l5-5H7v-2z"/>
                         <path class="text-slate-600" d="M3 23H1V1h2z"/>
                     </svg>
                 </button>
-                <Link :href="route('dashboard')" v-if="sidebarExpanded">
+                <Link :href="route('admin.index')" v-if="sidebarExpanded">
                     <ApplicationMark class="h-6 w-auto 2xl:block"/>
                 </Link>
                 <span class="text-indigo-300 font-semibold text-md hidden 2xl:block" v-if="sidebarExpanded">
@@ -125,7 +130,7 @@ const isActive = (path) => {
             </div>
 
             <div class="space-y-2">
-                <!-- Скрываем span, если sidebarExpanded равно false -->
+                <!-- Ссылки главного ряда -->
                 <span :class="[colorTextActive]"
                       class="flex justify-center text-xs uppercase font-semibold pl-3"
                       v-if="sidebarExpanded">
@@ -133,7 +138,10 @@ const isActive = (path) => {
                 </span>
                 <DraggableSidebarGroupLink :expanded="sidebarExpanded"/>
 
-                <!-- Скрываем span, если sidebarExpanded равно false -->
+                <!-- Ссылки ситемных функций -->
+                <DraggableSidebarSystemLinks :expanded="sidebarExpanded"/>
+
+                <!-- Ссылки плагинов -->
                 <span :class="[colorTextActive]"
                       class="flex justify-center text-xs uppercase font-semibold pl-3 mt-0"
                       v-if="sidebarExpanded">
@@ -156,6 +164,7 @@ const isActive = (path) => {
                         </template>
                     </SidebarLinkPlugin>
                 </ul>
+
             </div>
         </div>
     </div>

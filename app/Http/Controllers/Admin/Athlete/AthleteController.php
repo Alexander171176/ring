@@ -44,7 +44,7 @@ class AthleteController extends Controller
      */
     public function index(Request $request): Response
     {
-        // TODO: Проверка прав $this->authorize('view-athlete', Athlete::class);
+        // TODO: Проверка прав $this->authorize('show-athletes', Athlete::class);
 
         $adminCountAthletes = config('site_settings.AdminCountAthletes', 15);
         $adminSortAthletes = config('site_settings.AdminSortAthletes', 'idDesc');
@@ -80,7 +80,7 @@ class AthleteController extends Controller
      */
     public function create(): Response
     {
-        // TODO: Проверка прав $this->authorize('create-athlete', Athlete::class);
+        // TODO: Проверка прав $this->authorize('create-athletes', Athlete::class);
         return Inertia::render('Admin/Athletes/Create');
     }
 
@@ -185,7 +185,7 @@ class AthleteController extends Controller
      */
     public function edit(Athlete $athlete): Response
     {
-        // TODO: Проверка прав $this->authorize('update-athlete', $athlete);
+        // TODO: Проверка прав $this->authorize('update-athletes', $athlete);
 
         // Загружаем все необходимые связи
         $athlete->load(['images' => fn($q) => $q->orderBy('order', 'asc')]);
@@ -319,7 +319,7 @@ class AthleteController extends Controller
      */
     public function destroy(Athlete $athlete): RedirectResponse
     {
-        // TODO: Проверка прав $this->authorize('delete-athlete', $athlete);
+        // TODO: Проверка прав $this->authorize('delete-athletes', $athlete);
 
         try {
             DB::beginTransaction();
@@ -379,6 +379,7 @@ class AthleteController extends Controller
      */
     public function bulkUpdateActivity(Request $request): JsonResponse
     {
+        // TODO: Проверка прав доступа $this->authorize('update-athletes', Athlete::class);
         $data = $request->validate([
             'ids'      => 'required|array',
             'ids.*'    => 'required|integer|exists:athletes,id',

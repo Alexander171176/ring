@@ -27,6 +27,8 @@ class CommentController extends Controller
      */
     public function index(Request $request): Response // Добавляем Request для фильтров/сортировки
     {
+        // TODO: Проверка прав $this->authorize('show-comments', Comment::class);
+
         // Получаем настройки пагинации и сортировки
         $adminCountComments = config('site_settings.AdminCountComments', 15);
         // Используем имя из конфига, если оно правильное, иначе 'idDesc'
@@ -97,7 +99,7 @@ class CommentController extends Controller
      */
     public function edit(Comment $comment): Response // Используем RMB
     {
-        // TODO: Проверка прав $this->authorize('update', $comment);
+        // TODO: Проверка прав $this->authorize('edit-comments', $comment);
         // Загружаем связанные модели
         $comment->load(['user:id,name', 'commentable', 'parent' => fn($q) => $q->with('user:id,name')]);
 
@@ -145,7 +147,7 @@ class CommentController extends Controller
      */
     public function destroy(Comment $comment): RedirectResponse // Используем RMB
     {
-        // TODO: Проверка прав $this->authorize('delete', $comment);
+        // TODO: Проверка прав $this->authorize('delete-comments', $comment);
         try {
             // Транзакция не строго обязательна, т.к. дочерние удаляются через onDelete('cascade') в БД
             $comment->delete();
@@ -162,7 +164,8 @@ class CommentController extends Controller
      */
     public function bulkDestroy(Request $request): JsonResponse // Оставляем Request
     {
-        // TODO: Проверка прав $this->authorize('delete-bulk comments');
+        // TODO: Проверка прав $this->authorize('delete-comments', Comment::class);
+
         $validated = $request->validate([
             'ids' => 'required|array',
             'ids.*' => 'required|integer|exists:comments,id',
@@ -199,7 +202,8 @@ class CommentController extends Controller
     // Используем {comment} в маршруте для RMB
     public function approve(Request $request, Comment $comment): JsonResponse // Добавляем Request для возможной валидации/авторизации
     {
-        // TODO: Проверка прав $this->authorize('approve', $comment);
+        // TODO: Проверка прав $this->authorize('approve-comments', $comment);
+
         // Можно добавить FormRequest ApproveCommentRequest
         $request->validate(['approved' => 'sometimes|boolean']); // Валидация, если approved передается (хотя тут мы его просто ставим в true)
 

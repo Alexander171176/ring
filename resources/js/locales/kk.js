@@ -411,6 +411,7 @@ export default {
     supportService: 'Қолдау қызметі',
     svg: 'SVG белгішесі',
     switchTeams: 'Топты ауыстыру',
+    systems: 'Жүйелік',
     tags: 'Тегтер',
     teamInformation: 'Топ туралы ақпарат',
     teamManagement: 'Топты басқару',

@@ -51,7 +51,7 @@ class ArticleController extends Controller
      */
     public function index(): Response
     {
-        // TODO: Проверка прав $this->authorize('view-article', Article::class);
+        // TODO: Проверка прав $this->authorize('show-articles', Article::class);
 
         $adminCountArticles = config('site_settings.AdminCountArticles', 15);
         $adminSortArticles = config('site_settings.AdminSortArticles', 'idDesc');
@@ -87,7 +87,7 @@ class ArticleController extends Controller
      */
     public function create(): Response
     {
-        // TODO: Проверка прав $this->authorize('create-article', Article::class);
+        // TODO: Проверка прав $this->authorize('create-articles', Article::class);
 
         $sections = Section::select('id', 'title', 'locale')->orderBy('title')->get(); // секции
         $tags = Tag::select('id', 'name', 'locale')->orderBy('name')->get(); // теги
@@ -197,7 +197,7 @@ class ArticleController extends Controller
      */
     public function edit(Article $article): Response
     {
-        // TODO: Проверка прав $this->authorize('update-article', $article);
+        // TODO: Проверка прав $this->authorize('update-articles', $article);
 
         // Загружаем все необходимые связи
         $article->load(['sections', 'tags', 'images' => fn($q) => $q->orderBy('order', 'asc'), 'relatedArticles']);
@@ -335,7 +335,7 @@ class ArticleController extends Controller
      */
     public function destroy(Article $article): RedirectResponse
     {
-        // TODO: Проверка прав $this->authorize('delete-article', $article);
+        // TODO: Проверка прав $this->authorize('delete-articles', $article);
 
         try {
             DB::beginTransaction();
@@ -433,6 +433,7 @@ class ArticleController extends Controller
      */
     public function bulkUpdateLeft(Request $request): JsonResponse
     {
+        // TODO: Проверка прав $this->authorize('update-articles', $article);
         $data = $request->validate([
             'ids'      => 'required|array',
             'ids.*'    => 'required|integer|exists:articles,id',
@@ -486,6 +487,7 @@ class ArticleController extends Controller
      */
     public function bulkUpdateMain(Request $request): JsonResponse
     {
+        // TODO: Проверка прав $this->authorize('update-articles', $article);
         $data = $request->validate([
             'ids'      => 'required|array',
             'ids.*'    => 'required|integer|exists:articles,id',
@@ -539,6 +541,7 @@ class ArticleController extends Controller
      */
     public function bulkUpdateRight(Request $request): JsonResponse
     {
+        // TODO: Проверка прав $this->authorize('update-articles', $article);
         $data = $request->validate([
             'ids'      => 'required|array',
             'ids.*'    => 'required|integer|exists:articles,id',
@@ -595,6 +598,7 @@ class ArticleController extends Controller
      */
     public function bulkUpdateActivity(Request $request): JsonResponse
     {
+        // TODO: Проверка прав $this->authorize('update-articles', $article);
         $data = $request->validate([
             'ids'      => 'required|array',
             'ids.*'    => 'required|integer|exists:articles,id',
@@ -678,7 +682,7 @@ class ArticleController extends Controller
      */
     public function clone(Request $request, Article $article): RedirectResponse
     {
-        // TODO: Проверка прав $this->authorize('clone-article', $article);
+        // TODO: Проверка прав $this->authorize('create--articles', $article);
         DB::beginTransaction();
 
         try {

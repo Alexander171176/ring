@@ -1,5 +1,5 @@
 <script setup>
-import AdminLayout from '@/Layouts/AdminLayout.vue'
+import AppLayout from "@/Layouts/AppLayout.vue";
 import DeleteTeamForm from '@/Pages/Teams/Partials/DeleteTeamForm.vue'
 import SectionBorder from '@/Components/SectionBorder.vue'
 import TeamMemberManager from '@/Pages/Teams/Partials/TeamMemberManager.vue'
@@ -17,7 +17,7 @@ defineProps({
 </script>
 
 <template>
-    <AdminLayout :title="t('teamSettings')">
+    <AppLayout :title="t('teamSettings')">
         <template #header>
             <TitlePage>
                 {{ t('teamSettings') }}
@@ -43,5 +43,5 @@ defineProps({
                 </template>
             </div>
         </div>
-    </AdminLayout>
+    </AppLayout>
 </template>

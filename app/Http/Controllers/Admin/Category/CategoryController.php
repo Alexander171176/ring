@@ -33,7 +33,7 @@ class CategoryController extends Controller
      */
     public function index(Request $request): Response
     {
-        // TODO: Проверка прав $this->authorize('view-category', Category::class);
+        // TODO: Проверка прав $this->authorize('show-categories', Category::class);
 
         $currentLocale = $request->query('locale', config('app.fallback_locale', 'ru'));
 
@@ -79,7 +79,7 @@ class CategoryController extends Controller
      */
     public function create(Request $request): Response
     {
-        // TODO: Проверка прав $this->authorize('create-category', Category::class);
+        // TODO: Проверка прав $this->authorize('create-categories', Category::class);
 
         $targetLocale = $request->query('locale', config('app.fallback_locale', 'ru'));
         if (!in_array($targetLocale, $this->availableLocales)) {
@@ -153,6 +153,8 @@ class CategoryController extends Controller
      */
     public function edit(Request $request, Category $category): Response|RedirectResponse
     {
+        // TODO: Проверка прав $this->authorize('edit-categories', Category::class);
+
         $targetLocale = $request->query('locale', config('app.fallback_locale', 'ru'));
         if (!in_array($targetLocale, $this->availableLocales)) {
             Log::warning("Недопустимая локаль '{$targetLocale}' в edit. Используется fallback.");
@@ -246,7 +248,7 @@ class CategoryController extends Controller
     public function destroy(Category $category): RedirectResponse
     {
 
-        // TODO: Проверка прав $this->authorize('delete-category', $category);
+        // TODO: Проверка прав $this->authorize('delete-categories', $category);
 
         $locale = $category->locale;
         $categoryTitle = $category->title;
@@ -315,7 +317,7 @@ class CategoryController extends Controller
      */
     public function bulkUpdateActivity(Request $request): RedirectResponse|JsonResponse
     {
-        // $this->authorize('update', Category::class); // Общее право на обновление
+        // TODO: Проверка прав $this->authorize('edit-categories', Category::class);
 
         $validated = $request->validate([
             'ids' => 'required|array',
@@ -366,7 +368,7 @@ class CategoryController extends Controller
      */
     public function updateSort(Request $request, Category $category): RedirectResponse|JsonResponse
     {
-        // $this->authorize('update', $category);
+        // TODO: Проверка прав $this->authorize('edit-categories', Category::class);
 
         $validated = $request->validate([
             'sort' => 'required|integer|min:0',
@@ -410,6 +412,8 @@ class CategoryController extends Controller
      */
     public function updateSortBulk(Request $request): JsonResponse|RedirectResponse
     {
+        // TODO: Проверка прав $this->authorize('edit-categories', Category::class);
+
         $categoriesData = $request->input('categories');
         $locale = $request->input('locale');
 

@@ -165,7 +165,7 @@ const sortUsers = (users) => {
  * Вычисляемое свойство, отсортированный список поиска.
  */
 const filteredUsers = computed(() => {
-    let filtered = props.users.filter(user => user.id !== 1);
+    let filtered = props.users;
 
     if (searchQuery.value) {
         filtered = filtered.filter(user =>
@@ -216,7 +216,7 @@ const totalPages = computed(() => Math.ceil(filteredUsers.value.length / itemsPe
                     </DefaultButton>
                 </div>
                 <SearchInput v-if="usersCount" v-model="searchQuery" :placeholder="t('searchByNameOrEmail')"/>
-                <CountTable v-if="usersCount"> {{ usersCount - 1 }} </CountTable>
+                <CountTable v-if="usersCount"> {{ usersCount}} </CountTable>
                 <UserTable
                     :users="paginatedUsers"
                     @delete="confirmDelete"

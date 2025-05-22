@@ -1,5 +1,5 @@
 <script setup>
-import AdminLayout from '@/Layouts/AdminLayout.vue'
+import AppLayout from "@/Layouts/AppLayout.vue";
 import CreateTeamForm from '@/Pages/Teams/Partials/CreateTeamForm.vue'
 import TitlePage from '@/Components/Admin/Headlines/TitlePage.vue'
 import { useI18n } from 'vue-i18n'
@@ -8,7 +8,7 @@ const { t } = useI18n()
 </script>
 
 <template>
-    <AdminLayout :title="t('createTeam')">
+    <AppLayout :title="t('createTeam')">
         <template #header>
             <TitlePage>
                 {{ t('createTeam') }}
@@ -20,5 +20,5 @@ const { t } = useI18n()
                 <CreateTeamForm />
             </div>
         </div>
-    </AdminLayout>
+    </AppLayout>
 </template>

@@ -43,7 +43,7 @@ class RubricController extends Controller
      */
     public function index(): Response
     {
-        // TODO: Проверка прав $this->authorize('view-rubric', Rubric::class);
+        // TODO: Проверка прав $this->authorize('show-rubrics', Rubric::class);
 
         // Получаем настройки для фронтенда (дефолтные значения)
         $adminCountRubrics = config('site_settings.AdminCountRubrics', 15); // Для ItemsPerPageSelect
@@ -78,7 +78,7 @@ class RubricController extends Controller
      */
     public function create(): Response
     {
-        // TODO: Проверка прав доступа $this->authorize('create-rubric', Rubric::class);
+        // TODO: Проверка прав доступа $this->authorize('create-rubrics', Rubric::class);
         return Inertia::render('Admin/Rubrics/Create');
     }
 
@@ -118,7 +118,7 @@ class RubricController extends Controller
      */
     public function edit(Rubric $rubric): Response // Используем Route Model Binding
     {
-        // TODO: Проверка прав доступа $this->authorize('update-rubric', $rubric);
+        // TODO: Проверка прав доступа $this->authorize('update-rubrics', $rubric);
         return Inertia::render('Admin/Rubrics/Edit', [
             'rubric' => new RubricResource($rubric),
         ]);
@@ -162,7 +162,7 @@ class RubricController extends Controller
      */
     public function destroy(Rubric $rubric): RedirectResponse
     {
-        // TODO: Проверка прав доступа $this->authorize('delete-rubric', $rubric);
+        // TODO: Проверка прав доступа $this->authorize('delete-rubrics', $rubric);
         try {
             DB::beginTransaction();
             $rubricTitle = $rubric->title;
@@ -255,6 +255,7 @@ class RubricController extends Controller
      */
     public function bulkUpdateActivity(Request $request): JsonResponse
     {
+        // TODO: Проверка прав доступа $this->authorize('update-rubrics', Rubric::class);
         $data = $request->validate([
             'ids'      => 'required|array',
             'ids.*'    => 'required|integer|exists:rubrics,id',
@@ -301,7 +302,7 @@ class RubricController extends Controller
      */
     public function updateSortBulk(Request $request): RedirectResponse
     {
-        // TODO: Проверка прав $this->authorize('update-rubrics');
+        // TODO: Проверка прав $this->authorize('update-rubrics', Rubric::class);
 
         // Валидируем входящий массив
         // (Можно вынести в отдельный FormRequest: UpdateSortBulkRequest)
@@ -340,7 +341,7 @@ class RubricController extends Controller
      */
     public function clone(Request $request, Rubric $rubric): RedirectResponse
     {
-        // TODO: Проверка прав $this->authorize('clone-rubric', $rubric);
+        // TODO: Проверка прав $this->authorize('create-rubrics', $rubric);
 
         DB::beginTransaction();
         try {

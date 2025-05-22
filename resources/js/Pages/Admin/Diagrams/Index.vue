@@ -16,12 +16,12 @@ const { t } = useI18n();
             </TitlePage>
         </template>
         <div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-12xl mx-auto">
-            <div class="sm:flex sm:justify-between sm:items-center mb-1">
-
-            </div>
             <div class="bg-gray-100 dark:bg-slate-900 overflow-hidden shadow-xl sm:rounded-lg">
                 <VueFlow />
                 <BarChart />
+            </div>
+            <div class="sm:flex sm:justify-between sm:items-center mb-1">
+
             </div>
         </div>
     </AdminLayout>

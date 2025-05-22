@@ -20,7 +20,7 @@ class ComponentController extends Controller
         'Rubrics'            => 'js/Pages/Public/Default/Rubrics',
         'Tags'               => 'js/Pages/Public/Default/Tags',
         'Video'              => 'js/Pages/Public/Default/Videos',
-        'Comp-sArticles'     => 'js/Components/Public/Default/Article',
+        'Comp-Articles'     => 'js/Components/Public/Default/Article',
         'Comp-Rubrics'       => 'js/Components/Public/Default/Rubric',
         'Comp-Banners'       => 'js/Components/Public/Default/Banner',
         'ComponentsVideos'   => 'js/Components/Public/Default/Video',
@@ -35,6 +35,8 @@ class ComponentController extends Controller
 
     public function index(): InertiaResponse
     {
+        // TODO: Проверка прав $this->authorize('show-components', Component::class);
+
         $fileContents = $this->getEditableFilesContent();
 
         return Inertia::render('Admin/Components/Index', [
@@ -99,6 +101,8 @@ class ComponentController extends Controller
 
     public function save(Request $request): RedirectResponse
     {
+        // TODO: Проверка прав $this->authorize('edit-components', Component::class);
+
         $validated = $request->validate([
             'fileName' => [
                 'required',

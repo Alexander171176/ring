@@ -51,7 +51,7 @@ const saveChanges = async () => {
                     {{ t('componentEditorWarning') }}
             </span>
             <!-- Tabs -->
-            <ul class="flex items-center justify-center flex-row pb-4 text-sm overflow-x-auto flex-nowrap">
+            <ul class="flex items-center justify-center flex-row pb-4 px-4 text-sm overflow-x-auto flex-nowrap">
                 <li v-for="tab in Object.keys(fileContents)" :key="tab" class="inline mr-1">
                     <a
                         href="#"

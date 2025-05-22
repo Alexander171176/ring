@@ -13,6 +13,7 @@ class EnvController extends Controller
     public function index(Request $request): Response
     {
         // abort_unless($request->user()?->hasRole('super-admin'), 403);
+        // TODO: Проверка прав $this->authorize('show-systems');
 
         $path = base_path('.env');
 

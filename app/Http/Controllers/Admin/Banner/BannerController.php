@@ -48,7 +48,7 @@ class BannerController extends Controller
      */
     public function index(): Response
     {
-        // TODO: Проверка прав $this->authorize('view-banner', Banner::class);
+        // TODO: Проверка прав $this->authorize('show-banners', Banner::class);
 
         $adminCountBanners = config('site_settings.AdminCountBanners', 15);
         $adminSortBanners  = config('site_settings.AdminSortBanners', 'idDesc');
@@ -83,7 +83,7 @@ class BannerController extends Controller
      */
     public function create(): Response
     {
-        // TODO: Проверка прав $this->authorize('create-banner', Banner::class);
+        // TODO: Проверка прав $this->authorize('create-banners', Banner::class);
 
         $sections = Section::select('id', 'title', 'locale')->orderBy('title')->get();
 
@@ -180,7 +180,7 @@ class BannerController extends Controller
      */
     public function edit(Banner $banner): Response // Используем RMB
     {
-        // TODO: Проверка прав $this->authorize('update-banner', $banner);
+        // TODO: Проверка прав $this->authorize('update-banners', $banner);
 
         // Загружаем связи с сортировкой изображений
         $banner->load(['sections', 'images' => fn($q) => $q->orderBy('order', 'asc')]);
@@ -308,7 +308,7 @@ class BannerController extends Controller
      */
     public function destroy(Banner $banner): RedirectResponse // Используем RMB
     {
-        // TODO: Проверка прав $this->authorize('delete-banner', $banner);
+        // TODO: Проверка прав $this->authorize('delete-banners', $banner);
         try {
 
             DB::beginTransaction();
@@ -408,6 +408,7 @@ class BannerController extends Controller
      */
     public function bulkUpdateLeft(Request $request): JsonResponse
     {
+        // TODO: Проверка прав $this->authorize('update-banners', Banner::class);
         $data = $request->validate([
             'ids'      => 'required|array',
             'ids.*'    => 'required|integer|exists:banners,id',
@@ -457,6 +458,7 @@ class BannerController extends Controller
      */
     public function bulkUpdateRight(Request $request): JsonResponse
     {
+        // TODO: Проверка прав $this->authorize('update-banners', Banner::class);
         $data = $request->validate([
             'ids'      => 'required|array',
             'ids.*'    => 'required|integer|exists:banners,id',
@@ -509,6 +511,7 @@ class BannerController extends Controller
      */
     public function bulkUpdateActivity(Request $request): JsonResponse
     {
+        // TODO: Проверка прав $this->authorize('update-banners', Banner::class);
         $data = $request->validate([
             'ids'      => 'required|array',
             'ids.*'    => 'required|integer|exists:banners,id',
