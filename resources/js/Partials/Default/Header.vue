@@ -179,7 +179,7 @@ const placeholderClasses = computed(() => {
                     <!-- Меню пользователя -->
                     <div v-if="canLogin" class="flex items-center space-x-2 mr-8">
 
-                        <Link v-if="auth.user" :href="route('dashboard')" :title="t('profile')"
+                        <Link v-if="auth.user" :href="route('profile.show')" :title="t('profile')"
                               class="flex items-center px-3 pb-0.5
                                      text-sm font-semibold
                                      text-slate-900 hover:text-orange-500

@@ -12,15 +12,14 @@ defineProps({
         :type="type"
         class="inline-flex
            items-center
-           px-3 py-1
+           px-2 py-1
            bg-cyan-700
            border
            border-transparent
-           rounded-md
+           rounded-sm
            text-white
            font-bold
            text-xs
-           uppercase
            tracking-widest
            hover:bg-cyan-700
            focus:bg-cyan-700

@@ -10,11 +10,8 @@ const { t } = useI18n()
         <ResponsiveNavLink :href="route('dashboard')" :active="route().current('dashboard')">
             {{ t('dashboard') }}
         </ResponsiveNavLink>
-        <ResponsiveNavLink :href="route('rubrics.index')" :active="route().current('rubrics.index')">
-            {{ t('rubrics') }}
-        </ResponsiveNavLink>
-        <ResponsiveNavLink :href="route('articles.index')" :active="route().current('articles.index')">
-            {{ t('posts') }}
+        <ResponsiveNavLink :href="route('profile.show')" :active="route().current('profile.show')">
+            {{ t('profile') }}
         </ResponsiveNavLink>
     </div>
 </template>

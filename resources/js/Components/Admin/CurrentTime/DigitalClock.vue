@@ -41,8 +41,8 @@ onUnmounted(() => {
                 transform -text-center
                 font-mono font-semibold">
         <p>
-            <span class="date text-lg mr-2 text-teal-500 dark:text-cyan-100">{{ date }}</span>
-            <span class="time text-xl text-center text-slate-500 dark:text-cyan-100">{{ time }}</span>
+            <span class="date text-sm mr-2 text-teal-500 dark:text-cyan-100">{{ date }}</span>
+            <span class="time text-md text-center text-slate-500 dark:text-cyan-100">{{ time }}</span>
         </p>
     </div>
 </template>

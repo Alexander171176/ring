@@ -1,5 +1,13 @@
 <?php
 
+use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController;
+use Laravel\Fortify\Http\Controllers\EmailVerificationNotificationController;
+use Laravel\Fortify\Http\Controllers\EmailVerificationPromptController;
+use Laravel\Fortify\Http\Controllers\NewPasswordController;
+use Laravel\Fortify\Http\Controllers\PasswordResetLinkController;
+use Laravel\Fortify\Http\Controllers\RegisteredUserController;
+use Laravel\Fortify\Http\Controllers\VerifyEmailController;
+use Laravel\Jetstream\Http\Controllers;
 use App\Http\Controllers\Admin\Athlete\AthleteController;
 use App\Http\Controllers\Admin\Log\LogController;
 use App\Http\Controllers\Admin\Category\CategoryController;
@@ -9,6 +17,17 @@ use App\Http\Controllers\Admin\System\PackageController;
 use App\Http\Controllers\Admin\System\PhpInfoController;
 use App\Http\Controllers\Admin\Tournament\TournamentController;
 use App\Models\Admin\Tournament\Tournament;
+use Laravel\Jetstream\Http\Controllers\CurrentTeamController;
+use Laravel\Jetstream\Http\Controllers\Inertia\ApiTokenController;
+use Laravel\Jetstream\Http\Controllers\Inertia\CurrentUserController;
+use Laravel\Jetstream\Http\Controllers\Inertia\OtherBrowserSessionsController;
+use Laravel\Jetstream\Http\Controllers\Inertia\PrivacyPolicyController;
+use Laravel\Jetstream\Http\Controllers\Inertia\ProfilePhotoController;
+use Laravel\Jetstream\Http\Controllers\Inertia\TeamController;
+use Laravel\Jetstream\Http\Controllers\Inertia\TeamMemberController;
+use Laravel\Jetstream\Http\Controllers\Inertia\TermsOfServiceController;
+use Laravel\Jetstream\Http\Controllers\Inertia\UserProfileController;
+use Laravel\Jetstream\Http\Controllers\TeamInvitationController;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
 use App\Http\Controllers\Admin\Article\ArticleController;
@@ -88,6 +107,11 @@ Route::group([
         return Inertia::render('NotFound')->toResponse($request)->setStatusCode(404);
     });
 
+    // --- Аутентификация (Логин) Jetstream/Fortify ---
+    Route::get('/login', [AuthenticatedSessionController::class, 'create'])
+        ->middleware(['guest'])
+        ->name('login');
+
     // Публичная часть сайта
     Route::middleware([CheckDowntime::class])->group(function () use ($siteLayout) {
 
@@ -107,19 +131,140 @@ Route::group([
         Route::get('/videos/{url}', [$publicVideoController, 'show'])->where('url', '.*')->name('public.videos.show');
 
         // TODO: Добавить другие публичные маршруты (поиск, контакты и т.д.)
+
+        // --- Маршруты без аутентификации Jetstream/Fortify ---
+        // --- Аутентификация (Логин) ---
+        Route::post('/login', [AuthenticatedSessionController::class, 'store'])
+            ->middleware(['guest'])
+            ->name('login.store');
+
+        Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
+            ->middleware(['auth'])
+            ->name('logout');
+
+        // --- Регистрация ---
+        Route::get('/register', [RegisteredUserController::class, 'create'])
+            ->middleware(['guest'])
+            ->name('register');
+
+        Route::post('/register', [RegisteredUserController::class, 'store'])
+            ->middleware(['guest'])
+            ->name('register.store');
+
+        // --- Сброс пароля ---
+        Route::get('/forgot-password', [PasswordResetLinkController::class, 'create'])
+            ->middleware(['guest'])
+            ->name('password.request');
+
+        Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])
+            ->middleware(['guest'])
+            ->name('password.email');
+
+        Route::get('/reset-password/{token}', [NewPasswordController::class, 'create'])
+            ->middleware(['guest'])
+            ->name('password.reset');
+
+        Route::post('/reset-password', [NewPasswordController::class, 'store'])
+            ->middleware(['guest'])
+            ->name('password.update');
+
+        // --- Подтверждение Email (если включено) ---
+        Route::get('/email/verify', [EmailVerificationPromptController::class, '__invoke'])
+            ->middleware(['auth'])
+            ->name('verification.notice');
+
+        Route::get('/email/verify/{id}/{hash}', [VerifyEmailController::class, '__invoke'])
+            ->middleware(['auth', 'signed', 'throttle:6,1'])
+            ->name('verification.verify');
+
+        Route::post('/email/verification-notification', [EmailVerificationNotificationController::class, 'store'])
+            ->middleware(['auth', 'throttle:6,1'])
+            ->name('verification.send');
     });
 
-    // --- Маршруты аутентификации и профиля пользователя ---
-
-    // Профиль Пользователя (стандартные маршруты Jetstream/Fortify обычно регистрируются пакетами)
+    // --- Стандартные маршруты Jetstream / Fortify с поддержкой локали ---
     Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])->group(function () {
-        Route::get('/dashboard', function () { // Пользовательский дашборд
-            return Inertia::render('Dashboard');
-        })->name('dashboard');
 
-        // Могут быть и другие маршруты профиля здесь...
+        // Пользовательский дашборд
+        Route::get('/dashboard', fn () => Inertia::render('Dashboard'))->name('dashboard');
+
+        // Профиль пользователя
+        Route::get('/profile', [UserProfileController::class, 'show'])->name('profile.show');
+
+        // Страница со списком токенов
+        Route::get('/api-tokens', [ApiTokenController::class, 'index'])->name('api-tokens.index');
+        // Создание нового токена
+        Route::post('/api-tokens', [ApiTokenController::class, 'store'])->name('api-tokens.store');
+        // Обновление прав токена
+        Route::put('/api-tokens/{tokenId}', [ApiTokenController::class, 'update'])->name('api-tokens.update');
+        // Удаление токена
+        Route::delete('/api-tokens/{tokenId}', [ApiTokenController::class, 'destroy'])->name('api-tokens.destroy');
+
+        // Удаление пользователя
+        Route::delete('/user', [CurrentUserController::class, 'destroy'])->name('current-user.destroy');
+
+        // Выход с других браузерных сессий
+        Route::delete('/user/other-browser-sessions', [OtherBrowserSessionsController::class, 'destroy'])->name('other-browser-sessions.destroy');
+
+        // Удаление фото профиля
+        Route::delete('/user/profile-photo', [ProfilePhotoController::class, 'destroy'])->name('current-user-photo.destroy');
+
+        // Обновление информации профиля
+        Route::put('/user/profile-information', [\Laravel\Fortify\Http\Controllers\ProfileInformationController::class, 'update'])->name('user-profile-information.update');
+
+        // Обновление пароля пользователя
+        Route::put('/user/password', [\Laravel\Fortify\Http\Controllers\PasswordController::class, 'update'])->name('user-password.update');
+
+        // Подтверждение пароля
+        Route::get('/user/confirm-password', [\Laravel\Fortify\Http\Controllers\ConfirmablePasswordController::class, 'show'])->name('password.confirm');
+        Route::post('/user/confirm-password', [\Laravel\Fortify\Http\Controllers\ConfirmablePasswordController::class, 'store'])->name('password.confirm.store');
+        Route::get('/user/confirmed-password-status', [\Laravel\Fortify\Http\Controllers\ConfirmedPasswordStatusController::class, 'show'])->name('password.confirmation');
+
+        // --- Двухфакторная аутентификация (2FA) ---
+        // Включение 2FA
+        Route::post('/user/two-factor-authentication', [\Laravel\Fortify\Http\Controllers\TwoFactorAuthenticationController::class, 'store'])->name('two-factor.enable');
+        // Подтверждение включения 2FA
+        Route::post('/user/confirmed-two-factor-authentication', [\Laravel\Fortify\Http\Controllers\ConfirmedTwoFactorAuthenticationController::class, 'store'])->name('two-factor.confirm');
+        // Отключение 2FA
+        Route::delete('/user/two-factor-authentication', [\Laravel\Fortify\Http\Controllers\TwoFactorAuthenticationController::class, 'destroy'])->name('two-factor.disable');
+        // Получение QR-кода
+        Route::get('/user/two-factor-qr-code', [\Laravel\Fortify\Http\Controllers\TwoFactorQrCodeController::class, 'show'])->name('two-factor.qr-code');
+        // Получение секретного ключа
+        Route::get('/user/two-factor-secret-key', [\Laravel\Fortify\Http\Controllers\TwoFactorSecretKeyController::class, 'show'])->name('two-factor.secret-key');
+        // Получение и генерация recovery-кодов
+        Route::get('/user/two-factor-recovery-codes', [\Laravel\Fortify\Http\Controllers\RecoveryCodeController::class, 'index'])->name('two-factor.recovery-codes');
+        Route::post('/user/two-factor-recovery-codes', [\Laravel\Fortify\Http\Controllers\RecoveryCodeController::class, 'store']);
+
+        // --- Работа с командами (Teams) ---
+        // Форма создания команды
+        Route::get('/teams/create', [TeamController::class, 'create'])->name('teams.create');
+        // Сохранение новой команды
+        Route::post('/teams', [TeamController::class, 'store'])->name('teams.store');
+        // Показ страницы команды
+        Route::get('/teams/{team}', [TeamController::class, 'show'])->name('teams.show');
+        // Обновление названия команды
+        Route::put('/teams/{team}', [TeamController::class, 'update'])->name('teams.update');
+        // Удаление команды
+        Route::delete('/teams/{team}', [TeamController::class, 'destroy'])->name('teams.destroy');
+
+        // Участники команды
+        Route::post('/teams/{team}/members', [TeamMemberController::class, 'store'])->name('team-members.store');
+        Route::put('/teams/{team}/members/{user}', [TeamMemberController::class, 'update'])->name('team-members.update');
+        Route::delete('/teams/{team}/members/{user}', [TeamMemberController::class, 'destroy'])->name('team-members.destroy');
+
+        // Приглашения в команду
+        Route::post('/team-invitations/{invitation}', [TeamInvitationController::class, 'accept'])->name('team-invitations.accept');
+        Route::delete('/team-invitations/{invitation}', [TeamInvitationController::class, 'destroy'])->name('team-invitations.destroy');
+
+        // Переключение текущей команды
+        Route::put('/current-team', [CurrentTeamController::class, 'update'])->name('current-team.update');
+
+        // --- Политика и условия ---
+        // Условия использования
+        Route::get('/terms-of-service', [TermsOfServiceController::class, 'show'])->name('terms.show');
+        // Политика конфиденциальности
+        Route::get('/privacy-policy', [PrivacyPolicyController::class, 'show'])->name('policy.show');
     });
-
 
     // --- Маршруты Панели Администратора ---
     Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',])

@@ -52,7 +52,7 @@ const {t} = useI18n();
         <template #description>{{ t('browserSessionDescription') }}</template>
 
         <template #content>
-            <div class="max-w-xl font-semibold text-lg text-indigo-900 dark:text-sky-200">
+            <div class="max-w-xl font-semibold text-sm text-indigo-900 dark:text-sky-200">
                 {{ t('browserSessionWarning') }}
             </div>
 
@@ -94,13 +94,13 @@ const {t} = useI18n();
                     </div>
 
                     <div class="ms-3">
-                        <div class="font-semibold text-lg text-orange-400 dark:text-violet-300">
+                        <div class="font-semibold text-sm text-orange-400 dark:text-violet-300">
                             {{ session.agent.platform ? session.agent.platform : t('unknown') }} -
                             {{ session.agent.browser ? session.agent.browser : t('unknown') }}
                         </div>
 
                         <div>
-                            <div class="font-semibold text-lg text-gray-900 dark:text-slate-300">
+                            <div class="font-semibold text-sm text-gray-900 dark:text-slate-300">
                                 {{ session.ip_address }},
 
                                 <span v-if="session.is_current_device"

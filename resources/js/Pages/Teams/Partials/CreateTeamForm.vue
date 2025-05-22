@@ -39,8 +39,8 @@ const createTeam = () => {
                     />
 
                     <div class="ms-4 leading-tight">
-                        <div class="font-semibold text-orange-400 text-lg">{{ $page.props.auth.user.name }}</div>
-                        <div class="font-semibold text-teal-600 text-lg">
+                        <div class="font-semibold text-orange-400 text-sm">{{ $page.props.auth.user.name }}</div>
+                        <div class="font-semibold text-teal-600 text-sm">
                             {{ $page.props.auth.user.email }}
                         </div>
                     </div>

@@ -42,7 +42,7 @@ const logout = () => {
                             <Link href="/frontend"
                                   class="font-semibold
                                              text-gray-600
-                                             text-lg
+                                             text-sm
                                              px-3 py-1
                                              hover:text-gray-900
                                              dark:text-gray-400
@@ -63,7 +63,7 @@ const logout = () => {
                                 :href="route('dashboard')"
                                 class="font-semibold
                                            text-gray-600
-                                           text-lg
+                                           text-sm
                                            px-3 py-1
                                            hover:text-gray-900
                                            dark:text-gray-400
@@ -80,7 +80,7 @@ const logout = () => {
                                 :href="route('admin.index')"
                                 class="font-semibold
                                            text-gray-600
-                                           text-lg
+                                           text-sm
                                            mr-2 px-3 py-1
                                            hover:text-gray-900
                                            dark:text-gray-400
@@ -104,7 +104,7 @@ const logout = () => {
                                     :href="route('login')"
                                     class="font-semibold
                                            text-gray-600
-                                           text-lg
+                                           text-sm
                                            px-3 py-1
                                            hover:text-gray-900
                                            dark:text-gray-400
@@ -121,7 +121,7 @@ const logout = () => {
                                     :href="route('register')"
                                     class="font-semibold
                                            text-gray-600
-                                           text-lg
+                                           text-sm
                                            px-3 py-1
                                            hover:text-gray-900
                                            dark:text-gray-400
@@ -213,7 +213,7 @@ const logout = () => {
                             :href="route('login')"
                             class="font-semibold
                                        text-gray-600
-                                       text-lg
+                                       text-sm
                                        px-3 py-1
                                        hover:text-gray-900
                                        dark:text-gray-400
@@ -230,7 +230,7 @@ const logout = () => {
                             :href="route('register')"
                             class="font-semibold
                                        text-gray-600
-                                       text-lg
+                                       text-sm
                                        px-3 py-1
                                        hover:text-gray-900
                                        dark:text-gray-400
@@ -281,7 +281,7 @@ const logout = () => {
                                 </svg>
                             </div>
 
-                            <h2 class="mt-6 text-xl font-semibold text-gray-900 dark:text-white">
+                            <h2 class="mt-6 text-md font-semibold text-gray-900 dark:text-white">
                                 Документация Laravel
                             </h2>
 
@@ -329,7 +329,7 @@ const logout = () => {
                                 </svg>
                             </div>
 
-                            <h2 class="mt-6 text-xl font-semibold text-gray-900 dark:text-white">Laracasts</h2>
+                            <h2 class="mt-6 text-md font-semibold text-gray-900 dark:text-white">Laracasts</h2>
 
                             <p class="mt-4 text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
                                 Laracasts предлагает тысячи видеоуроков по разработке на Laravel, PHP и JavaScript.
@@ -376,7 +376,7 @@ const logout = () => {
                                 </svg>
                             </div>
 
-                            <h2 class="mt-6 text-xl font-semibold text-gray-900 dark:text-white">Laravel News</h2>
+                            <h2 class="mt-6 text-md font-semibold text-gray-900 dark:text-white">Laravel News</h2>
 
                             <p class="mt-4 text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
                                 Laravel News - это управляемый сообществом портал и информационная рассылка,
@@ -422,7 +422,7 @@ const logout = () => {
                                 </svg>
                             </div>
 
-                            <h2 class="mt-6 text-xl font-semibold text-gray-900 dark:text-white">
+                            <h2 class="mt-6 text-md font-semibold text-gray-900 dark:text-white">
                                 Vibrant Ecosystem
                             </h2>
 

@@ -12,13 +12,13 @@ defineProps({
         :type="type"
         class="inline-flex
            items-center
-           px-3 py-1
+           px-2 py-1
            bg-white
            border
-           border-gray-300
-           rounded-md
+           border-gray-400
+           rounded-sm
            font-semibold
-           text-md
+           text-xs
            text-gray-900
            lowercase
            tracking-widest

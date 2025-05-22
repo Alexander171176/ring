@@ -46,7 +46,7 @@ const logout = () => {
 
         <nav class="border-b border-gray-100">
             <div class="max-w-full mx-auto px-4 sm:px-0">
-                <div class="flex items-center justify-between h-12">
+                <div class="flex items-center justify-between h-10">
                     <div class="flex items-center justify-center">
                         <div class="shrink-0 flex items-center md:hidden">
                             <Link :href="route('dashboard')">
@@ -62,7 +62,7 @@ const logout = () => {
                                     <button v-if="$page.props.jetstream.managesProfilePhotos"
                                             class="flex items-center
                                                     px-2 py-1
-                                                    font-semibold text-md
+                                                    font-semibold text-sm
                                                     text-sky-600 dark:text-slate-100
                                                     border-2 border-transparent rounded-full
                                                     focus:outline-none focus:border-gray-400
@@ -78,7 +78,7 @@ const logout = () => {
                                                         bg-white active:bg-gray-50
                                                         px-3 py-2
                                                         border border-transparent rounded-md
-                                                        text-md leading-4 font-medium text-slate-500
+                                                        text-sm leading-4 font-medium text-slate-500
                                                         hover:text-slate-700
                                                         focus:outline-none focus:bg-gray-50
                                                         transition ease-in-out duration-150">
@@ -95,7 +95,7 @@ const logout = () => {
                                     </span>
                                 </template>
                                 <template #content>
-                                    <div class="block px-4 py-2 text-md text-slate-400">
+                                    <div class="block px-4 py-2 text-sm text-slate-400">
                                         {{ t('accountManagement') }}
                                     </div>
                                     <DropdownLink :href="route('profile.show')">
@@ -119,9 +119,9 @@ const logout = () => {
                                         <button type="button"
                                                 class="inline-flex items-center
                                                         bg-white dark:bg-slate-500 active:bg-gray-50
-                                                        px-3 py-2
-                                                        border border-transparent rounded-md
-                                                        text-md leading-4 font-medium text-slate-500
+                                                        px-2 py-1
+                                                        border border-transparent rounded-xs
+                                                        text-sm leading-4 font-medium text-slate-500
                                                         dark:text-slate-100 hover:text-slate-700
                                                         focus:outline-none focus:bg-gray-50
                                                         transition ease-in-out duration-150">
@@ -139,7 +139,7 @@ const logout = () => {
                                 </template>
                                 <template #content>
                                     <div class="w-60">
-                                        <div class="block px-4 py-2 text-md text-slate-400">
+                                        <div class="block px-4 py-2 text-sm text-slate-400">
                                             {{ t('teamManagement') }}
                                         </div>
                                         <DropdownLink :href="route('teams.show', $page.props.auth.user.current_team)">
@@ -151,7 +151,7 @@ const logout = () => {
                                         </DropdownLink>
                                         <template v-if="$page.props.auth.user.all_teams.length > 1">
                                             <div class="w-60 border-t border-gray-200"></div>
-                                            <div class="block px-4 py-2 text-md text-slate-400">
+                                            <div class="block px-4 py-2 text-sm text-slate-400">
                                                 {{ t('switchTeams') }}
                                             </div>
                                             <template v-for="team in $page.props.auth.user.all_teams" :key="team.id">

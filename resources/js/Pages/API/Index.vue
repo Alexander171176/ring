@@ -15,7 +15,7 @@ const { t } = useI18n();
 <template>
     <AppLayout :title="t('apiTokens')">
         <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            <h2 class="font-semibold text-md text-gray-800 leading-tight">
                 {{ t('apiTokens') }}
             </h2>
         </template>

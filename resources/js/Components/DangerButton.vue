@@ -13,13 +13,13 @@ defineProps({
         class="inline-flex
            items-center
            justify-center
-           px-3 py-1
+           px-2 py-0.5
            bg-rose-600
            border
            border-transparent
-           rounded-md
+           rounded-sm
            font-semibold
-           text-md
+           text-sm
            text-white
            lowercase
            tracking-widest

@@ -1,8 +1,8 @@
 <template>
-    <h2 class="tracking-wider
+    <h1 class="tracking-wider
                text-center font-semibold
                text-slate-800 dark:text-slate-300
-               text-lg leading">
+               text-md leading">
         ✨ <slot />
-    </h2>
+    </h1>
 </template>

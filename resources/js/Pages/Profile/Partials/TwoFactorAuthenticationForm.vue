@@ -110,20 +110,20 @@ const {t} = useI18n();
         <template #description>{{ t('twoFactorAuthenticationDescription') }}</template>
 
         <template #content>
-            <h3 v-if="twoFactorEnabled && !confirming" class="text-xl font-medium text-orange-400 dark:text-orange-200">
+            <h3 v-if="twoFactorEnabled && !confirming" class="text-md font-medium text-orange-400 dark:text-orange-200">
                 {{ t('twoFactorEnabled') }}
             </h3>
 
             <h3 v-else-if="twoFactorEnabled && confirming"
-                class="text-xl font-medium text-orange-400 dark:text-orange-200">
+                class="text-md font-medium text-orange-400 dark:text-orange-200">
                 {{ t('completeTwoFactorSetup') }}
             </h3>
 
-            <h3 v-else class="text-xl font-medium text-orange-400 dark:text-orange-200">
+            <h3 v-else class="text-md font-medium text-orange-400 dark:text-orange-200">
                 {{ t('twoFactorNotEnabled') }}
             </h3>
 
-            <div class="mt-3 max-w-xl font-semibold text-lg text-indigo-900 dark:text-sky-200">
+            <div class="mt-3 max-w-xl font-semibold text-sm text-indigo-900 dark:text-sky-200">
                 <p>
                     {{ t('twoFactorExplanation') }}
                 </p>
@@ -131,7 +131,7 @@ const {t} = useI18n();
 
             <div v-if="twoFactorEnabled">
                 <div v-if="qrCode">
-                    <div class="mt-4 max-w-xl font-semibold text-lg text-indigo-900 dark:text-sky-200">
+                    <div class="mt-4 max-w-xl font-semibold text-sm text-indigo-900 dark:text-sky-200">
                         <p v-if="confirming" class="font-semibold">
                             {{ t('completeTwoFactorEnable') }}
                         </p>
@@ -143,7 +143,7 @@ const {t} = useI18n();
 
                     <div class="mt-4 p-2 inline-block bg-white" v-html="qrCode"/>
 
-                    <div v-if="setupKey" class="mt-4 max-w-xl text-lg text-orange-500">
+                    <div v-if="setupKey" class="mt-4 max-w-xl text-sm text-orange-500">
                         <p class="font-semibold">{{ t('setupKey') }}: <span v-html="setupKey"></span></p>
                     </div>
 
@@ -167,13 +167,13 @@ const {t} = useI18n();
                 </div>
 
                 <div v-if="recoveryCodes.length > 0 && !confirming">
-                    <div class="mt-4 max-w-xl text-lg text-indigo-900 dark:text-sky-200">
+                    <div class="mt-4 max-w-xl text-sm text-indigo-900 dark:text-sky-200">
                         <p class="font-semibold">
                             {{ t('recoveryCodesMessage') }}
                         </p>
                     </div>
 
-                    <div class="grid gap-1 max-w-xl mt-4 px-4 py-4 font-mono text-lg bg-gray-100 rounded-lg">
+                    <div class="grid gap-1 max-w-xl mt-4 px-4 py-4 font-mono text-sm bg-gray-100 rounded-lg">
                         <div v-for="code in recoveryCodes" :key="code">
                             {{ code }}
                         </div>

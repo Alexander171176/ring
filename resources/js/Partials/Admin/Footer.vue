@@ -42,7 +42,7 @@ const clearCache = async () => {
 
 <template>
     <footer
-        class="sticky px-4 py-2 bottom-0 bg-gradient-to-b from-slate-100 to-slate-300 dark:bg-gradient-to-b dark:from-slate-700 dark:to-slate-900 border-t border-slate-200 dark:border-slate-700 z-20">
+        class="sticky px-3 py-1 bottom-0 bg-gradient-to-b from-slate-100 to-slate-300 dark:bg-gradient-to-b dark:from-slate-700 dark:to-slate-900 border-t border-slate-200 dark:border-slate-700 z-20">
         <div class="flex items-center justify-center sm:justify-between flex-wrap">
             <div class="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                 © {{ new Date().getFullYear() }}

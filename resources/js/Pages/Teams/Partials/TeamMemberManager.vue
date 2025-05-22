@@ -113,7 +113,7 @@ const displayableRole = (role) => {
 
                 <template #form>
                     <div class="col-span-6">
-                        <div class="max-w-xl font-semibold text-lg text-indigo-800 dark:text-slate-300">
+                        <div class="max-w-xl font-semibold text-sm text-indigo-800 dark:text-slate-300">
                             {{ t('addTeamMemberEmailPrompt') }}
                         </div>
                     </div>
@@ -155,7 +155,7 @@ const displayableRole = (role) => {
                                     <!-- Role Name -->
                                     <div class="flex items-center">
                                         <div
-                                            class="font-semibold text-xl text-pink-400"
+                                            class="font-semibold text-md text-pink-400"
                                             :class="{ 'font-semibold': addTeamMemberForm.role == role.key }"
                                         >
                                             {{ role.name }}
@@ -179,7 +179,7 @@ const displayableRole = (role) => {
                                     </div>
 
                                     <!-- Role Description -->
-                                    <div class="mt-2 italic text-lg text-gray-900 dark:text-slate-50 text-start">
+                                    <div class="mt-2 italic text-sm text-gray-900 dark:text-slate-50 text-start">
                                         {{ role.description }}
                                     </div>
                                 </div>

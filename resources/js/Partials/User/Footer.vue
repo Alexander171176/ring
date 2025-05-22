@@ -28,11 +28,11 @@ watch(selectedLocale, (newLocale) => {
 </script>
 
 <template>
-    <footer class="sticky px-4 py-2 bottom-0 bg-gradient-to-b from-slate-100 to-slate-300 dark:bg-gradient-to-b dark:from-slate-700 dark:to-slate-900 border-t border-slate-200 dark:border-slate-700 z-20">
+    <footer class="sticky px-3 py-1 bottom-0 bg-gradient-to-b from-slate-100 to-slate-300 dark:bg-gradient-to-b dark:from-slate-700 dark:to-slate-900 border-t border-slate-200 dark:border-slate-700 z-20">
         <div class="flex items-center justify-between flex-wrap">
             <div class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-2 sm:mb-0">
                 © {{ new Date().getFullYear() }}
-                <a href="/" target="_blank" class="font-semibold text-red-400 hover:text-rose-300">DigitalPro.</a>
+                <a href="/" target="_blank" class="font-semibold text-red-400 hover:text-rose-300">Pulsar CMS</a>
                 {{ t('allRightsReserved') }}
             </div>
             <div class="flex items-center space-x-2">

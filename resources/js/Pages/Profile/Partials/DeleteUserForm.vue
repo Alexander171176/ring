@@ -47,7 +47,7 @@ const {t} = useI18n();
         <template #description>{{ t('deleteAccountDescription') }}</template>
 
         <template #content>
-            <div class="max-w-xl font-semibold text-lg text-indigo-900 dark:text-sky-200">
+            <div class="max-w-xl font-semibold text-sm text-indigo-900 dark:text-sky-200">
                 {{ t('deleteAccountWarning') }}
             </div>
 
