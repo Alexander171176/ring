@@ -90,9 +90,6 @@ const getPrimaryImage = (athlete) => {
                         </div>
                     </th>
                     <th class="px-2 py-1 whitespace-nowrap w-2/12">
-                        <div class="font-medium text-left">{{ t('country') }}</div>
-                    </th>
-                    <th class="px-2 py-1 whitespace-nowrap w-2/12">
                         <div class="font-medium text-left">{{ t('nickname') }}</div>
                     </th>
                     <th class="px-2 py-1 whitespace-nowrap w-2/12">
@@ -181,13 +178,13 @@ const getPrimaryImage = (athlete) => {
                                     <template v-if="getPrimaryImage(athlete)">
                                         <img
                                             :src="getPrimaryImage(athlete)"
-                                            class="h-8 w-8 object-cover rounded-full"
+                                            class="h-8 w-8 object-cover rounded-xs"
                                          alt="avatar">
                                     </template>
                                     <template v-else>
                                         <img
                                             src="/storage/athlete_avatar/default-image.png"
-                                            class="h-8 w-8 object-cover rounded-full"
+                                            class="h-8 w-8 object-cover rounded-xs"
                                          alt="avatar">
                                     </template>
                                 </div>
@@ -195,11 +192,6 @@ const getPrimaryImage = (athlete) => {
                             <td class="px-2 py-1 whitespace-nowrap w-1/12">
                                 <div class="text-center uppercase text-orange-500 dark:text-orange-200">
                                     {{ athlete.locale }}
-                                </div>
-                            </td>
-                            <td class="px-2 py-1 whitespace-nowrap w-2/12">
-                                <div class="text-left text-amber-600 dark:text-amber-200">
-                                    {{ athlete.nationality }}
                                 </div>
                             </td>
                             <td class="px-2 py-1 whitespace-nowrap w-2/12">
