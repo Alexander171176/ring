@@ -11,13 +11,26 @@ class TournamentSharedResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'locale' => $this->locale,
             'name' => $this->name,
-            'type' => $this->type,
+            'tournament_date_time' => $this->tournament_date_time?->format('Y-m-d'),
             'status' => $this->status,
-            'date' => $this->tournament_date_time,
-            'is_main_card_event' => $this->is_main_card_event,
-            'activity' => $this->activity,
+            'locale' => $this->locale,
+            'is_title_fight' => $this->is_title_fight,
+
+            'fighter_red' => $this->whenLoaded('fighterRed', fn () => [
+                'id' => $this->fighterRed->id,
+                'full_name' => $this->fighterRed->full_name,
+            ]),
+
+            'fighter_blue' => $this->whenLoaded('fighterBlue', fn () => [
+                'id' => $this->fighterBlue->id,
+                'full_name' => $this->fighterBlue->full_name,
+            ]),
+
+            'winner' => $this->whenLoaded('winner', fn () => [
+                'id' => $this->winner->id,
+                'full_name' => $this->winner->full_name,
+            ]),
         ];
     }
 }

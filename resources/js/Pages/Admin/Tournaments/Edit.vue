@@ -24,9 +24,9 @@ import TinyEditor from "@/Components/Admin/TinyEditor/TinyEditor.vue";
 // Импорт двух отдельных компонентов для работы с изображениями:
 import MultiImageUpload from '@/Components/Admin/Image/MultiImageUpload.vue'; // для загрузки новых изображений
 import MultiImageEdit from '@/Components/Admin/Image/MultiImageEdit.vue';
-import AvatarEditUpload from "@/Components/Admin/Athlete/Avatar/AvatarEditUpload.vue";
-import StanceSelect from "@/Components/Admin/Athlete/Select/StanceSelect.vue";
-import SelectLocale from "@/Components/Admin/Select/SelectLocale.vue";     // для редактирования существующего аватара
+import SelectLocale from "@/Components/Admin/Select/SelectLocale.vue";
+import StatusSelect from "@/Components/Admin/Tournament/Select/StatusSelect.vue";
+import SelectAthlete from "@/Components/Admin/Tournament/Select/SelectAthlete.vue";     // для редактирования существующего аватара
 
 
 // --- Инициализация ---
@@ -37,7 +37,8 @@ const { t } = useI18n();
  * Входные свойства компонента.
  */
 const props = defineProps({
-    athlete: { type: Object, required: true }
+    tournament: { type: Object, required: true },
+    athletes: { type: Array, required: true }
 });
 
 /**
@@ -45,39 +46,32 @@ const props = defineProps({
  */
 const form = useForm({
     _method: 'PUT',
-    sort: props.athlete.sort ?? 0,
-    locale: props.athlete.locale ?? '',
-    nickname: props.athlete.nickname ?? '',
-    first_name: props.athlete.first_name ?? '',
-    last_name: props.athlete.last_name ?? '',
-    date_of_birth: props.athlete.date_of_birth ?? '',
-    nationality: props.athlete.nationality ?? '',
-    height_cm: props.athlete.height_cm ?? 0,
-    reach_cm: props.athlete.reach_cm ?? 0,
-    stance: props.athlete.stance ?? null,
-    bio: props.athlete.bio ?? '',
-    short: props.athlete.short ?? '',
-    description: props.athlete.description ?? '',
-    wins: props.athlete.wins ?? 0,
-    losses: props.athlete.losses ?? 0,
-    draws: props.athlete.draws ?? 0,
-    no_contests: props.athlete.no_contests ?? 0,
-    wins_by_ko: props.athlete.wins_by_ko ?? 0,
-    wins_by_submission: props.athlete.wins_by_submission ?? 0,
-    wins_by_decision: props.athlete.wins_by_decision ?? 0,
-    activity: Boolean(props.athlete.activity),
-    avatar: null,
+    sort: props.tournament.sort ?? 0,
+    activity: Boolean(props.tournament.activity),
+    locale: props.tournament.locale ?? '',
+    name: props.tournament.name ?? '',
+    short: props.tournament.short ?? '',
+    description: props.tournament.description ?? '',
+    tournament_date_time: props.tournament.tournament_date_time ?? '',
+    status: props.tournament.status ?? null,
+    venue: props.tournament.venue ?? '',
+    city: props.tournament.city ?? '',
+    country: props.tournament.country ?? '',
+    weight_class_name: props.tournament.weight_class_name ?? '',
+    rounds_scheduled: props.tournament.rounds_scheduled ?? 0,
+    is_title_fight: Boolean(props.tournament.is_title_fight),
+    fighter_red_id: props.tournament.fighter_red_id ?? null,
+    fighter_blue_id: props.tournament.fighter_blue_id ?? null,
+    winner_id: props.tournament.winner_id ?? null,
+    method_of_victory: props.tournament.method_of_victory ?? '',
+    round_of_finish: props.tournament.round_of_finish ?? 0,
+    time_of_finish: props.tournament.time_of_finish ?? '',
     deletedImages: [] // массив для хранения ID удалённых изображений
 });
 
-const avatarUrl = computed(() => {
-    return props.athlete.avatar
-        ? `/storage/${props.athlete.avatar}`
-        : null;
-});
-
-// console.log(props.athlete.avatar);
-
+/**
+ * Функция форматирования даты.
+ */
 const formatDate = (dateStr) => {
     if (!dateStr) return '';
     const date = new Date(dateStr);
@@ -85,9 +79,12 @@ const formatDate = (dateStr) => {
     return date.toISOString().split('T')[0];
 };
 
+/**
+ * Монтируем формат даты.
+ */
 onMounted(() => {
-    if (form.date_of_birth) {
-        form.date_of_birth = formatDate(form.date_of_birth);
+    if (form.tournament_date_time) {
+        form.tournament_date_time = formatDate(form.tournament_date_time);
     }
 });
 
@@ -95,7 +92,7 @@ onMounted(() => {
  * Массив существующих изображений.
  */
 const existingImages = ref(
-    (props.athlete.images || [])
+    (props.tournament.images || [])
         .filter(img => img.url) // фильтруем изображения, у которых есть URL
         .map(img => ({
             id: img.id,
@@ -145,6 +142,7 @@ const submit = () => {
     form.transform((data) => ({
         ...data,
         activity: data.activity ? 1 : 0,
+        is_title_fight: data.is_title_fight ? 1 : 0,
         images: [
             ...newImages.value.map(img => ({
                 file: img.file,
@@ -162,12 +160,12 @@ const submit = () => {
         deletedImages: form.deletedImages
     }));
 
-    form.post(route('admin.athletes.update', props.athlete.id), {
+    form.post(route('admin.tournaments.update', props.tournament.id), {
         forceFormData: true,
-        errorBag: 'editAthlete',
+        errorBag: 'editTournament',
         preserveScroll: true,
         onSuccess: () => {
-            toast.success('Спортсмен успешно обновлён!');
+            toast.success('Турнир успешно обновлён!');
         },
         onError: (errors) => {
             console.error('❌ Ошибки валидации:', errors);
@@ -180,10 +178,10 @@ const submit = () => {
 </script>
 
 <template>
-    <AdminLayout :title="t('editAthlete')">
+    <AdminLayout :title="t('editTournament')">
         <template #header>
             <TitlePage>
-                {{ t('editAthlete') }} ID:{{ props.athlete.id }}
+                {{ t('editTournament') }} ID:{{ props.tournament.id }}
             </TitlePage>
         </template>
         <div class="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-12xl mx-auto">
@@ -193,7 +191,7 @@ const submit = () => {
                         bg-opacity-95 dark:bg-opacity-95">
                 <div class="sm:flex sm:justify-between sm:items-center mb-2">
                     <!-- Кнопка назад -->
-                    <DefaultButton :href="route('admin.athletes.index')">
+                    <DefaultButton :href="route('admin.tournaments.index')">
                         <template #icon>
                             <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">
                                 <path
@@ -241,264 +239,166 @@ const submit = () => {
 
                     </div>
 
-                    <!-- Поле Псевдоним -->
-                    <div class="mb-3 flex flex-col items-start">
-                        <div class="flex justify-between w-full">
-                            <LabelInput for="nickname">
-                                {{ t('nickname') }}
-                            </LabelInput>
-                            <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
-                                {{ form.nickname.length }} / 100 {{ t('characters') }}
+                    <div class="mb-3 flex justify-between flex-col lg:flex-row items-center gap-4">
+
+                        <!-- Является ли поединок титульным -->
+                        <div class="flex flex-row items-center gap-2 w-full">
+                            <ActivityCheckbox v-model="form.is_title_fight"/>
+                            <LabelCheckbox for="is_title_fight"
+                                           :text="t('isTitleFight')"
+                                           class="text-sm h-8 flex items-center"/>
+                        </div>
+
+                        <!-- Дата и время проведения -->
+                        <div class="flex flex-row items-center justify-end w-full gap-2">
+                            <div class="flex justify-start w-full">
+                                <LabelInput for="tournament_date_time" :value="t('date')"
+                                            class="mb-1 lg:mb-0 lg:mr-2"/>
+                                <InputText
+                                    id="tournament_date_time"
+                                    type="date"
+                                    v-model="form.tournament_date_time"
+                                    autocomplete="tournament_date_time"
+                                    class="w-full max-w-56"
+                                />
+                                <InputError class="mt-1 sm:mt-0" :message="form.errors.tournament_date_time"/>
                             </div>
                         </div>
-                        <InputText
-                            id="nickname"
-                            type="text"
-                            v-model="form.nickname"
-                            maxlength="100"
-                            required
-                            autocomplete="nickname"
+
+                        <!-- статус Турнира -->
+                        <StatusSelect v-model="form.status" :error="form.errors.status"/>
+
+                    </div>
+
+                    <div class="mb-3 flex justify-between flex-col lg:flex-row items-center gap-4">
+
+                        <!-- Поле Название весовой категории -->
+                        <div class="flex flex-row items-center justify-end w-full">
+                            <LabelInput for="weight_class_name" class="mt-4 mr-2">
+                                {{ t('weightClassName') }}
+                            </LabelInput>
+                            <div class="mb-3 flex flex-col items-end w-96">
+                                <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
+                                    {{ form.weight_class_name.length }} / 100 {{ t('characters') }}
+                                </div>
+                                <InputText
+                                    id="weight_class_name"
+                                    type="text"
+                                    v-model="form.weight_class_name"
+                                    maxlength="100"
+                                    autocomplete="weight_class_name"
+                                    :placeholder="t('placeholderWeightClassName')"
+                                />
+                                <InputError class="mt-2" :message="form.errors.weight_class_name"/>
+                            </div>
+                        </div>
+
+                        <!-- Количество запланированных раундов -->
+                        <div class="flex flex-row items-center justify-end w-full">
+                            <div class="h-8 flex items-center">
+                                <LabelInput for="rounds_scheduled" :value="t('roundsScheduled')"
+                                            class="mr-2 w-auto"/>
+                            </div>
+                            <InputNumber
+                                id="rounds_scheduled"
+                                type="number"
+                                v-model="form.rounds_scheduled"
+                                autocomplete="rounds_scheduled"
+                                class="max-w-20"
+                            />
+                            <InputError class="mt-2 lg:mt-0" :message="form.errors.rounds_scheduled"/>
+                        </div>
+
+                    </div>
+
+                    <div class="mb-3 flex justify-between flex-col lg:flex-row items-center gap-4">
+
+                        <!-- Поле Страна -->
+                        <div class="flex flex-row items-center justify-end w-full">
+                            <LabelInput for="country" class="mt-4 mr-2">
+                                {{ t('country') }}
+                            </LabelInput>
+                            <div class="mb-3 flex flex-col items-start w-96">
+                                <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
+                                    {{ form.country.length }} / 100 {{ t('characters') }}
+                                </div>
+                                <InputText
+                                    class="max-w-80"
+                                    id="country"
+                                    type="text"
+                                    v-model="form.country"
+                                    maxlength="100"
+                                    required
+                                    autocomplete="country"
+                                />
+                                <InputError class="mt-2" :message="form.errors.country"/>
+                            </div>
+                        </div>
+
+                        <!-- Поле Город -->
+                        <div class="flex flex-row items-center justify-end w-full">
+                            <LabelInput for="country" class="mt-4 mr-2">
+                                {{ t('city') }}
+                            </LabelInput>
+                            <div class="mb-3 flex flex-col items-start w-96">
+                                <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
+                                    {{ form.city.length }} / 100 {{ t('characters') }}
+                                </div>
+                                <InputText
+                                    class="max-w-80"
+                                    id="city"
+                                    type="text"
+                                    v-model="form.city"
+                                    maxlength="100"
+                                    required
+                                    autocomplete="city"
+                                />
+                                <InputError class="mt-2" :message="form.errors.city"/>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="mb-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <SelectAthlete
+                            v-model="form.fighter_red_id"
+                            :options="props.athletes"
+                            :label="t('fighterRed')"
+                            :error="form.errors.fighter_red_id"
                         />
-                        <InputError class="mt-2" :message="form.errors.nickname"/>
+                        <SelectAthlete
+                            v-model="form.fighter_blue_id"
+                            :options="props.athletes"
+                            :label="t('fighterBlue')"
+                            :error="form.errors.fighter_blue_id"
+                        />
+                        <SelectAthlete
+                            v-model="form.winner_id"
+                            :options="props.athletes"
+                            :label="t('winner')"
+                            :error="form.errors.winner_id"
+                        />
                     </div>
 
                     <!-- Поле Имя -->
                     <div class="mb-3 flex flex-col items-start">
                         <div class="flex justify-between w-full">
-                            <LabelInput for="first_name">
-                                <span class="text-red-500 dark:text-red-300 font-semibold">*</span> {{ t('name') }}
+                            <LabelInput for="name">
+                                <span class="text-red-500 dark:text-red-300 font-semibold">*</span> {{ t('title') }}
                             </LabelInput>
                             <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
-                                {{ form.first_name.length }} / 100 {{ t('characters') }}
+                                {{ form.name.length }} / 255 {{ t('characters') }}
                             </div>
                         </div>
                         <InputText
-                            id="first_name"
+                            id="name"
                             type="text"
-                            v-model="form.first_name"
-                            maxlength="100"
+                            v-model="form.name"
+                            maxlength="255"
                             required
-                            autocomplete="first_name"
+                            autocomplete="name"
                         />
-                        <InputError class="mt-2" :message="form.errors.first_name"/>
-                    </div>
-
-                    <!-- Поле Фамилия -->
-                    <div class="mb-3 flex flex-col items-start">
-                        <div class="flex justify-between w-full">
-                            <LabelInput for="last_name">
-                                <span class="text-red-500 dark:text-red-300 font-semibold">*</span> {{ t('lastName') }}
-                            </LabelInput>
-                            <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
-                                {{ form.last_name.length }} / 100 {{ t('characters') }}
-                            </div>
-                        </div>
-                        <InputText
-                            id="last_name"
-                            type="text"
-                            v-model="form.last_name"
-                            maxlength="100"
-                            required
-                            autocomplete="last_name"
-                        />
-                        <InputError class="mt-2" :message="form.errors.last_name"/>
-                    </div>
-
-                    <div class="mb-3 flex justify-between flex-col lg:flex-row items-center gap-4">
-
-                        <!-- Дата рождения -->
-                        <div class="mt-3 flex flex-col items-start w-full">
-                            <div class="flex justify-start w-full">
-                                <LabelInput for="date_of_birth" :value="t('dateBirth')"
-                                            class="mb-1 lg:mb-0 lg:mr-2"/>
-                                <InputText
-                                    id="date_of_birth"
-                                    type="date"
-                                    v-model="form.date_of_birth"
-                                    autocomplete="date_of_birth"
-                                    class="w-full max-w-56"
-                                />
-                                <InputError class="mt-1 sm:mt-0" :message="form.errors.date_of_birth"/>
-                            </div>
-                        </div>
-
-                        <!-- Поле Страна -->
-                        <div class="flex flex-row items-center justify-end w-full">
-                            <LabelInput for="nationality" class="mt-4 mr-2">
-                                {{ t('country') }}
-                            </LabelInput>
-                            <div class="mb-3 flex flex-col items-end w-96">
-                                <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
-                                    {{ form.nationality.length }} / 100 {{ t('characters') }}
-                                </div>
-                                <InputText
-                                    id="nationality"
-                                    type="text"
-                                    v-model="form.nationality"
-                                    maxlength="100"
-                                    required
-                                    autocomplete="nationality"
-                                />
-                                <InputError class="mt-2" :message="form.errors.nationality"/>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <div class="mb-3 flex justify-between flex-col lg:flex-row items-center gap-4">
-
-                        <StanceSelect v-model="form.stance" :error="form.errors.stance" class="mt-3" />
-
-                        <!-- рост в сантиметрах -->
-                        <div class="flex flex-row items-center gap-2">
-                            <div class="h-8 flex items-center">
-                                <LabelInput for="height_cm" :value="t('cmHeight')" class="text-sm"/>
-                            </div>
-                            <InputNumber
-                                id="height_cm"
-                                type="number"
-                                v-model="form.height_cm"
-                                autocomplete="height_cm"
-                                class="w-full lg:w-28"
-                            />
-                            <InputError class="mt-2 lg:mt-0" :message="form.errors.height_cm"/>
-                        </div>
-
-                        <!-- размах рук в сантиметрах -->
-                        <div class="flex flex-row items-center gap-2">
-                            <div class="h-8 flex items-center">
-                                <LabelInput for="reach_cm" :value="t('cmReach')" class="text-sm"/>
-                            </div>
-                            <InputNumber
-                                id="reach_cm"
-                                type="number"
-                                v-model="form.reach_cm"
-                                autocomplete="reach_cm"
-                                class="w-full lg:w-28"
-                            />
-                            <InputError class="mt-2 lg:mt-0" :message="form.errors.reach_cm"/>
-                        </div>
-
-                    </div>
-
-                    <div class="mb-3 flex justify-between flex-col lg:flex-row items-center gap-4">
-
-                        <!-- Количество поражений -->
-                        <div class="flex flex-row items-center gap-2">
-                            <div class="h-8 flex items-center">
-                                <LabelInput for="losses" :value="t('losses')" class="text-sm"/>
-                            </div>
-                            <InputNumber
-                                id="losses"
-                                type="number"
-                                v-model="form.losses"
-                                autocomplete="losses"
-                                class="w-full lg:w-28"
-                            />
-                            <InputError class="mt-2 lg:mt-0" :message="form.errors.losses"/>
-                        </div>
-
-                        <!-- Количество ничьих -->
-                        <div class="flex flex-row items-center gap-2">
-                            <div class="h-8 flex items-center">
-                                <LabelInput for="draws" :value="t('draws')" class="text-sm"/>
-                            </div>
-                            <InputNumber
-                                id="draws"
-                                type="number"
-                                v-model="form.draws"
-                                autocomplete="draws"
-                                class="w-full lg:w-28"
-                            />
-                            <InputError class="mt-2 lg:mt-0" :message="form.errors.draws"/>
-                        </div>
-
-                        <!-- Количество побед -->
-                        <div class="flex flex-row items-center gap-2">
-                            <div class="h-8 flex items-center">
-                                <LabelInput for="wins" :value="t('wins')" class="text-sm"/>
-                            </div>
-                            <InputNumber
-                                id="wins"
-                                type="number"
-                                v-model="form.wins"
-                                autocomplete="wins"
-                                class="w-full lg:w-28"
-                            />
-                            <InputError class="mt-2 lg:mt-0" :message="form.errors.wins"/>
-                        </div>
-
-                    </div>
-
-                    <div class="mb-3 flex justify-between flex-col lg:flex-row items-center gap-4">
-
-                        <!-- Количество побед нокаутом -->
-                        <div class="flex flex-row items-center gap-2">
-                            <div class="h-8 flex items-center">
-                                <LabelInput for="wins_by_ko" :value="t('winsByKo')" class="text-sm"/>
-                            </div>
-                            <InputNumber
-                                id="wins_by_ko"
-                                type="number"
-                                v-model="form.wins_by_ko"
-                                autocomplete="wins_by_ko"
-                                class="w-full lg:w-28"
-                            />
-                            <InputError class="mt-2 lg:mt-0" :message="form.errors.wins_by_ko"/>
-                        </div>
-
-                        <!-- Количество побед сдачей (сабмишном) -->
-                        <div class="flex flex-row items-center gap-2">
-                            <div class="h-8 flex items-center">
-                                <LabelInput for="wins_by_submission" :value="t('winsBySubmission')" class="text-sm"/>
-                            </div>
-                            <InputNumber
-                                id="wins_by_submission"
-                                type="number"
-                                v-model="form.wins_by_submission"
-                                autocomplete="wins_by_submission"
-                                class="w-full lg:w-28"
-                            />
-                            <InputError class="mt-2 lg:mt-0" :message="form.errors.wins_by_submission"/>
-                        </div>
-
-                        <!-- Количество побед решением судей -->
-                        <div class="flex flex-row items-center gap-2">
-                            <div class="h-8 flex items-center">
-                                <LabelInput for="wins_by_decision" :value="t('winsByDecision')" class="text-sm"/>
-                            </div>
-                            <InputNumber
-                                id="wins_by_decision"
-                                type="number"
-                                v-model="form.wins_by_decision"
-                                autocomplete="wins_by_decision"
-                                class="w-full lg:w-28"
-                            />
-                            <InputError class="mt-2 lg:mt-0" :message="form.errors.wins_by_decision"/>
-                        </div>
-
-                    </div>
-
-                    <!-- Количество боев признанных несостоявшимися -->
-                    <div class="flex flex-row items-center gap-2">
-                        <div class="h-8 flex items-center">
-                            <LabelInput for="no_contests" :value="t('noContests')" class="text-sm"/>
-                        </div>
-                        <InputNumber
-                            id="no_contests"
-                            type="number"
-                            v-model="form.no_contests"
-                            autocomplete="no_contests"
-                            class="w-full lg:w-28"
-                        />
-                        <InputError class="mt-2 lg:mt-0" :message="form.errors.no_contests"/>
-                    </div>
-
-                    <!-- Биография -->
-                    <div class="mb-3 flex flex-col items-start">
-                        <LabelInput for="bio" :value="t('bio')" class="w-full flex justify-center"/>
-                        <TinyEditor v-model="form.bio" :height="500"/>
-                        <InputError class="mt-2" :message="form.errors.bio"/>
+                        <InputError class="mt-2" :message="form.errors.name"/>
                     </div>
 
                     <!-- Краткое описание -->
@@ -521,12 +421,64 @@ const submit = () => {
                         <InputError class="mt-2" :message="form.errors.description"/>
                     </div>
 
-                    <!-- Аватар -->
-                    <AvatarEditUpload
-                        v-model="form.avatar"
-                        :current-avatar="props.athlete.avatar"
-                        :error="form.errors.avatar"
-                    />
+                    <!-- Время в раунде завершения поединка (например, "02:35") -->
+                    <div class="mb-3 flex flex-row items-center justify-start gap-2">
+                        <div class="h-8 flex items-center">
+                            <LabelInput for="time_of_finish" class="mr-2 w-auto">
+                                {{ t('timeFinish') }}
+                            </LabelInput>
+                        </div>
+                        <InputText
+                            class="max-w-20"
+                            id="time_of_finish"
+                            type="text"
+                            v-model="form.time_of_finish"
+                            maxlength="8"
+                            autocomplete="time_of_finish"
+                            placeholder="02:35"
+                        />
+                        <InputError class="mt-2" :message="form.errors.time_of_finish"/>
+                    </div>
+
+                    <!-- Раунд, в котором завершился поединок -->
+                    <div class="flex flex-row items-center gap-2">
+                        <div class="h-8 flex items-center">
+                            <LabelInput for="round_of_finish" :value="t('roundFinish')"
+                                        class="mr-2 w-auto"/>
+                        </div>
+                        <InputNumber
+                            id="round_of_finish"
+                            type="number"
+                            v-model="form.round_of_finish"
+                            maxlength="2"
+                            autocomplete="round_of_finish"
+                            class="max-w-20"
+                        />
+                        <InputError class="mt-2 lg:mt-0" :message="form.errors.round_of_finish"/>
+                    </div>
+
+                    <!-- Метод победы (например, "KO", "Submission") -->
+                    <div class="flex flex-row items-center gap-2">
+                        <div class="h-8 flex items-center">
+                            <LabelInput for="method_of_victory" class="mr-2 mt-4 w-auto">
+                                {{ t('methodVictory') }}
+                            </LabelInput>
+                        </div>
+                        <div class="mb-3 flex flex-col items-end w-96">
+                            <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
+                                {{ form.method_of_victory.length }} / 100 {{ t('characters') }}
+                            </div>
+                            <InputText
+                                id="method_of_victory"
+                                type="text"
+                                v-model="form.method_of_victory"
+                                maxlength="100"
+                                autocomplete="method_of_victory"
+                                placeholder="KO, Submission"
+                            />
+                            <InputError class="mt-2" :message="form.errors.method_of_victory"/>
+                        </div>
+                    </div>
 
                     <!-- Блок редактирования существующих изображений -->
                     <div class="mt-4">
@@ -542,7 +494,7 @@ const submit = () => {
                     </div>
 
                     <div class="flex items-center justify-center mt-4">
-                        <DefaultButton :href="route('admin.athletes.index')" class="mb-3">
+                        <DefaultButton :href="route('admin.tournaments.index')" class="mb-3">
                             <template #icon>
                                 <!-- SVG -->
                                 <svg class="w-4 h-4 fill-current text-slate-100 shrink-0 mr-2" viewBox="0 0 16 16">

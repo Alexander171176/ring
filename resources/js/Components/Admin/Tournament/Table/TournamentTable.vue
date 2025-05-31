@@ -110,9 +110,6 @@ const getPrimaryImage = (tournament) => {
                         <div class="font-medium text-left">{{ t('name') }}</div>
                     </th>
                     <th class="px-2 py-1 whitespace-nowrap w-2/12">
-                        <div class="font-medium text-left">{{ t('type') }}</div>
-                    </th>
-                    <th class="px-2 py-1 whitespace-nowrap w-2/12">
                         <div class="font-medium text-left">{{ t('date') }}</div>
                     </th>
                     <th class="px-2 py-1 whitespace-nowrap w-2/12">
@@ -147,7 +144,7 @@ const getPrimaryImage = (tournament) => {
                                     <template v-if="getPrimaryImage(tournament)">
                                         <img
                                             :src="getPrimaryImage(tournament)"
-                                            class="h-8 w-8 object-cover rounded-full"
+                                            class="h-6 w-8 object-cover rounded-full"
                                             alt="image">
                                     </template>
                                     <template v-else>
@@ -169,11 +166,6 @@ const getPrimaryImage = (tournament) => {
                                 </div>
                             </td>
                             <td class="px-2 py-1 whitespace-nowrap w-2/12">
-                                <div class="text-left text-teal-500 dark:text-teal-200">
-                                    {{ getLocalizedType(tournament.type) }}
-                                </div>
-                            </td>
-                            <td class="px-2 py-1 whitespace-nowrap w-2/12">
                                 <div class="text-left text-blue-500 dark:text-blue-200">
                                     {{ formatDate(tournament.tournament_date_time) }}
                                 </div>
@@ -184,7 +176,7 @@ const getPrimaryImage = (tournament) => {
                                 </div>
                             </td>
                             <td class="px-2 py-1 whitespace-nowrap w-2/12">
-                                <div class="text-left text-rose-500 dark:text-rose-200">
+                                <div class="text-left text-teal-500 dark:text-teal-200">
                                     {{ tournament.venue }}
                                 </div>
                             </td>

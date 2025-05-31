@@ -93,7 +93,7 @@ const removeImage = (index) => {
             </draggable>
         </div>
         <div v-else>
-            <p>{{ t('noData') }}</p>
+            <p class="text-sm text-left text-slate-800 dark:text-slate-100">{{ t('noData') }}</p>
         </div>
     </div>
 </template>

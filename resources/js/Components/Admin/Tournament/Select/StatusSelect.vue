@@ -31,8 +31,8 @@ const update = (e) => emit('update:modelValue', e.target.value);
             id="stance"
             :value="modelValue"
             @change="update"
-            class="py-0.5 form-select w-auto rounded-sm shadow-sm
-                   border-slate-500 dark:bg-slate-800 dark:text-white"
+            class="py-0 form-select w-auto rounded-sm shadow-sm
+                   border-slate-500 dark:bg-cyan-800 dark:text-slate-100"
         >
             <option value="" disabled>{{ t('notSelected') }}</option>
             <option

@@ -23,6 +23,7 @@ import MultiImageUpload from "@/Components/Admin/Image/MultiImageUpload.vue";
 import SelectLocale from "@/Components/Admin/Select/SelectLocale.vue";
 import TypeSelect from "@/Components/Admin/Tournament/Select/TypeSelect.vue";
 import StatusSelect from "@/Components/Admin/Tournament/Select/StatusSelect.vue";
+import SelectAthlete from "@/Components/Admin/Tournament/Select/SelectAthlete.vue";
 
 // --- Инициализация ---
 const toast = useToast();
@@ -31,36 +32,38 @@ const {t} = useI18n();
 /**
  * Входные свойства компонента.
  */
-defineProps({
-    images: Array, // Добавляем этот пропс для передачи списка изображений
-})
+const props = defineProps({
+    images: Array,
+    athletes: {
+        type: Array,
+        required: true
+    }
+});
 
 /**
  * Форма для создания.
  */
 const form = useForm({
-    activity: false, // Активность
     sort: '0',
+    activity: false, // Активность
     locale: '',
-    parent_tournament_id: '', // Родительский турнир
-    type: null, // Тип турнира: boxing_bout, mma_tournament, press_conference
-    status: null, // Статус
     name: '', // Название турнира
+    short: '', // Краткое Описание
+    description: '', // Описание
     tournament_date_time: '', // Дата проведения
+    status: null, // Статус
     venue: '', // Место проведения
     city: '', // Город проведения
     country: '', // Страна проведения
-    short: '', // Краткое Описание
-    description: '', // Описание
     weight_class_name: '', // Название весовой категории (например, "Тяжелый вес")
     rounds_scheduled: '0', // Количество запланированных раундов
     is_title_fight: false, // Является ли поединок титульным
+    fighter_red_id: '', // Спортсмен в красном углу
+    fighter_blue_id: '', // Спортсмен в синем углу
     winner_id: '', // указания победителя поединка
     method_of_victory: '', // Метод победы (например, "KO", "Submission")
     round_of_finish: '', // Раунд, в котором завершился поединок
     time_of_finish: '', // Время в раунде завершения поединка (например, "02:35")
-    details: '', // Дополнительные детали/комментарии к турниру
-    is_main_card_event: false, // Флаг, указывающий, является ли данная запись "картой" боев (например, главный кард, прелимы)
     images: [] // Добавляем массив для загруженных изображений
 });
 
@@ -178,15 +181,28 @@ const submit = () => {
                     <div class="mb-3 flex justify-between flex-col lg:flex-row items-center gap-4">
 
                         <!-- Является ли поединок титульным -->
-                        <div class="flex flex-row items-center gap-2">
+                        <div class="flex flex-row items-center gap-2 w-full">
                             <ActivityCheckbox v-model="form.is_title_fight"/>
                             <LabelCheckbox for="is_title_fight"
                                            :text="t('isTitleFight')"
                                            class="text-sm h-8 flex items-center"/>
                         </div>
 
-                        <!-- тип Турнира -->
-                        <TypeSelect v-model="form.type" :error="form.errors.type"/>
+                        <!-- Дата и время проведения -->
+                        <div class="flex flex-row items-center justify-end w-full gap-2">
+                            <div class="flex justify-start w-full">
+                                <LabelInput for="tournament_date_time" :value="t('date')"
+                                            class="mb-1 lg:mb-0 lg:mr-2"/>
+                                <InputText
+                                    id="tournament_date_time"
+                                    type="date"
+                                    v-model="form.tournament_date_time"
+                                    autocomplete="tournament_date_time"
+                                    class="w-full max-w-56"
+                                />
+                                <InputError class="mt-1 sm:mt-0" :message="form.errors.tournament_date_time"/>
+                            </div>
+                        </div>
 
                         <!-- статус Турнира -->
                         <StatusSelect v-model="form.status" :error="form.errors.status"/>
@@ -196,7 +212,7 @@ const submit = () => {
                     <div class="mb-3 flex justify-between flex-col lg:flex-row items-center gap-4">
 
                         <!-- Поле Название весовой категории -->
-                        <div class="flex flex-row items-center justify-start w-full">
+                        <div class="flex flex-row items-center justify-end w-full">
                             <LabelInput for="weight_class_name" class="mt-4 mr-2">
                                 {{ t('weightClassName') }}
                             </LabelInput>
@@ -217,16 +233,17 @@ const submit = () => {
                         </div>
 
                         <!-- Количество запланированных раундов -->
-                        <div class="flex flex-row items-center justify-end w-full gap-2">
+                        <div class="flex flex-row items-center justify-end w-full">
                             <div class="h-8 flex items-center">
-                                <LabelInput for="rounds_scheduled" :value="t('roundsScheduled')" class="text-sm"/>
+                                <LabelInput for="rounds_scheduled" :value="t('roundsScheduled')"
+                                            class="mr-2 w-auto"/>
                             </div>
                             <InputNumber
                                 id="rounds_scheduled"
                                 type="number"
                                 v-model="form.rounds_scheduled"
                                 autocomplete="rounds_scheduled"
-                                class="w-full lg:w-28"
+                                class="max-w-20"
                             />
                             <InputError class="mt-2 lg:mt-0" :message="form.errors.rounds_scheduled"/>
                         </div>
@@ -240,11 +257,12 @@ const submit = () => {
                             <LabelInput for="country" class="mt-4 mr-2">
                                 {{ t('country') }}
                             </LabelInput>
-                            <div class="mb-3 flex flex-col items-end w-96">
+                            <div class="mb-3 flex flex-col items-start w-96">
                                 <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
                                     {{ form.country.length }} / 100 {{ t('characters') }}
                                 </div>
                                 <InputText
+                                    class="max-w-80"
                                     id="country"
                                     type="text"
                                     v-model="form.country"
@@ -261,11 +279,12 @@ const submit = () => {
                             <LabelInput for="country" class="mt-4 mr-2">
                                 {{ t('city') }}
                             </LabelInput>
-                            <div class="mb-3 flex flex-col items-end w-96">
+                            <div class="mb-3 flex flex-col items-start w-96">
                                 <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
                                     {{ form.city.length }} / 100 {{ t('characters') }}
                                 </div>
                                 <InputText
+                                    class="max-w-80"
                                     id="city"
                                     type="text"
                                     v-model="form.city"
@@ -277,28 +296,27 @@ const submit = () => {
                             </div>
                         </div>
 
-                        <!-- Дата и время проведения -->
-                        <div class="mt-3 flex flex-col items-start w-full">
-                            <div class="flex justify-start w-full">
-                                <LabelInput for="tournament_date_time" :value="t('date')"
-                                            class="mb-1 lg:mb-0 lg:mr-2"/>
-                                <InputText
-                                    id="tournament_date_time"
-                                    type="date"
-                                    v-model="form.tournament_date_time"
-                                    autocomplete="tournament_date_time"
-                                    class="w-full max-w-56"
-                                />
-                                <InputError class="mt-1 sm:mt-0" :message="form.errors.tournament_date_time"/>
-                            </div>
-                        </div>
-
                     </div>
 
-                    <div class="mb-3 flex justify-between flex-col lg:flex-row items-center gap-4">
-
-
-
+                    <div class="mb-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <SelectAthlete
+                            v-model="form.fighter_red_id"
+                            :options="props.athletes"
+                            :label="t('fighterRed')"
+                            :error="form.errors.fighter_red_id"
+                        />
+                        <SelectAthlete
+                            v-model="form.fighter_blue_id"
+                            :options="props.athletes"
+                            :label="t('fighterBlue')"
+                            :error="form.errors.fighter_blue_id"
+                        />
+                        <SelectAthlete
+                            v-model="form.winner_id"
+                            :options="props.athletes"
+                            :label="t('winner')"
+                            :error="form.errors.winner_id"
+                        />
                     </div>
 
                     <!-- Поле Имя -->
@@ -322,13 +340,6 @@ const submit = () => {
                         <InputError class="mt-2" :message="form.errors.name"/>
                     </div>
 
-                    <!-- Дополнительные детали/комментарии к турниру или поединку -->
-                    <div class="mb-3 flex flex-col items-start">
-                        <LabelInput for="details" :value="t('details')"/>
-                        <MetaDescTextarea v-model="form.details" class="w-full"/>
-                        <InputError class="mt-2" :message="form.errors.details"/>
-                    </div>
-
                     <!-- Краткое описание -->
                     <div class="mb-3 flex flex-col items-start">
                         <div class="flex justify-between w-full">
@@ -350,7 +361,7 @@ const submit = () => {
                     </div>
 
                     <!-- Изображения турнира -->
-                    <MultiImageUpload @update:images="form.images = $event" />
+                    <MultiImageUpload @update:images="form.images = $event"/>
 
                     <div class="flex items-center justify-center mt-4">
                         <DefaultButton :href="route('admin.tournaments.index')" class="mb-3">

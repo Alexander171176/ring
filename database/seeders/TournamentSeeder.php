@@ -2,64 +2,62 @@
 
 namespace Database\Seeders;
 
-use App\Models\Admin\Tournament\Tournament;
 use App\Models\Admin\Athlete\Athlete;
+use App\Models\Admin\Tournament\Tournament;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class TournamentSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        $types = ['boxing_bout', 'mma_tournament', 'press_conference'];
-        $statuses = ['scheduled', 'live', 'completed', 'postponed', 'cancelled'];
-        $countries = ['Казахстан', 'Россия', 'США', 'Бразилия', 'Япония', 'Англия'];
-        $venues = ['Almaty Arena', 'MSG', 'Tokyo Dome', 'UFC Apex', 'Wembley'];
+        // Очистка таблицы турниров перед сидированием
+        DB::table('tournaments')->truncate();
 
-        $athletes = Athlete::all();
+        $athleteIds = Athlete::pluck('id')->toArray();
 
-        for ($i = 1; $i <= 6; $i++) {
-            $tournament = Tournament::create([
-                'sort' => $i,
+        if (count($athleteIds) < 2) {
+            $this->command->warn('Недостаточно спортсменов для генерации поединков.');
+            return;
+        }
+
+        $pairs = collect($athleteIds)->chunk(2)->take(6);
+
+        foreach ($pairs as $index => $pair) {
+            $pair = array_values($pair->toArray());
+
+            if (count($pair) !== 2) {
+                continue;
+            }
+
+            [$redId, $blueId] = $pair;
+
+            $winnerId = rand(0, 2) === 0 ? null : ($index % 2 === 0 ? $redId : $blueId);
+
+            Tournament::create([
+                'sort' => $index + 1,
                 'activity' => rand(0, 1),
                 'locale' => 'ru',
-                'type' => $types[array_rand($types)],
-                'name' => 'Турнир ' . $i,
-                'tournament_date_time' => now()->addDays(rand(-10, 30)),
-                'status' => $statuses[array_rand($statuses)],
-                'venue' => $venues[array_rand($venues)],
-                'city' => 'Город ' . $i,
-                'country' => $countries[array_rand($countries)],
-                'short' => 'Краткое описание турнира ' . $i,
-                'description' => 'Подробное описание турнира ' . $i,
-                'weight_class_name' => 'Средний вес',
+                'name' => "Бой №" . ($index + 1),
+                'short' => "Краткое описание боя №" . ($index + 1),
+                'description' => "Детальное описание поединка между бойцами $redId и $blueId",
+                'tournament_date_time' => now()->subDays(rand(0, 180))->addHours(rand(1, 5)),
+                'status' => collect(['scheduled', 'live', 'completed', 'postponed', 'cancelled'])->random(),
+                'venue' => 'Спортивный комплекс №' . rand(1, 5),
+                'city' => 'Город-' . rand(1, 5),
+                'country' => 'Страна-' . rand(1, 3),
+                'weight_class_name' => 'Тяжелый вес',
                 'rounds_scheduled' => rand(3, 5),
                 'is_title_fight' => rand(0, 1),
-                'winner_id' => null, // или будет задан позже
-                'method_of_victory' => null,
-                'round_of_finish' => null,
-                'time_of_finish' => null,
-                'details' => null,
-                'is_main_card_event' => rand(0, 1),
-            ]);
-
-            // Назначим 2 случайных спортсменов на бой
-            $selectedAthletes = $athletes->random(2);
-
-            $tournament->athletes()->attach($selectedAthletes[0]->id, [
-                'corner' => 'red',
-                'is_headliner' => true,
-                'weight_at_weigh_in_kg' => rand(70, 120),
-            ]);
-
-            $tournament->athletes()->attach($selectedAthletes[1]->id, [
-                'corner' => 'blue',
-                'is_headliner' => false,
-                'weight_at_weigh_in_kg' => rand(70, 120),
+                'fighter_red_id' => $redId,
+                'fighter_blue_id' => $blueId,
+                'winner_id' => $winnerId,
+                'method_of_victory' => $winnerId ? collect(['KO', 'Submission', 'Decision'])->random() : null,
+                'round_of_finish' => $winnerId ? rand(1, 5) : null,
+                'time_of_finish' => $winnerId ? '0' . rand(1, 2) . ':' . rand(10, 59) : null,
             ]);
         }
     }
+
 }

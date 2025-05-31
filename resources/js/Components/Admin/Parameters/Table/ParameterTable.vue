@@ -49,7 +49,9 @@ const toggleAll = (event) => {
                                border border-solid border-gray-300 dark:border-gray-700">
                 <tr>
                     <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap w-px">
-                        <div class="font-medium text-center">{{ t('id') }}</div>
+                        <div class="font-medium text-center text-slate-800 dark:text-slate-200">
+                            {{ t('id') }}
+                        </div>
                     </th>
                     <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap"
                         :title="t('parameter')">
@@ -95,7 +97,9 @@ const toggleAll = (event) => {
                     <template #item="{ element: setting }">
                         <tr class="text-sm font-semibold border-b-2 hover:bg-slate-100 dark:hover:bg-cyan-800">
                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
-                                <div class="text-center">{{ setting.id }}</div>
+                                <div class="text-center text-slate-800 dark:text-slate-200">
+                                    {{ setting.id }}
+                                </div>
                             </td>
                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
                                 <div class="text-left text-sm font-semibold text-orange-400 dark:text-orange-200"
@@ -114,7 +118,9 @@ const toggleAll = (event) => {
                                 </div>
                             </td>
                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
-                                <div class="text-left text-xs">{{ setting.description }}</div>
+                                <div class="text-left text-xs text-slate-800 dark:text-slate-200">
+                                    {{ setting.description }}
+                                </div>
                             </td>
                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
                                 <div class="flex justify-center space-x-2">

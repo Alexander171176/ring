@@ -2,14 +2,12 @@
 
 namespace App\Models\Admin\Athlete;
 
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Admin\Tournament\Tournament;
-use App\Models\Admin\Athlete\AthleteImage;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Athlete extends Model
 {
@@ -20,6 +18,7 @@ class Athlete extends Model
     protected $fillable = [
         'sort',
         'activity',
+        'locale',
         'first_name',
         'last_name',
         'nickname',
@@ -42,10 +41,9 @@ class Athlete extends Model
     ];
 
     protected $casts = [
-        'date_of_birth' => 'date', // Преобразование в объект Carbon/Date
-        'activity' => 'boolean',   // Преобразование в boolean
+        'activity' => 'boolean',
         'sort' => 'integer',
-        'locale',
+        'date_of_birth' => 'date',
         'height_cm' => 'integer',
         'reach_cm' => 'integer',
         'wins' => 'integer',
@@ -57,10 +55,7 @@ class Athlete extends Model
         'wins_by_decision' => 'integer',
     ];
 
-    /**
-     * Связь с "обертками" изображений AthleteImage.
-     * Атлет имеет много AthleteImage через пивотную таблицу.
-     */
+    // 🖼 Связь с изображениями (если используется)
     public function images(): BelongsToMany
     {
         return $this->belongsToMany(AthleteImage::class, 'athlete_has_images', 'athlete_id', 'image_id')
@@ -68,28 +63,38 @@ class Athlete extends Model
             ->orderByPivot('order', 'asc');
     }
 
+    // 🔴 Поединки, где атлет — в красном углу
+    public function redFights(): HasMany
+    {
+        return $this->hasMany(Tournament::class, 'fighter_red_id');
+    }
+
+    // 🔵 Поединки, где атлет — в синем углу
+    public function blueFights(): HasMany
+    {
+        return $this->hasMany(Tournament::class, 'fighter_blue_id');
+    }
+
+    // 🏆 Победы
+    public function wonFights(): HasMany
+    {
+        return $this->hasMany(Tournament::class, 'winner_id');
+    }
+
+    // 🔠 Полное имя для вывода
     public function getFullNameAttribute(): string
     {
         return "{$this->first_name} {$this->last_name}";
     }
 
-    public function tournaments(): BelongsToMany
-    {
-        return $this->belongsToMany(Tournament::class, 'athlete_has_tournament', 'athlete_id', 'tournament_id')
-            ->withPivot(['corner', 'is_headliner', 'weight_at_weigh_in_kg']);
-    }
+    // --- Скоупы ---
 
-    public function wonTournaments(): HasMany
-    {
-        return $this->hasMany(Tournament::class, 'winner_id');
-    }
-
-    public function scopeActive($query): Builder
+    public function scopeActive($query)
     {
         return $query->where('activity', true);
     }
 
-    public function scopeOrdered($query, string $direction = 'asc'): Builder
+    public function scopeOrdered($query, string $direction = 'asc')
     {
         return $query->orderBy('sort', $direction)->orderBy('id', $direction);
     }

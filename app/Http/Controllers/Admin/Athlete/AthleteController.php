@@ -339,11 +339,11 @@ class AthleteController extends Controller
     }
 
     /**
-     * Обновление статуса активности баннера.
+     * Обновление статуса активности спортсмена.
      * Использует Route Model Binding и UpdateActivityRequest.
      *
      * @param UpdateActivityRequest $request Валидированный запрос с полем 'activity'.
-     * @param Athlete $athlete Модель баннера для обновления.
+     * @param Athlete $athlete Модель спортсмена для обновления.
      * @return RedirectResponse Редирект назад с сообщением.
      */
     public function updateActivity(UpdateActivityRequest $request, Athlete $athlete): RedirectResponse

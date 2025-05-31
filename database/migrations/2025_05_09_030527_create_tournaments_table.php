@@ -19,6 +19,9 @@ return new class extends Migration
             $table->text('description')->nullable(); // описание
 
             $table->dateTime('tournament_date_time'); // Дата и время поединка
+            $table->enum('status', ['scheduled', 'live', 'completed', 'postponed', 'cancelled'])
+                ->default('scheduled')
+                ->index();
 
             $table->string('venue')->nullable();   // Арена
             $table->string('city')->nullable();    // Город
