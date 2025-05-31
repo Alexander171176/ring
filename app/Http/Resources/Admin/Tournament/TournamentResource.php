@@ -4,15 +4,10 @@ namespace App\Http\Resources\Admin\Tournament;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class TournamentResource extends JsonResource
 {
-    /**
-     * Преобразование ресурса в массив.
-     *
-     * @param  Request  $request
-     * @return array<string, mixed>
-     */
     public function toArray($request): array
     {
         return [
@@ -32,7 +27,6 @@ class TournamentResource extends JsonResource
             'rounds_scheduled' => $this->rounds_scheduled,
             'is_title_fight' => $this->is_title_fight,
 
-            // ID бойцов — нужно для привязки к селектам
             'fighter_red_id' => $this->fighter_red_id,
             'fighter_blue_id' => $this->fighter_blue_id,
             'winner_id' => $this->winner_id,
@@ -41,7 +35,6 @@ class TournamentResource extends JsonResource
             'round_of_finish' => $this->round_of_finish,
             'time_of_finish' => $this->time_of_finish,
 
-            // Дополнительные данные бойцов
             'fighter_red' => $this->whenLoaded('fighterRed', function () {
                 return [
                     'id' => $this->fighterRed->id,
@@ -66,8 +59,7 @@ class TournamentResource extends JsonResource
                 ];
             }),
 
-            // Изображения (если подгружены)
-            'images' => $this->whenLoaded('images'),
+            'images'   => TournamentImageResource::collection($this->whenLoaded('images')),
 
             'created_at' => $this->created_at?->toDateTimeString(),
             'updated_at' => $this->updated_at?->toDateTimeString(),

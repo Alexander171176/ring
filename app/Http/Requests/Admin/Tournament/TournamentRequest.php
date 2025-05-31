@@ -40,7 +40,7 @@ class TournamentRequest extends FormRequest
             'winner_id' => ['nullable', 'integer', 'exists:athletes,id'],
 
             'method_of_victory' => ['nullable', 'string', 'max:255'],
-            'round_of_finish' => ['nullable', 'integer', 'min:1', 'max:12'],
+            'round_of_finish' => ['nullable', 'integer', 'min:0', 'max:12'],
             'time_of_finish' => ['nullable', 'string', 'max:255'],
 
             // Изображения
