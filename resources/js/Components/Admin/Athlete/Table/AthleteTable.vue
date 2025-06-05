@@ -178,13 +178,13 @@ const getPrimaryImage = (athlete) => {
                                     <template v-if="getPrimaryImage(athlete)">
                                         <img
                                             :src="getPrimaryImage(athlete)"
-                                            class="h-8 w-8 object-cover rounded-xs"
+                                            class="h-8 w-7 object-cover rounded-xs"
                                          alt="avatar">
                                     </template>
                                     <template v-else>
                                         <img
                                             src="/storage/athlete_avatar/default-image.png"
-                                            class="h-8 w-8 object-cover rounded-xs"
+                                            class="h-8 w-7 object-cover rounded-xs"
                                          alt="avatar">
                                     </template>
                                 </div>

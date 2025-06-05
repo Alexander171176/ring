@@ -18,7 +18,6 @@ const { t } = useI18n();
         <ResponsiveNavLink :href="route('admin.sections.index')" :active="route().current('admin.sections.index')">{{ t('sections') }}</ResponsiveNavLink> <!-- ИСПРАВЛЕНО -->
         <ResponsiveNavLink :href="route('admin.articles.index')" :active="route().current('admin.articles.index')">{{ t('posts') }}</ResponsiveNavLink>
         <ResponsiveNavLink :href="route('admin.tags.index')" :active="route().current('admin.tags.index')">{{ t('tags') }}</ResponsiveNavLink>
-        <ResponsiveNavLink :href="route('admin.comments.index')" :active="route().current('admin.comments.index')">{{ t('comments') }}</ResponsiveNavLink>
         <ResponsiveNavLink :href="route('admin.banners.index')" :active="route().current('admin.banners.index')">{{ t('banners') }}</ResponsiveNavLink>
         <ResponsiveNavLink :href="route('admin.videos.index')" :active="route().current('admin.videos.index')">{{ t('videos') }}</ResponsiveNavLink>
         <ResponsiveNavLink :href="route('admin.reports.index')" :active="route().current('admin.reports.index')">{{ t('reports') }}</ResponsiveNavLink>
@@ -31,7 +30,6 @@ const { t } = useI18n();
         <ResponsiveNavLink :href="route('admin.package.index')" :active="route().current('admin.package.index')">package</ResponsiveNavLink>
         <ResponsiveNavLink :href="route('admin.env.index')" :active="route().current('admin.env.index')">env</ResponsiveNavLink>
         <ResponsiveNavLink :href="route('admin.components.index')" :active="route().current('admin.components.index')">{{ t('components') }}</ResponsiveNavLink>
-        <ResponsiveNavLink :href="route('admin.diagrams.index')" :active="route().current('admin.diagrams.index')">{{ t('diagrams') }}</ResponsiveNavLink>
         <ResponsiveNavLink :href="route('admin.plugins.index')" :active="route().current('admin.plugins.index')">{{ t('plugins') }}</ResponsiveNavLink>
 
         <!-- Маршрут пользовательского дашборда остается без префикса -->

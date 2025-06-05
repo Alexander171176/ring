@@ -16,9 +16,9 @@ RUN apk update && \
 # Устанавливаем основные зависимости и утилиты для оптимизации изображений
 RUN apk --update add \
     # Основные зависимости
-    wget curl build-base libmemcached-dev libmcrypt-dev libxml2-dev pcre-dev \
+    wget curl build-base libmemcached-dev libxml2-dev pcre-dev \
     zlib-dev autoconf cyrus-sasl-dev libgsasl-dev oniguruma-dev openssl openssl-dev \
-    postgresql-dev freetype-dev libjpeg-turbo-dev libpng-dev libwebp-dev \
+    mariadb-dev freetype-dev libjpeg-turbo-dev libpng-dev libwebp-dev \
     imagemagick imagemagick-dev nano unzip \
     # Утилиты оптимизации (без avifenc)
     jpegoptim optipng gifsicle libwebp-tools pngquant
@@ -27,12 +27,12 @@ RUN apk --update add \
 RUN apk add --no-cache nodejs npm && \
     npm install -g svgo
 
-# Устанавливаем расширения PHP
+# Устанавливаем расширения PHP, включая поддержку GD и MySQL
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp && \
-    docker-php-ext-install gd pdo_pgsql pcntl exif
+    docker-php-ext-install gd pdo_mysql pcntl exif
 
-# Устанавливаем и активируем Redis и Imagick
-RUN pecl install redis imagick && docker-php-ext-enable redis imagick
+# Устанавливаем и активируем Imagick
+RUN pecl install imagick && docker-php-ext-enable imagick
 
 # Устанавливаем Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename composer
@@ -40,29 +40,7 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Копируем конфигурацию PHP
 COPY ./docker/php/php.ini /usr/local/etc/php/conf.d/php.ini
 
-# Очищаем кеш пакетного менеджера и npm кеш
-RUN rm -rf /var/cache/apk/* && \
-    rm -rf /tmp/* && \
+# Очистка кешей
+RUN rm -rf /var/cache/apk/* /tmp/* && \
     npm cache clean --force && \
-    rm -rf /root/.npm /root/.node-gyp # Очистка кеша npm для пользователя root
-
-# Очищаем лишние данные для оптимизации образа (если этот путь действительно существует и его можно безопасно удалить)
-# RUN rm -rf /usr/share/php8 # Будьте осторожны с этой командой, убедитесь, что она не удаляет нужные части PHP
-
-# Создаем пользователя и группу для www-data, если это необходимо для вашего приложения
-# (часто используется для прав доступа к файлам Laravel)
-# RUN addgroup -g 1000 www && \
-#     adduser -u 1000 -G www -s /bin/sh -D www
-
-# Копируем файлы приложения (это обычно делается в docker-compose.yml через volumes,
-# но если вы хотите встроить их в образ, делайте это здесь)
-# COPY . .
-
-# Меняем владельца файлов на www-data (если создали пользователя)
-# RUN chown -R www:www /var/www
-
-# Открываем порт (хотя это больше для информации, т.к. маппинг портов в docker-compose.yml)
-# EXPOSE 9000
-
-# Команда по умолчанию (если не переопределена в docker-compose.yml)
-# CMD ["php-fpm"]
+    rm -rf /root/.npm /root/.node-gyp

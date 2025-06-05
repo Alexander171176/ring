@@ -16,10 +16,11 @@ return new class extends Migration
             $table->boolean('main')->default(false)->index(); // index
             $table->boolean('right')->default(false)->index(); // index
             $table->string('locale', 2)->index(); // index
+            $table->text('img')->nullable();
             $table->string('title'); // Убираем unique
             $table->string('url', 500)->index(); // Меняем text на string(500), убираем unique, добавляем index
             $table->string('short', 255)->nullable(); // string(255)
-            $table->text('description')->nullable();
+            $table->longText('description')->nullable();
             $table->string('author')->nullable();
             $table->date('published_at')->nullable()->index(); // РЕКОМЕНДАЦИЯ: Добавить дату публикации, если нужна + index
             $table->unsignedBigInteger('views')->default(0)->index(); // index

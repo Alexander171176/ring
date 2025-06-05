@@ -51,7 +51,6 @@ const mainLinks = ref(JSON.parse(localStorage.getItem('mainLinks')) || [
     'sections',
     'articles',
     'tags',
-    'comments',
     'banners',
     'videos',
     'reports',
@@ -60,7 +59,6 @@ const mainLinks = ref(JSON.parse(localStorage.getItem('mainLinks')) || [
     'roles',
     'permissions',
     'settings',
-    'diagrams',
     'plugins',
 ]);
 

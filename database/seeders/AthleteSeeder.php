@@ -10,7 +10,7 @@ class AthleteSeeder extends Seeder
 {
     public function run(): void
     {
-        DB::table('athletes')->truncate();
+        DB::table('athletes')->delete();
 
         $athletes = [
             [

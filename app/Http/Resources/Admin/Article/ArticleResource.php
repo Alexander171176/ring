@@ -27,6 +27,7 @@ class ArticleResource extends JsonResource
             'main'          => $this->main,     // boolean
             'right'         => $this->right,    // boolean
             'locale'        => $this->locale,
+            'img'           => $this->img,
             'title'         => $this->title,
             'url'           => $this->url,
             'short'         => $this->short,

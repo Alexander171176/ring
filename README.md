@@ -338,6 +338,8 @@
     `docker exec -it ring-php-app php artisan route:list`  <br>
     `mkdir -p app/Services`  <br>
 41) `composer config --global disable-tls true` <br> отключение сертификатов, если нужно
+    `docker exec -it ring-php-app php -i | Select-String "upload_max_filesize"`
+    `docker exec -it ring-php-app php -i | Select-String "post_max_size"`
     `php --ini` <br> найти php.ini
     `composer diagnose` <br> диагностика composer
     `composer self-update` <br> обновление текущей версии composer

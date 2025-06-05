@@ -49,20 +49,6 @@ if (class_exists($publicRubricControllerClass)) {
     Route::get('/menu-rubrics', [$publicRubricControllerClass, 'menuRubrics'])->name('api.rubrics.menu');
 }
 
-// Комментарии (публичная часть)
-if (class_exists($publicCommentControllerClass)) {
-    Route::prefix('comments')->name('api.comments.')->group(function () use ($publicCommentControllerClass) {
-        // Получение комментариев для сущности
-        Route::get('/', [$publicCommentControllerClass, 'index'])->name('index'); // Параметры commentable_type/id передаются как GET
-        // Создание нового комментария (защищено Sanctum)
-        Route::post('/', [$publicCommentControllerClass, 'store'])->name('store')->middleware('auth:sanctum');
-        // Редактирование комментария (защищено Sanctum)
-        Route::put('/{comment}', [$publicCommentControllerClass, 'update'])->name('update')->middleware('auth:sanctum');
-        // Удаление комментария (защищено Sanctum)
-        Route::delete('/{comment}', [$publicCommentControllerClass, 'destroy'])->name('destroy')->middleware('auth:sanctum');
-    });
-}
-
 // Настройки сайта (для админки)
 Route::prefix('settings')->name('settings.')->group(function () {
     Route::get('/downtimeSite', [AdminSettingController::class, 'getDowntimeSiteSetting'])->name('downtime');

@@ -33,9 +33,7 @@ use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 use App\Http\Controllers\Admin\Article\ArticleController;
 use App\Http\Controllers\Admin\Banner\BannerController;
 use App\Http\Controllers\Admin\Chart\ChartController;
-use App\Http\Controllers\Admin\Comment\CommentController;
 use App\Http\Controllers\Admin\Component\ComponentController;
-use App\Http\Controllers\Admin\Diagram\DiagramController;
 use App\Http\Controllers\Admin\Invokable\RemoveArticleFromSectionController;
 use App\Http\Controllers\Admin\Invokable\RemoveArticleFromTagController;
 use App\Http\Controllers\Admin\Invokable\RemoveArticleFromVideoController;
@@ -297,7 +295,6 @@ Route::group([
                 Route::put('/update-count/sections', [SettingController::class, 'updateAdminCountSections'])->name('updateAdminCountSections');
                 Route::put('/update-count/articles', [SettingController::class, 'updateAdminCountArticles'])->name('updateAdminCountArticles');
                 Route::put('/update-count/tags', [SettingController::class, 'updateAdminCountTags'])->name('updateAdminCountTags');
-                Route::put('/update-count/comments', [SettingController::class, 'updateAdminCountComments'])->name('updateAdminCountComments'); // Исправлено имя
                 Route::put('/update-count/banners', [SettingController::class, 'updateAdminCountBanners'])->name('updateAdminCountBanners');
                 Route::put('/update-count/videos', [SettingController::class, 'updateAdminCountVideos'])->name('updateAdminCountVideos');
                 Route::put('/update-count/users', [SettingController::class, 'updateAdminCountUsers'])->name('updateAdminCountUsers');
@@ -314,7 +311,6 @@ Route::group([
                 Route::put('/update-sort/sections', [SettingController::class, 'updateAdminSortSections'])->name('updateAdminSortSections');
                 Route::put('/update-sort/articles', [SettingController::class, 'updateAdminSortArticles'])->name('updateAdminSortArticles');
                 Route::put('/update-sort/tags', [SettingController::class, 'updateAdminSortTags'])->name('updateAdminSortTags');
-                Route::put('/update-sort/comments', [SettingController::class, 'updateAdminSortComments'])->name('updateAdminSortComments');
                 Route::put('/update-sort/banners', [SettingController::class, 'updateAdminSortBanners'])->name('updateAdminSortBanners');
                 Route::put('/update-sort/videos', [SettingController::class, 'updateAdminSortVideos'])->name('updateAdminSortVideos');
                 Route::put('/update-sort/users', [SettingController::class, 'updateAdminSortUsers'])->name('updateAdminSortUsers');
@@ -341,10 +337,8 @@ Route::group([
             Route::resource('/videos', VideoController::class);
             Route::resource('/charts', ChartController::class)->except(['show']);
             Route::resource('/reports', ReportController::class)->only(['index']);
-            Route::resource('/comments', CommentController::class)->except(['create', 'store', 'show']); // Админ обычно не создает комменты с нуля
             Route::resource('/components', ComponentController::class);
             Route::post('/components/save', [ComponentController::class, 'save'])->name('components.save'); // Выносим отдельно, т.к. не ресурсный
-            Route::resource('/diagrams', DiagramController::class);
             Route::resource('/plugins', PluginController::class);
             Route::get('/reports/download', [ReportController::class, 'download'])->name('reports.download'); // Выносим отдельно
 
@@ -382,7 +376,6 @@ Route::group([
                 Route::put('/videos/{video}/activity', [VideoController::class, 'updateActivity'])->name('videos.updateActivity');
                 Route::put('/settings/{setting}/activity', [ParameterController::class, 'updateActivity'])->name('settings.updateActivity');
                 Route::put('/plugins/{plugin}/activity', [PluginController::class, 'updateActivity'])->name('plugins.updateActivity');
-                Route::put('/comments/{comment}/activity', [CommentController::class, 'updateActivity'])->name('comments.updateActivity');
 
                 // Переключение активности массово
                 Route::put('/admin/actions/athletes/bulk-activity', [AthleteController::class, 'bulkUpdateActivity'])
@@ -466,9 +459,6 @@ Route::group([
                 Route::put('/plugins/{plugin}/sort', [PluginController::class, 'updateSort'])->name('plugins.updateSort');
                 Route::put('/parameters/{parameter}/sort', [ParameterController::class, 'updateSort'])->name('parameters.updateSort');
 
-                // Одобрение комментария (Используем имя модели для параметра RMB)
-                Route::put('/comments/{comment}/approve', [CommentController::class, 'approve'])->name('comments.approve');
-
                 // Массовое удаление
                 Route::delete('/rubrics/bulk-delete', [RubricController::class, 'bulkDestroy'])->name('rubrics.bulkDestroy');
                 Route::delete('/sections/bulk-delete', [SectionController::class, 'bulkDestroy'])->name('sections.bulkDestroy');
@@ -476,7 +466,6 @@ Route::group([
                 Route::delete('/tags/bulk-delete', [TagController::class, 'bulkDestroy'])->name('tags.bulkDestroy');
                 Route::delete('/banners/bulk-delete', [BannerController::class, 'bulkDestroy'])->name('banners.bulkDestroy');
                 Route::delete('/videos/bulk-delete', [VideoController::class, 'bulkDestroy'])->name('videos.bulkDestroy');
-                Route::delete('/comments/bulk-delete', [CommentController::class, 'bulkDestroy'])->name('comments.bulkDestroy');
             }); // Конец группы actions
 
         }); // Конец группы admin
@@ -484,20 +473,6 @@ Route::group([
     // --- Остальные маршруты (Filemanager, Redis test) ---
     Route::group(['prefix' => 'laravel-filemanager', 'middleware' => ['web', 'auth']], function () {
         \UniSharp\LaravelFilemanager\Lfm::routes();
-    });
-
-    Route::get('/redis-test', function () {
-        try {
-            Cache::put('redis_test_key', 'redis_test_value', 10);
-            $value = Cache::get('redis_test_key');
-            if ($value === 'redis_test_value') {
-                return 'Redis connection successful!';
-            } else {
-                return 'Could not retrieve value from Redis.';
-            }
-        } catch (Throwable $e) {
-            return 'Redis connection failed: ' . $e->getMessage();
-        }
     });
 
 });

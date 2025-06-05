@@ -31,6 +31,12 @@ const emits = defineEmits([
     'toggle-all'
 ]);
 
+// ограничение символов title
+const truncateTitle = (text, limit = 25) => {
+    if (!text) return ''
+    return text.length > limit ? text.slice(0, limit) + '…' : text
+}
+
 // Функция форматирования даты
 const formatDate = (dateStr) => {
     if (!dateStr) return ''
@@ -67,13 +73,29 @@ const toggleAll = (event) => {
 };
 
 // Функция для выбора изображения с наименьшим значением order
+// const getPrimaryImage = (article) => {
+//     if (article.images && article.images.length) {
+//         // Создаем копию массива и сортируем по возрастанию order
+//         return [...article.images].sort((a, b) => a.order - b.order)[0];
+//     }
+//     return null;
+// };
+
 const getPrimaryImage = (article) => {
-    if (article.images && article.images.length) {
-        // Создаем копию массива и сортируем по возрастанию order
-        return [...article.images].sort((a, b) => a.order - b.order)[0];
+    // 1. Если есть изображения — использовать первое
+    if (Array.isArray(article.images) && article.images.length > 0 && article.images[0].url) {
+        return article.images[0].url;
     }
-    return null;
+
+    // 2. Если есть аватар — построить путь
+    if (article.img) {
+        return `/storage/${article.img}`;
+    }
+
+    // 3. Если ничего нет — показать заглушку
+    return '/storage/article_images/default-image.png';
 };
+
 </script>
 
 <template>
@@ -139,22 +161,19 @@ const getPrimaryImage = (article) => {
                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
                                 <div class="text-center text-blue-600 dark:text-blue-200">{{ article.id }}</div>
                             </td>
-                            <td class="first:pl-5 last:pr-5 py-1">
+                            <td class="px-2 py-1 whitespace-nowrap w-1/12">
                                 <div class="flex justify-center">
-                                    <template v-if="article.images && article.images.length">
+                                    <template v-if="getPrimaryImage(article)">
                                         <img
-                                            :src="getPrimaryImage(article).webp_url || getPrimaryImage(article).url"
-                                            :alt="getPrimaryImage(article).alt || t('defaultImageAlt')"
-                                            :title="getPrimaryImage(article).caption || t('postImage')"
-                                            class="h-8 w-8 object-cover rounded-full"
-                                        >
+                                            :src="getPrimaryImage(article)"
+                                            class="h-8 w-12 object-cover rounded-xs"
+                                            alt="avatar">
                                     </template>
                                     <template v-else>
                                         <img
                                             src="/storage/article_images/default-image.png"
-                                            :alt="t('defaultImageTitle')"
-                                            class="h-8 w-8 object-cover rounded-full"
-                                        >
+                                            class="h-8 w-12 object-cover rounded-xs"
+                                            alt="avatar">
                                     </template>
                                 </div>
                             </td>
@@ -170,7 +189,7 @@ const getPrimaryImage = (article) => {
                                               hover:text-teal-800 dark:hover:text-violet-50"
                                        target="_blank" rel="noopener noreferrer"
                                        :title="formatDate(article.published_at)">
-                                        {{ article.title }}
+                                        {{ truncateTitle(article.title) }}
                                     </a>
                                 </div>
                             </td>

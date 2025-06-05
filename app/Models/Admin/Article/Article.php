@@ -40,6 +40,7 @@ class Article extends Model
         'main',
         'right',
         'locale',
+        'img',
         'title',
         'url',
         'short',

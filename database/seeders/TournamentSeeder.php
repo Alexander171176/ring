@@ -9,7 +9,7 @@ class TournamentSeeder extends Seeder
 {
     public function run(): void
     {
-        DB::table('tournaments')->truncate();
+        DB::table('tournaments')->delete();
 
         DB::table('tournaments')->insert([
             [

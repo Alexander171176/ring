@@ -13,6 +13,8 @@ class SettingSeeder extends Seeder
      */
     public function run(): void
     {
+        DB::table('settings')->delete(); // НЕ truncate, если есть внешние ключи
+
         $settings = [
             [
                 'type' => 'static',
