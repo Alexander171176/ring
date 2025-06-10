@@ -25,7 +25,7 @@ class TagController extends Controller
     {
 
         // Получаем текущую локаль через кэш
-        $locale = Setting::where('option', 'locale')->value('value');
+        $locale = app()->getLocale(); // ← получаем из маршрута
 
         // Загружаем тег с его статьями (при необходимости фильтруем по активности и локали)
         $tag = Tag::with([

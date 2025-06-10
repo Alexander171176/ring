@@ -1,38 +1,48 @@
 <script setup>
-import {ref, onMounted, computed} from "vue";
-import {usePage, Link} from "@inertiajs/vue3";
-import {useI18n} from "vue-i18n";
+import { Link } from '@inertiajs/vue3';
+import {ref, watch, computed, onMounted} from 'vue';
+import {usePage} from '@inertiajs/vue3';
+import {useI18n} from 'vue-i18n';
 
 const {t} = useI18n();
 const rubrics = ref([]);
+const currentLocale = computed(() => usePage().props.locale ?? 'ru'); // ✅ исправлено
 
-// Получаем текущий маршрут
-const currentRoute = computed(() => usePage().url);
 
-// Функция для загрузки рубрик с API
+// 🔁 Метод получения рубрик
 const fetchRubrics = async () => {
-    try {
-        const response = await fetch("/api/menu-rubrics");
+    const localePath = currentLocale.value; // 'ru', 'en' и т.д.
+    const url = `/${localePath}/api/menu-rubrics`;
 
+    //console.log('[TopMenuRubrics] Загружаем рубрики по пути:', url);
+
+    try {
+        const response = await fetch(url);
         if (!response.ok) {
-            console.error(`Ошибка при загрузке рубрик: ${response.status}`);
+            console.error(`[TopMenuRubrics] Ошибка загрузки: ${response.status}`);
             return;
         }
 
         const data = await response.json();
+        //console.log('[TopMenuRubrics] Результат:', data);
 
-        if (data.rubrics && Array.isArray(data.rubrics)) {
-            rubrics.value = data.rubrics;
-        } else {
-            console.error("Ожидался массив rubrics, но получено:", data);
-        }
+        rubrics.value = Array.isArray(data.rubrics) ? data.rubrics : [];
     } catch (error) {
-        console.error("Ошибка при выполнении запроса:", error);
+        console.error('[TopMenuRubrics] Ошибка сети:', error);
     }
 };
 
+// 🚀 Загружаем при первом монтировании
 onMounted(() => {
     fetchRubrics();
+});
+
+// 👀 Следим за изменением локали
+watch(currentLocale, (newLocale, oldLocale) => {
+    if (newLocale !== oldLocale) {
+        //console.log(`[TopMenuRubrics] Локаль изменилась: ${oldLocale} → ${newLocale}`);
+        fetchRubrics();
+    }
 });
 </script>
 
@@ -43,12 +53,11 @@ onMounted(() => {
                 <Link :href="`/rubrics/${rubric.url}`"
                       class="flex items-center"
                       :class="[
-                      'mx-2 pb-0.5 text-xs lg:text-sm xl:text-lg font-medium transition duration-300',
-                      currentRoute.includes(`/rubrics/${rubric.url}`)
-                        ? 'border-b-2 border-red-400 dark:border-yellow-200 text-red-400 dark:text-yellow-200'
-                        : 'text-slate-700 hover:text-red-400 dark:text-white dark:hover:text-yellow-200'
+                        'mx-2 pb-0.5 text-sm font-medium transition duration-300',
+                        $page.url.includes(`/rubrics/${rubric.url}`)
+                          ? 'border-b-2 border-red-400 dark:border-red-400 text-red-400'
+                          : 'text-slate-900 hover:text-red-400'
                       ]">
-                    <span class="w-6 h-6 flex justify-center text-red-500" v-html="rubric.icon"></span>
                     <span>{{ rubric.title }}</span>
                 </Link>
             </li>

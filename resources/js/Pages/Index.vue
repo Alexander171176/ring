@@ -1,7 +1,3 @@
-<template>
-    <component :is="currentComponent" v-bind="props"></component>
-</template>
-
 <script setup>
 import { defineProps, defineAsyncComponent, shallowRef, watch, onMounted } from 'vue';
 import axios from 'axios';
@@ -67,3 +63,7 @@ watch(downtimeSite, (newValue) => {
     updateComponent();
 });
 </script>
+
+<template>
+    <component :is="currentComponent" v-bind="props"></component>
+</template>

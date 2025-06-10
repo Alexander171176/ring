@@ -4,6 +4,14 @@ import { ref, computed } from 'vue';
 import {Link, usePage} from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import ArticleImageSlider from "@/Components/Public/Default/Article/ArticleImageSlider.vue";
+const { appUrl } = usePage().props;
+
+const getImgSrc = (imgPath) => {
+    if (!imgPath) return '';
+    const base = appUrl.endsWith('/') ? appUrl.slice(0, -1) : appUrl;
+    const path = imgPath.startsWith('/') ? imgPath.slice(1) : imgPath;
+    return `${base}/storage/${path}`;
+};
 
 const { t } = useI18n();
 
@@ -109,17 +117,26 @@ const setViewMode = (mode) => {
                 <template v-if="viewMode === 'horizontal'">
                     <!-- Контейнер Изображения (горизонтальный вид) -->
                     <div class="w-1/3 lg:w-1/4 xl:w-48 shrink-0 aspect-video md:aspect-square overflow-hidden">
-                        <ArticleImageSlider
-                            v-if="article.images && article.images.length > 0"
-                            :images="article.images"
-                            :link="`/articles/${article.url}`"
-                            class="w-full h-full object-cover"
-                        /> <!-- ИСПРАВЛЕНО -->
-                        <Link v-else :href="`/articles/${article.url}`"
-                              class="flex items-center justify-center w-full h-full p-2 border border-slate-400 bg-gray-200 dark:bg-gray-700">
-                            <span class="text-center text-gray-700 dark:text-gray-300 text-xs">
-                                {{ t('noCurrentImage') }}
-                            </span>
+                        <!-- Изображение статьи -->
+                        <Link v-if="article.img"
+                              :href="`/articles/${article.url}`"
+                              class="h-auto overflow-hidden">
+                            <img :src="getImgSrc(article.img)"
+                                 alt="Article image"
+                                 class="w-full h-auto object-cover" />
+                        </Link>
+                        <Link v-else-if="article.images && article.images.length > 0"
+                              :href="`/articles/${article.url}`"
+                              class="h-auto overflow-hidden">
+                            <ArticleImageSlider
+                                :images="article.images"
+                                :link="`/articles/${article.url}`"
+                                class="w-full h-full object-cover" />
+                        </Link>
+                        <Link v-else
+                              :href="`/articles/${article.url}`"
+                              class="h-auto flex items-center justify-center bg-gray-200 dark:bg-gray-400">
+                            <span class="text-gray-500 dark:text-gray-700">{{ t('noCurrentImage') }}</span>
                         </Link>
                     </div>
                     <!-- Контейнер Контента (горизонтальный вид) -->
@@ -176,17 +193,26 @@ const setViewMode = (mode) => {
                 <template v-if="viewMode === 'grid'">
                     <!-- Контейнер Изображения -->
                     <div class="overflow-hidden h-auto">
-                        <ArticleImageSlider
-                            v-if="article.images && article.images.length > 0"
-                            :images="article.images"
-                            :link="`/articles/${article.url}`"
-                            class="w-full h-full object-cover"
-                        /> <!-- ИСПРАВЛЕНО -->
-                        <Link v-else :href="`/articles/${article.url}`"
-                              class="flex items-center justify-center h-48 p-4 bg-gray-200 dark:bg-gray-700">
-                                <span class="text-center text-gray-700 dark:text-gray-300 text-xs">
-                                    {{ t('noCurrentImage') }}
-                                </span>
+                        <!-- Изображение статьи -->
+                        <Link v-if="article.img"
+                              :href="`/articles/${article.url}`"
+                              class="h-auto overflow-hidden">
+                            <img :src="getImgSrc(article.img)"
+                                 alt="Article image"
+                                 class="w-full h-auto object-cover" />
+                        </Link>
+                        <Link v-else-if="article.images && article.images.length > 0"
+                              :href="`/articles/${article.url}`"
+                              class="h-auto overflow-hidden">
+                            <ArticleImageSlider
+                                :images="article.images"
+                                :link="`/articles/${article.url}`"
+                                class="w-full h-full object-cover" />
+                        </Link>
+                        <Link v-else
+                              :href="`/articles/${article.url}`"
+                              class="h-auto flex items-center justify-center bg-gray-200 dark:bg-gray-400">
+                            <span class="text-gray-500 dark:text-gray-700">{{ t('noCurrentImage') }}</span>
                         </Link>
                     </div>
                     <!-- Контейнер Контента -->

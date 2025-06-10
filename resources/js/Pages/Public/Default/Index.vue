@@ -1,6 +1,7 @@
 <script setup>
 import {Head, usePage} from '@inertiajs/vue3';
 import DefaultLayout from '@/Layouts/DefaultLayout.vue';
+import MaintenanceModal from "@/Components/Public/Default/Partials/MaintenanceModal.vue";
 
 // Получаем доступ к глобальным свойствам страницы
 const {locale} = usePage().props;
@@ -20,6 +21,8 @@ defineProps({
         :can-register="canRegister"
     >
         <Head title="Welcome"/>
+
+        <MaintenanceModal />
 
         <div class="relative sm:flex sm:justify-center sm:items-center min-h-screen
                     bg-dots-darker bg-center bg-gray-100 dark:bg-dots-lighter dark:bg-slate-900

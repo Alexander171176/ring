@@ -113,6 +113,10 @@ Route::group([
     // Публичная часть сайта
     Route::middleware([CheckDowntime::class])->group(function () use ($siteLayout) {
 
+        // Публичное API: меню рубрик, зависит от текущего шаблона
+        $publicRubricController = "App\\Http\\Controllers\\Public\\{$siteLayout}\\RubricController";
+        Route::get('/api/menu-rubrics', [$publicRubricController, 'menuRubrics'])->name('api.rubrics.menu');
+
         Route::get('/', fn() => Inertia::render('Public/' . $siteLayout . '/Index'))->name('home'); // Добавим имя
 
         $publicRubricController = "App\\Http\\Controllers\\Public\\{$siteLayout}\\RubricController";
@@ -120,7 +124,6 @@ Route::group([
 
         $publicArticleController = "App\\Http\\Controllers\\Public\\{$siteLayout}\\ArticleController";
         Route::get('/articles/{url}', [$publicArticleController, 'show'])->where('url', '.*')->name('public.articles.show');
-        Route::post('/articles/{article}/like', [$publicArticleController, 'like'])->name('articles.like'); // Параметр {article} уже здесь
 
         $publicTagController = "App\\Http\\Controllers\\Public\\{$siteLayout}\\TagController";
         Route::get('/tags/{url}', [$publicTagController, 'show'])->where('url', '.*')->name('public.tags.show');
@@ -476,3 +479,4 @@ Route::group([
     });
 
 });
+

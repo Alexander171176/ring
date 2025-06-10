@@ -39,16 +39,6 @@ use App\Http\Controllers\Api\Parameter\ApiParameterController;
 
 Route::get('/site-settings', [PublicSettingController::class, 'index'])->name('api.site-settings');
 
-// Определение контроллеров публичной части
-$siteLayout = config('site_settings.siteLayout', 'Default');
-$publicRubricControllerClass = "App\\Http\\Controllers\\Public\\{$siteLayout}\\RubricController";
-$publicCommentControllerClass = "App\\Http\\Controllers\\Public\\{$siteLayout}\\CommentController";
-
-// Рубрики для меню
-if (class_exists($publicRubricControllerClass)) {
-    Route::get('/menu-rubrics', [$publicRubricControllerClass, 'menuRubrics'])->name('api.rubrics.menu');
-}
-
 // Настройки сайта (для админки)
 Route::prefix('settings')->name('settings.')->group(function () {
     Route::get('/downtimeSite', [AdminSettingController::class, 'getDowntimeSiteSetting'])->name('downtime');

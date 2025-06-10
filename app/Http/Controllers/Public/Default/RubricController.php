@@ -12,6 +12,7 @@ use App\Models\Admin\Banner\Banner;
 use App\Models\Admin\Rubric\Rubric;
 use App\Models\Admin\Setting\Setting;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -24,7 +25,7 @@ class RubricController extends Controller
      */
     public function index(): Response
     {
-        $locale = Setting::where('option', 'locale')->value('value');
+        $locale = app()->getLocale(); // ← получаем из маршрута
 
         $rubrics = Rubric::where('activity', 1)
             ->where('locale', $locale)
@@ -43,7 +44,7 @@ class RubricController extends Controller
     public function show(string $url): Response
     {
         // Получаем локаль
-        $locale = Setting::where('option', 'locale')->value('value');
+        $locale = app()->getLocale(); // ← получаем из маршрута
 
         // Загружаем рубрику с секциями, статьями и баннерами секций
         $rubric = Rubric::with([
@@ -161,20 +162,23 @@ class RubricController extends Controller
     /**
      * Возвращает список активных рубрик в зависимости от выбранного языка.
      *
+     * @param Request $request
      * @return JsonResponse
      */
     public function menuRubrics(): JsonResponse
     {
-        $locale = Setting::where('option', 'locale')->value('value');
+        $locale = app()->getLocale(); // ← получаем из маршрута
 
         $rubrics = Rubric::where('activity', 1)
-                    ->where('locale', $locale)
-                    ->orderBy('sort')
-                    ->get(['id', 'title', 'url', 'locale']);
+            ->where('locale', $locale)
+            ->orderBy('sort')
+            ->get(['id', 'title', 'url', 'locale']);
 
         return response()->json([
+            'locale' => $locale,
             'rubrics' => $rubrics,
-            'rubricsCount' => $rubrics->count()
+            'rubricsCount' => $rubrics->count(),
         ]);
     }
+
 }

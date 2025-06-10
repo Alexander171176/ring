@@ -4,6 +4,14 @@ import {usePage, Link} from '@inertiajs/vue3';
 import {useI18n} from 'vue-i18n';
 import ArticleImageSlider from "@/Components/Public/Default/Article/ArticleImageSlider.vue";
 import BannerImageSlider from "@/Components/Public/Default/Banner/BannerImageSlider.vue";
+const { appUrl } = usePage().props;
+
+const getImgSrc = (imgPath) => {
+    if (!imgPath) return '';
+    const base = appUrl.endsWith('/') ? appUrl.slice(0, -1) : appUrl;
+    const path = imgPath.startsWith('/') ? imgPath.slice(1) : imgPath;
+    return `${base}/storage/${path}`;
+};
 
 const {t} = useI18n();
 // Получаем данные из страницы, включая новый пропс leftArticles
@@ -97,14 +105,23 @@ const bgColorClass = computed(() => {
                         class="mb-2 pb-2">
 
                         <!-- Изображение статьи -->
-                        <Link v-if="article.images && article.images.length > 0"
+                        <Link v-if="article.img"
+                              :href="`/articles/${article.url}`"
+                              class="h-auto overflow-hidden">
+                            <img :src="getImgSrc(article.img)"
+                                 alt="Article image"
+                                 class="w-full h-auto object-cover" />
+                        </Link>
+                        <Link v-else-if="article.images && article.images.length > 0"
                               :href="`/articles/${article.url}`"
                               class="h-auto overflow-hidden">
                             <ArticleImageSlider
                                 :images="article.images"
-                                :link="`/articles/${article.url}`"/>
+                                :link="`/articles/${article.url}`"
+                                class="w-full h-full object-cover" />
                         </Link>
-                        <Link v-else :href="`/articles/${article.url}`"
+                        <Link v-else
+                              :href="`/articles/${article.url}`"
                               class="h-auto flex items-center justify-center bg-gray-200 dark:bg-gray-400">
                             <span class="text-gray-500 dark:text-gray-700">{{ t('noCurrentImage') }}</span>
                         </Link>

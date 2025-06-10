@@ -19,7 +19,7 @@ class ArticleController extends Controller
     public function show(string $url): Response
     {
         // Получаем локаль напрямую из базы, без кэширования
-        $locale = Setting::where('option', 'locale')->value('value') ?? 'ru';
+        $locale = app()->getLocale(); // ← получаем из маршрута
 
         // Получаем статью напрямую без кэширования
         $article = Article::with([
