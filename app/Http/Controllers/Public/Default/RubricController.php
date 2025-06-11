@@ -15,6 +15,9 @@ use App\Models\Admin\Setting\Setting;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -43,18 +46,101 @@ class RubricController extends Controller
     /**
      * Страница показа рубрики
      */
-    public function show(Request $request, string $url): \Inertia\Response
+    public function show(string $url): Response
     {
-        $rubric = Rubric::where('url', $url)
-            ->with('sections') // Загружаем связанные секции
+        $locale = app()->getLocale();
+
+        $rubric = Rubric::with([
+            'sections' => function ($query) use ($locale) {
+                $query->where('activity', 1)
+                    ->where('locale', $locale)
+                    ->orderBy('sort', 'asc')
+                    ->with([
+                        'articles' => function ($query) use ($locale) {
+                            $query->where('activity', 1)
+                                ->where('locale', $locale)
+                                ->orderBy('sort', 'desc')
+                                ->with([
+                                    'images' => fn($query) => $query->orderBy('order', 'asc'),
+                                    'tags'
+                                ]);
+                        },
+                        'banners' => function ($query) {
+                            $query->where('activity', 1)
+                                ->orderBy('sort', 'desc')
+                                ->with([
+                                    'images' => fn($query) => $query->orderBy('order', 'asc'),
+                                ]);
+                        }
+                    ]);
+            }
+        ])
+            ->where('url', $url)
             ->firstOrFail();
 
-        $customComponents = config('rubrics.custom_components');
-        $componentPath = $customComponents[$rubric->url] ?? 'Public/Default/Rubrics/Show';
+        $activeArticlesCount = $rubric->sections->reduce(function ($carry, $section) {
+            return $carry + ($section->articles ? $section->articles->count() : 0);
+        }, 0);
 
-        return Inertia::render($componentPath, [
-            'rubric' => $rubric,
-            'sections' => $rubric->sections, // Передаём напрямую
+        $leftArticles = Article::where('activity', 1)
+            ->where('locale', $locale)
+            ->where('left', true)
+            ->orderBy('sort', 'desc')
+            ->with(['images' => fn($q) => $q->orderBy('order'), 'tags'])
+            ->get();
+
+        $mainArticles = Article::where('activity', 1)
+            ->where('locale', $locale)
+            ->where('main', true)
+            ->orderBy('sort', 'desc')
+            ->with(['images' => fn($q) => $q->orderBy('order'), 'tags'])
+            ->get();
+
+        $rightArticles = Article::where('activity', 1)
+            ->where('locale', $locale)
+            ->where('right', true)
+            ->orderBy('sort', 'desc')
+            ->with(['images' => fn($q) => $q->orderBy('order'), 'tags'])
+            ->get();
+
+        $leftBanners = Banner::where('activity', 1)
+            ->where('left', true)
+            ->orderBy('sort', 'desc')
+            ->with(['images' => fn($q) => $q->orderBy('order')])
+            ->get();
+
+        $rightBanners = Banner::where('activity', 1)
+            ->where('right', true)
+            ->orderBy('sort', 'desc')
+            ->with(['images' => fn($q) => $q->orderBy('order')])
+            ->get();
+
+        // Получаем кастомные компоненты
+        $components = config('rubrics.custom_components', []);
+
+        // Определяем путь компонента
+        $component = $components[$rubric->url] ?? 'Public/Default/Rubrics/Show';
+
+        // Полный путь к физическому .vue-файлу
+        $vuePath = resource_path("js/Pages/{$component}.vue");
+
+        // Проверка существования .vue файла
+        if (!File::exists($vuePath)) {
+            $component = 'Public/Default/Rubrics/Show'; // fallback
+        }
+
+        Log::info("Компонент для рубрики '{$rubric->url}': {$component}");
+
+        return Inertia::render($component, [
+            'rubric' => new RubricResource($rubric),
+            'sections' => SectionResource::collection($rubric->sections),
+            'sectionsCount' => $rubric->sections->count(),
+            'activeArticlesCount' => $activeArticlesCount,
+            'leftArticles' => ArticleResource::collection($leftArticles),
+            'mainArticles' => ArticleResource::collection($mainArticles),
+            'rightArticles' => ArticleResource::collection($rightArticles),
+            'leftBanners' => BannerResource::collection($leftBanners),
+            'rightBanners' => BannerResource::collection($rightBanners),
         ]);
     }
 
