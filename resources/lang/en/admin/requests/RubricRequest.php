@@ -34,10 +34,8 @@ return [
     'activity.boolean' => 'The activity field must be a boolean value.',
 
     // Messages for sections, if they are validated here
-    /*
     'sections.array' => 'Sections must be an array.',
     'sections.*.id.required_with' => 'Section ID is required.',
     'sections.*.id.integer' => 'The section ID must be a number.',
     'sections.*.id.exists' => 'A non-existent section has been selected.',
-    */
 ];

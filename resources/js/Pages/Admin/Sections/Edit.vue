@@ -19,7 +19,6 @@ import InputText from '@/Components/Admin/Input/InputText.vue';
 import LabelInput from '@/Components/Admin/Input/LabelInput.vue';
 import CKEditor from "@/Components/Admin/CKEditor/CKEditor.vue";
 import SelectLocale from "@/Components/Admin/Select/SelectLocale.vue";
-import VueMultiselect from "vue-multiselect";
 import {useToast} from "vue-toastification";
 import TinyEditor from "@/Components/Admin/TinyEditor/TinyEditor.vue";
 
@@ -32,7 +31,6 @@ const { t } = useI18n();
  */
 const props = defineProps({
     section: { type: Object, required: true },
-    rubrics: Array,
 });
 
 /**
@@ -47,7 +45,6 @@ const form = useForm({
     short: props.section.short ?? '',
     description: props.section.description ?? '',
     activity: Boolean(props.section.activity ?? false),
-    rubrics: props.section.rubrics ?? [],
 });
 
 /**
@@ -125,18 +122,6 @@ const submitForm = async () => {
                     </div>
 
                     <div class="mb-3 flex flex-col items-start">
-                        <LabelInput for="rubrics" :value="t('rubrics')" class="mb-1"/>
-                        <VueMultiselect v-model="form.rubrics"
-                                        :options="rubrics"
-                                        :multiple="true"
-                                        :close-on-select="true"
-                                        :placeholder="t('select')"
-                                        label="title"
-                                        track-by="title"
-                        />
-                    </div>
-
-                    <div class="mb-3 flex flex-col items-start">
                         <LabelInput for="icon" :value="t('svg')"/>
                         <MetaDescTextarea v-model="form.icon" class="w-full"/>
                         <InputError class="mt-2" :message="form.errors.icon"/>
@@ -200,5 +185,3 @@ const submitForm = async () => {
         </div>
     </AdminLayout>
 </template>
-
-<style src="../../../../css/vue-multiselect.min.css"></style>

@@ -6,7 +6,7 @@ return [
     'locale.required' => 'The language of the article is required.',
     'locale.string' => 'The language must be a string.',
     'locale.size' => 'The language code must consist of 2 characters (for example, "ru", "en", "kz").',
-    'locale.in ' => 'Acceptable languages: ru, en, kz.',
+    'locale.in ' => 'Acceptable languages: ru, en, kk.',
 
     'title.required' => 'The title of the article is required.',
     'title.string' => 'The title of the article must be a string.',

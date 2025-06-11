@@ -7,7 +7,9 @@ use App\Http\Requests\Admin\Rubric\RubricRequest;
 use App\Http\Requests\Admin\UpdateSortEntityRequest;
 use App\Http\Requests\Admin\UpdateActivityRequest;
 use App\Http\Resources\Admin\Rubric\RubricResource;
+use App\Http\Resources\Admin\Section\SectionSharedResource;
 use App\Models\Admin\Rubric\Rubric;
+use App\Models\Admin\Section\Section;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -43,30 +45,26 @@ class RubricController extends Controller
      */
     public function index(): Response
     {
-        // TODO: Проверка прав $this->authorize('show-rubrics', Rubric::class);
-
-        // Получаем настройки для фронтенда (дефолтные значения)
-        $adminCountRubrics = config('site_settings.AdminCountRubrics', 15); // Для ItemsPerPageSelect
-        $adminSortRubrics  = config('site_settings.AdminSortRubrics', 'idDesc'); // Для SortSelect
+        $adminCountRubrics = config('site_settings.AdminCountRubrics', 15);
+        $adminSortRubrics  = config('site_settings.AdminSortRubrics', 'idDesc');
 
         try {
-            // Загружаем ВСЕ рубрики с количеством секций
-            $rubrics = Rubric::withCount('sections')->get(); // Загружаем ВСЕ
-            $rubricsCount = $rubrics->count(); // Считаем из загруженной коллекции
+            // Вместо withCount загружаем с секциями
+            $rubrics = Rubric::with('sections')->get();
+            $rubricsCount = $rubrics->count();
 
         } catch (Throwable $e) {
             Log::error("Ошибка загрузки рубрик для Index: " . $e->getMessage());
-            $rubrics = collect(); // Пустая коллекция в случае ошибки
+            $rubrics = collect();
             $rubricsCount = 0;
             session()->flash('error', __('admin/controllers/rubrics.index_load_error'));
         }
 
         return Inertia::render('Admin/Rubrics/Index', [
-            // Передаем ПОЛНУЮ коллекцию ресурсов
             'rubrics' => RubricResource::collection($rubrics),
             'rubricsCount' => $rubricsCount,
             'adminCountRubrics' => (int)$adminCountRubrics,
-            'adminSortRubrics' => $adminSortRubrics, // Это значение прочитает SortSelect при загрузке
+            'adminSortRubrics' => $adminSortRubrics,
         ]);
     }
 
@@ -79,7 +77,11 @@ class RubricController extends Controller
     public function create(): Response
     {
         // TODO: Проверка прав доступа $this->authorize('create-rubrics', Rubric::class);
-        return Inertia::render('Admin/Rubrics/Create');
+        $sections = Section::select('id', 'title', 'locale')->orderBy('title')->get();
+
+        return Inertia::render('Admin/Rubrics/Create', [
+            'sections' => SectionSharedResource::collection($sections),
+        ]);
     }
 
     /**
@@ -93,10 +95,13 @@ class RubricController extends Controller
     {
         // authorize() уже выполнен в RubricRequest
         $data = $request->validated();
+        $sectionIds = collect($data['sections'] ?? [])->pluck('id')->toArray();
+        unset($data['sections']);
 
         try {
             DB::beginTransaction();
             $rubric = Rubric::create($data);
+            $rubric->sections()->sync($sectionIds);
             DB::commit();
 
             Log::info('Рубрика успешно создана: ', $rubric->toArray());
@@ -119,8 +124,13 @@ class RubricController extends Controller
     public function edit(Rubric $rubric): Response // Используем Route Model Binding
     {
         // TODO: Проверка прав доступа $this->authorize('update-rubrics', $rubric);
+
+        $rubric->load('sections');
+        $sections = Section::select('id', 'title', 'locale')->orderBy('title')->get();
+
         return Inertia::render('Admin/Rubrics/Edit', [
             'rubric' => new RubricResource($rubric),
+            'sections' => SectionSharedResource::collection($sections),
         ]);
     }
 
@@ -137,10 +147,16 @@ class RubricController extends Controller
     {
         // authorize() уже выполнен в RubricRequest
         $data = $request->validated();
+        $sectionData = $data['sections'] ?? null;
+        unset($data['sections']);
 
         try {
             DB::beginTransaction();
             $rubric->update($data);
+            if ($sectionData !== null) {
+                $sectionIds = collect($sectionData)->pluck('id')->toArray();
+                $rubric->sections()->sync($sectionIds);
+            }
             DB::commit();
 
             Log::info('Рубрика обновлена: ', $rubric->toArray());
@@ -354,6 +370,9 @@ class RubricController extends Controller
             $clonedRubric->updated_at = now();
             $clonedRubric->save(); // Сохраняем клон
 
+            $sectionIds = $rubric->sections()->pluck('id')->toArray();
+            $clonedRubric->sections()->sync($sectionIds);
+
             DB::commit();
 
             Log::info('Рубрика ID ' . $rubric->id . ' успешно клонирована в ID ' . $clonedRubric->id);
@@ -381,4 +400,5 @@ class RubricController extends Controller
             return back()->withInput()->withErrors(['general' => $errorMessage]);
         }
     }
+
 }

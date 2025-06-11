@@ -5,6 +5,7 @@
 /storage/debugbar
 /storage/logs
 /storage/docker
+/storage/docker/*
 /public/storage
 
 # Laravel cache files

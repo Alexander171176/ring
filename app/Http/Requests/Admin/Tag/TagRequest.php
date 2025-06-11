@@ -37,7 +37,7 @@ class TagRequest extends FormRequest
                 'required',
                 'string',
                 'size:2',
-                Rule::in(['ru', 'en', 'kz']), // TODO: Актуализировать список локалей
+                Rule::in(['ru', 'en', 'kk']), // TODO: Актуализировать список локалей
             ],
             'name' => [
                 'required',

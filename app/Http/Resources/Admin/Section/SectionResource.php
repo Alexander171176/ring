@@ -38,14 +38,12 @@ class SectionResource extends JsonResource
 
             // --- Связанные данные ---
             // Включаем коллекции ресурсов, если они были загружены через with()
-            'rubrics'       => RubricResource::collection($this->whenLoaded('rubrics')),
             'articles'      => ArticleResource::collection($this->whenLoaded('articles')),
             'banners'       => BannerResource::collection($this->whenLoaded('banners')),
             'videos'        => VideoResource::collection($this->whenLoaded('videos')),
 
             // --- Количество связанных данных ---
             // Используем whenCounted, если загружали через withCount() в контроллере
-            'rubrics_count'  => $this->whenCounted('rubrics'),
             'articles_count' => $this->whenCounted('articles'),
             'banners_count'  => $this->whenCounted('banners'),
             'videos_count'   => $this->whenCounted('videos'),

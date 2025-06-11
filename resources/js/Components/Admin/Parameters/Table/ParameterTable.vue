@@ -78,13 +78,6 @@ const toggleAll = (event) => {
                             <path class="fill-current text-sky-500" d="M23.746,6.564l-11.5-6.5a.507.507,0,0,0-.492,0l-11.5,6.5a.5.5,0,0,0,0,.872l11.5,6.5a.5.5,0,0,0,.492,0l11.5-6.5a.5.5,0,0,0,0-.872Z" fill="#212121"></path>
                         </svg>
                     </th>
-                    <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap"
-                        :title="t('description')">
-                        <svg class="shrink-0 h-5 w-5" viewBox="0 0 24 24">
-                            <path class="fill-current text-sky-500" d="M14,0H3A1,1,0,0,0,2,1V23a1,1,0,0,0,1,1H21a1,1,0,0,0,1-1V8H15a1,1,0,0,1-1-1ZM5.5,17h13a.5.5,0,0,1,.5.5v1a.5.5,0,0,1-.5.5H5.5a.5.5,0,0,1-.5-.5v-1A.5.5,0,0,1,5.5,17Zm0-5h13a.5.5,0,0,1,.5.5v1a.5.5,0,0,1-.5.5H5.5a.5.5,0,0,1-.5-.5v-1A.5.5,0,0,1,5.5,12Zm5-3h-5A.5.5,0,0,1,5,8.5v-1A.5.5,0,0,1,5.5,7h5a.5.5,0,0,1,.5.5v1A.5.5,0,0,1,10.5,9Z"></path>
-                            <polygon class="fill-current text-blue-600" points="21.414 6 16 6 16 0.586 21.414 6"></polygon>
-                        </svg>
-                    </th>
                     <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
                         <div class="font-medium text-center">{{ t('actions') }}</div>
                     </th>
@@ -113,13 +106,9 @@ const toggleAll = (event) => {
                                 </div>
                             </td>
                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
-                                <div class="text-center py-0.5 px-2 badge bg-blue-500 rounded-sm text-xs text-slate-100">
+                                <div class="text-center py-0.5 px-2 badge bg-blue-500 rounded-sm text-xs text-slate-100"
+                                     :title="setting.description">
                                     {{ setting.category }}
-                                </div>
-                            </td>
-                            <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
-                                <div class="text-left text-xs text-slate-800 dark:text-slate-200">
-                                    {{ setting.description }}
                                 </div>
                             </td>
                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">

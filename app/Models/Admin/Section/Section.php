@@ -66,15 +66,6 @@ class Section extends Model
     // --- Связи ---
 
     /**
-     * Рубрики, к которым принадлежит секция.
-     */
-    public function rubrics(): BelongsToMany
-    {
-        // Добавляем сортировку рубрик по их полю sort (опционально)
-        return $this->belongsToMany(Rubric::class, 'rubric_has_sections')->orderBy('sort', 'asc');
-    }
-
-    /**
      * Статьи, принадлежащие этой секции.
      */
     public function articles(): BelongsToMany

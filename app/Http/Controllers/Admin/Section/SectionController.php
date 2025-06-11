@@ -51,7 +51,7 @@ class SectionController extends Controller
         $adminSortSections = config('site_settings.AdminSortSections', 'idDesc');
 
         try {
-            $sections = Section::with(['rubrics'])->get();
+            $sections = Section::all();
             $sectionsCount = Section::count(); // Считаем из загруженной коллекции
 
         } catch (Throwable $e) {
@@ -79,12 +79,7 @@ class SectionController extends Controller
     {
         // TODO: Проверка прав $this->authorize('create-sections', Section::class);
 
-        // Передаем список рубрик (только нужные поля)
-        $rubrics = Rubric::select('id', 'title', 'locale')->orderBy('title')->get();
-
-        return Inertia::render('Admin/Sections/Create', [
-            'rubrics' => RubricSharedResource::collection($rubrics), // Используем Shared ресурс
-        ]);
+        return Inertia::render('Admin/Sections/Create');
     }
 
     /**
@@ -99,14 +94,9 @@ class SectionController extends Controller
     {
         $data = $request->validated();
 
-        // Извлекаем ID рубрик напрямую из валидированных данных (если они там есть)
-        $rubricIds = collect($data['rubrics'] ?? [])->pluck('id')->toArray();
-        unset($data['rubrics']); // Убираем массив объектов рубрик
-
         try {
             DB::beginTransaction();
             $section = Section::create($data);
-            $section->rubrics()->sync($rubricIds); // Синхронизируем по ID
             DB::commit();
 
             Log::info('Секция успешно создана: ', $section->toArray());
@@ -130,13 +120,8 @@ class SectionController extends Controller
     {
         // TODO: Проверка прав $this->authorize('update-sections', $section);
 
-        // Загружаем связанные рубрики
-        $section->load('rubrics');
-        $rubrics = Rubric::select('id', 'title', 'locale')->orderBy('title')->get();
-
         return Inertia::render('Admin/Sections/Edit', [
             'section' => new SectionResource($section),
-            'rubrics' => RubricSharedResource::collection($rubrics), // Используем Shared
         ]);
     }
 
@@ -152,18 +137,10 @@ class SectionController extends Controller
     public function update(SectionRequest $request, Section $section): RedirectResponse // Используем RMB
     {
         $data = $request->validated();
-        $rubricData = $data['rubrics'] ?? null;
-        unset($data['rubrics']);
 
         try {
             DB::beginTransaction();
             $section->update($data);
-
-            // Синхронизация рубрик, только если массив передан
-            if ($rubricData !== null) {
-                $rubricIds = collect($rubricData)->pluck('id')->toArray();
-                $section->rubrics()->sync($rubricIds);
-            }
             DB::commit();
 
             Log::info('Секция обновлена: ', $section->toArray());
@@ -188,7 +165,7 @@ class SectionController extends Controller
         // TODO: Проверка прав доступа $this->authorize('delete-sections', $section);
         try {
             DB::beginTransaction();
-            // Связи (rubrics, articles, banners, videos) удалятся каскадно из pivot таблиц
+            // Связи (articles, banners, videos) удалятся каскадно из pivot таблиц
             $section->delete();
             DB::commit();
 
@@ -368,10 +345,6 @@ class SectionController extends Controller
             $clonedSection->created_at = now();
             $clonedSection->updated_at = now();
             $clonedSection->save(); // Сохраняем клон
-
-            // Клонируем связи с рубриками
-            $rubricIds = $section->rubrics()->pluck('id')->toArray();
-            $clonedSection->rubrics()->sync($rubricIds);
             DB::commit();
 
             Log::info('Секция ID ' . $section->id . ' успешно клонирована в ID ' . $clonedSection->id);

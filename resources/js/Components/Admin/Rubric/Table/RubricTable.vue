@@ -86,6 +86,9 @@ const toggleAll = (event) => {
                             </svg>
                         </div>
                     </th>
+                    <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
+                        <div class="font-medium text-left">{{ t('sections') }}</div>
+                    </th>
                     <th class="px-2 first:pl-7 last:pr-7 py-3 whitespace-nowrap">
                         <div class="text-center font-medium">{{ t('actions') }}</div>
                     </th>
@@ -130,6 +133,17 @@ const toggleAll = (event) => {
                             </td>
                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
                                 <div class="text-center">{{ rubric.views }}</div>
+                            </td>
+                            <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
+                                <div class="text-left">
+                                    <span v-for="section in rubric.sections" :key="section.id">
+                                        <span :title="section.title"
+                                              class="py-0.5 px-1.5 mr-0.5 badge bg-blue-500 dark:bg-blue-200
+                                                     rounded-sm text-xs text-slate-100 dark:text-slate-900">
+                                            {{ section.id }}
+                                        </span>
+                                    </span>
+                                </div>
                             </td>
                             <td class="px-2 first:pl-7 last:pr-7 py-1 whitespace-nowrap">
                                 <div class="flex justify-center space-x-2">

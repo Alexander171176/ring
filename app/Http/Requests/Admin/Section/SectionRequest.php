@@ -43,7 +43,7 @@ class SectionRequest extends FormRequest
                 'required',
                 'string',
                 'size:2',
-                Rule::in(['ru', 'en', 'kz']), // TODO: Актуализировать список локалей
+                Rule::in(['ru', 'en', 'kk']), // TODO: Актуализировать список локалей
             ],
             'title' => [
                 'required',
@@ -68,10 +68,6 @@ class SectionRequest extends FormRequest
             */
             'short' => 'nullable|string|max:255',
             'description' => 'nullable|string', // <--- Добавлено правило для description
-
-            // Валидация связи с рубриками
-            'rubrics' => ['nullable', 'array'],
-            'rubrics.*.id' => ['required_with:rubrics', 'integer', 'exists:rubrics,id'], // <--- Добавлено: проверяем ID рубрик
 
         ];
     }

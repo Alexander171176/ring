@@ -38,7 +38,7 @@ class RubricRequest extends FormRequest
                 'required',
                 'string',
                 'size:2',
-                Rule::in(['ru', 'en', 'kz']), // TODO: Актуализировать список локалей
+                Rule::in(['ru', 'en', 'kk']), // TODO: Актуализировать список локалей
             ],
             'title' => [
                 'required',
@@ -67,11 +67,9 @@ class RubricRequest extends FormRequest
             'meta_keywords' => 'nullable|string|max:255',
             'meta_desc' => 'nullable|string', // Убрано max:255
 
-            // Если секции передаются в ЭТОМ запросе (обычно нет, управляется из SectionRequest)
-            /*
+            // Если секции передаются в ЭТОМ запросе
             'sections' => ['nullable', 'array'],
             'sections.*.id' => ['required_with:sections', 'integer', 'exists:sections,id'],
-            */
         ];
     }
 

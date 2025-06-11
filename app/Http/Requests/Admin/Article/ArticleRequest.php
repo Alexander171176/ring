@@ -27,7 +27,7 @@ class ArticleRequest extends FormRequest
             'right'              => 'required|boolean',
             'locale'             => [
                 'required','string','size:2',
-                Rule::in(['ru','en','kz']),
+                Rule::in(['ru','en','kk']),
             ],
             'title'              => [
                 'required','string','max:255',

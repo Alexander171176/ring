@@ -23,10 +23,18 @@ import InputError from '@/Components/Admin/Input/InputError.vue';
 import CKEditor from "@/Components/Admin/CKEditor/CKEditor.vue";
 import SelectLocale from "@/Components/Admin/Select/SelectLocale.vue";
 import TinyEditor from "@/Components/Admin/TinyEditor/TinyEditor.vue";
+import VueMultiselect from "vue-multiselect";
 
 // --- Инициализация ---
 const {t} = useI18n();
 const toast = useToast();
+
+/**
+ * Входные свойства компонента.
+ */
+defineProps({
+    sections: Array,
+})
 
 /**
  * Форма для создания.
@@ -43,6 +51,7 @@ const form = useForm({
     meta_keywords: '',
     meta_desc: '',
     activity: false,
+    sections: [],
 });
 
 /**
@@ -204,6 +213,18 @@ const submitForm = () => {
                     </div>
 
                     <div class="mb-3 flex flex-col items-start">
+                        <LabelInput for="sections" :value="t('sections')" class="mb-1"/>
+                        <VueMultiselect v-model="form.sections"
+                                        :options="sections"
+                                        :multiple="true"
+                                        :close-on-select="true"
+                                        :placeholder="t('select')"
+                                        label="title"
+                                        track-by="title"
+                        />
+                    </div>
+
+                    <div class="mb-3 flex flex-col items-start">
                         <LabelInput for="icon" :value="t('svg')"/>
                         <DescriptionTextarea v-model="form.icon" class="w-full"/>
                         <InputError class="mt-2" :message="form.errors.icon"/>
@@ -342,3 +363,5 @@ const submitForm = () => {
         </div>
     </AdminLayout>
 </template>
+
+<style src="../../../../css/vue-multiselect.min.css"></style>

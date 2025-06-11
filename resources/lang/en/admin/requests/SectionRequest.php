@@ -37,9 +37,4 @@ return [
     // 'icon_file.image' => 'The icon file must be an image.', // If the icon is a file
     // 'icon_file.mimes' => 'Acceptable icon formats are:values.',
     // 'icon_file.max' => 'The size of the icon file must not exceed :max KB.',
-
-    'rubrics.array' => 'Rubrics must be an array.',
-    'rubrics.*.id.required_with' => 'Category ID is required.', // Added
-    'rubrics.*.id.integer' => 'The category ID must be a number.', // Added
-    'rubrics.*.id.exists' => 'A non-existent category has been selected.', // Added
 ];
