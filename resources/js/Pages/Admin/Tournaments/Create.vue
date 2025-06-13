@@ -74,7 +74,7 @@ const formatDate = (dateStr) => {
     if (!dateStr) return '';
     const date = new Date(dateStr);
     if (isNaN(date.getTime())) return '';
-    return date.toISOString().split('T')[0];
+    return date.toISOString().slice(0, 16); // формат для datetime-local
 };
 
 /**
@@ -195,7 +195,7 @@ const submit = () => {
                                             class="mb-1 lg:mb-0 lg:mr-2"/>
                                 <InputText
                                     id="tournament_date_time"
-                                    type="date"
+                                    type="datetime-local"
                                     v-model="form.tournament_date_time"
                                     autocomplete="tournament_date_time"
                                     class="w-full max-w-56"

@@ -55,6 +55,7 @@ const currentImage = computed(() => {
                 :alt="alt || currentImage.alt"
                 :title="title || currentImage.caption"
                 class="w-full h-full object-cover shadow-md shadow-gray-600
+                       rounded-md border border-black dark:border-gray-200
                        transition-transform duration-300 hover:scale-105"
             />
         </Link>
@@ -63,7 +64,7 @@ const currentImage = computed(() => {
                 :src="currentImage.webp_url || currentImage.url"
                 :alt="alt || currentImage.alt"
                 :title="title || currentImage.caption"
-                class="w-full h-full object-cover"
+                class="w-full h-full object-cover rounded-md border border-black dark:border-gray-200"
             />
         </template>
     </div>

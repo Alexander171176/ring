@@ -15,7 +15,7 @@ const classes = computed(() => {
         'ps-3 pe-4 py-2 ' +
         'border-l-4 ' +
         'border-indigo-400 ' +
-        'text-start text-base ' +
+        'text-start text-sm ' +
         'font-medium ' +
         'text-indigo-700 ' +
         'bg-indigo-50 ' +
@@ -29,7 +29,7 @@ const classes = computed(() => {
         'ps-3 pe-4 py-2 ' +
         'border-l-4 ' +
         'border-transparent ' +
-        'text-start text-base ' +
+        'text-start text-sm ' +
         'font-medium ' +
         'text-gray-600 ' +
         'dark:text-slate-300 ' +

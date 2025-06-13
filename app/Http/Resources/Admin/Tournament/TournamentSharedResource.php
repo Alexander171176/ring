@@ -12,7 +12,7 @@ class TournamentSharedResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'tournament_date_time' => $this->tournament_date_time?->format('Y-m-d'),
+            'tournament_date_time' => $this->tournament_date_time?->format('Y-m-d H:i'),
             'status' => $this->status,
             'locale' => $this->locale,
             'is_title_fight' => $this->is_title_fight,

@@ -31,7 +31,7 @@ const {props: pageProps} = usePage();
     <!-- Импортируем Header и передаем пропсы -->
     <Header :can-login="canLogin" :can-register="canRegister"/>
 
-    <main class="min-h-screen flex justify-center flex-col lg:flex-row tracking-wider">
+    <main class="min-h-screen flex justify-center flex-col lg:flex-row tracking-wider bg-slate-50 dark:bg-slate-950">
         <!-- Левый сайдбар: не показываем, если параметр равен "false" -->
         <LeftSidebar v-if="!siteSettings.ViewLeftColumn || siteSettings.ViewLeftColumn === 'true'" />
 

@@ -45,7 +45,9 @@ const updateLocale = (event) => {
 
 <template>
     <select :value="modelValue" @change="updateLocale"
-            class="bg-slate-100 dark:bg-slate-300 form-select text-gray-900 dark:text-gray-700 px-3 py-0.5">
+            class="uppercase font-semibold appearance-none bg-slate-100 dark:bg-slate-300
+                   text-xs text-gray-900 dark:text-gray-700 px-1 py-0 w-7"
+            style="background-image: none;">
         <option disabled value="">{{ t('selectLocale') }}</option>
         <option v-for="loc in localesList" :key="loc.code" :value="loc.code">
             {{ t(loc.code) }}

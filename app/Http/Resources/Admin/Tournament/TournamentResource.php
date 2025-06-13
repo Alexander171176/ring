@@ -18,7 +18,7 @@ class TournamentResource extends JsonResource
             'name' => $this->name,
             'short' => $this->short,
             'description' => $this->description,
-            'tournament_date_time' => $this->tournament_date_time?->format('Y-m-d'),
+            'tournament_date_time' => $this->tournament_date_time?->format('Y-m-d H:i'),
             'status' => $this->status,
             'venue' => $this->venue,
             'city' => $this->city,

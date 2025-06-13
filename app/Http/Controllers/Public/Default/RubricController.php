@@ -7,11 +7,13 @@ use App\Http\Resources\Admin\Article\ArticleResource;
 use App\Http\Resources\Admin\Banner\BannerResource;
 use App\Http\Resources\Admin\Rubric\RubricResource;
 use App\Http\Resources\Admin\Section\SectionResource;
+use App\Http\Resources\Admin\Tournament\TournamentResource;
 use App\Models\Admin\Article\Article;
 use App\Models\Admin\Banner\Banner;
 use App\Models\Admin\Rubric\Rubric;
 use App\Models\Admin\Section\Section;
 use App\Models\Admin\Setting\Setting;
+use App\Models\Admin\Tournament\Tournament;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
@@ -115,6 +117,30 @@ class RubricController extends Controller
             ->with(['images' => fn($q) => $q->orderBy('order')])
             ->get();
 
+        $scheduledTournaments = Tournament::query()
+            ->active()
+            ->where('locale', $locale)
+            ->scheduled()
+            ->orderBy('tournament_date_time', 'desc')
+            ->with([
+                'fighterRed',
+                'fighterBlue',
+                'images' => fn($q) => $q->orderBy('order')
+            ])
+            ->get();
+
+        $completedTournaments = Tournament::query()
+            ->active()
+            ->where('locale', $locale)
+            ->completed()
+            ->orderBy('tournament_date_time', 'desc')
+            ->with([
+                'fighterRed',
+                'fighterBlue',
+                'images' => fn($q) => $q->orderBy('order')
+            ])
+            ->get();
+
         // Получаем кастомные компоненты
         $components = config('rubrics.custom_components', []);
 
@@ -141,13 +167,16 @@ class RubricController extends Controller
             'rightArticles' => ArticleResource::collection($rightArticles),
             'leftBanners' => BannerResource::collection($leftBanners),
             'rightBanners' => BannerResource::collection($rightBanners),
+
+            // 🔻 Добавим турниры по статусам:
+            'scheduledTournaments' => TournamentResource::collection($scheduledTournaments),
+            'completedTournaments' => TournamentResource::collection($completedTournaments),
         ]);
     }
 
     /**
      * Возвращает список активных рубрик в зависимости от выбранного языка.
      *
-     * @param Request $request
      * @return JsonResponse
      */
     public function menuRubrics(): JsonResponse
