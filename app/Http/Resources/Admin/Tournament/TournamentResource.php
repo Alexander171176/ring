@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Admin\Tournament;
 
+use App\Http\Resources\Admin\Video\VideoResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
@@ -14,6 +15,9 @@ class TournamentResource extends JsonResource
             'id' => $this->id,
             'sort' => $this->sort,
             'activity' => $this->activity,
+            'left' => $this->left,          // boolean
+            'main' => $this->main,          // boolean
+            'right' => $this->right,         // boolean
             'locale' => $this->locale,
             'name' => $this->name,
             'short' => $this->short,
@@ -59,6 +63,7 @@ class TournamentResource extends JsonResource
                 ];
             }),
 
+            'videos' => VideoResource::collection($this->whenLoaded('videos')),
             'images'   => TournamentImageResource::collection($this->whenLoaded('images')),
 
             'created_at' => $this->created_at?->toDateTimeString(),

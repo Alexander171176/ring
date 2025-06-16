@@ -5,6 +5,9 @@ import draggable from 'vuedraggable';
 import ActivityToggle from '@/Components/Admin/Buttons/ActivityToggle.vue';
 import IconEdit from "@/Components/Admin/Buttons/IconEdit.vue";
 import DeleteIconButton from '@/Components/Admin/Buttons/DeleteIconButton.vue';
+import MainToggle from "@/Components/Admin/Buttons/MainToggle.vue";
+import RightToggle from "@/Components/Admin/Buttons/RightToggle.vue";
+import LeftToggle from "@/Components/Admin/Buttons/LeftToggle.vue";
 
 const {t} = useI18n();
 
@@ -14,6 +17,9 @@ const props = defineProps({
 });
 
 const emits = defineEmits([
+    'toggle-left',
+    'toggle-main',
+    'toggle-right',
     'toggle-activity',
     'edit',
     'delete',
@@ -102,6 +108,9 @@ const getPrimaryImage = (tournament) => {
                         <div class="font-medium text-left">{{ t('status') }}</div>
                     </th>
                     <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
+                        <div class="font-medium text-center">{{ t('show') }}</div>
+                    </th>
+                    <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
                         <div class="font-semibold text-end">{{ t('actions') }}</div>
                     </th>
                     <th class="px-2 first:pl-7 last:pr-7 py-3 whitespace-nowrap">
@@ -130,6 +139,19 @@ const getPrimaryImage = (tournament) => {
                                 <div class="text-left text-teal-500 dark:text-teal-200"
                                      :title="getLocalizedStatus(tournament.status)">
                                     {{ tournament.venue }}
+                                </div>
+                            </td>
+                            <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
+                                <div class="flex justify-center space-x-2">
+                                    <LeftToggle :isActive="tournament.left"
+                                                @toggle-left="$emit('toggle-left', tournament)"
+                                                :title="tournament.left ? t('enabled') : t('disabled')"/>
+                                    <MainToggle :isActive="tournament.main"
+                                                @toggle-main="$emit('toggle-main', tournament)"
+                                                :title="tournament.main ? t('enabled') : t('disabled')"/>
+                                    <RightToggle :isActive="tournament.right"
+                                                 @toggle-right="$emit('toggle-right', tournament)"
+                                                 :title="tournament.right ? t('enabled') : t('disabled')"/>
                                 </div>
                             </td>
                             <td class="px-2 py-1 whitespace-nowrap text-right w-2/12">

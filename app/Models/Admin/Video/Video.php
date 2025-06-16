@@ -3,6 +3,7 @@
 namespace App\Models\Admin\Video;
 
 use App\Models\Admin\Comment\Comment;
+use App\Models\Admin\Tournament\Tournament;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -111,6 +112,11 @@ class Video extends Model implements HasMedia
         // Имя 'article_has_video' - ВЕРНО
         return $this->belongsToMany(Article::class, 'article_has_video', 'video_id', 'article_id') // Добавляем ключи явно
             ->orderBy('published_at', 'desc'); // Опциональная сортировка
+    }
+
+    public function tournaments(): BelongsToMany
+    {
+        return $this->belongsToMany(Tournament::class, 'tournament_has_video', 'video_id', 'tournament_id');
     }
 
     // --- НОВАЯ ПОЛИМОРФНАЯ СВЯЗЬ ---

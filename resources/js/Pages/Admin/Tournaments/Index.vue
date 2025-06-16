@@ -18,6 +18,7 @@ import CountTable from '@/Components/Admin/Count/CountTable.vue';
 import BulkActionSelect from "@/Components/Admin/Tournament/Select/BulkActionSelect.vue";
 import ItemsPerPageSelect from "@/Components/Admin/Select/ItemsPerPageSelect.vue";
 import SortSelect from "@/Components/Admin/Tournament/Sort/SortSelect.vue";
+import VideoTable from "@/Components/Admin/Video/Table/VideoTable.vue";
 
 // --- Инициализация экземпляр i18n, toast ---
 const { t } = useI18n();
@@ -129,6 +130,93 @@ const deleteTournament = () => {
 };
 
 /**
+ * Отправляет запрос для изменения статуса активности в левой колонке.
+ */
+const toggleLeft = (tournament) => {
+    const newLeft = !tournament.left;
+    const actionText = newLeft ? 'активировано в левой колонке' : 'деактивировано в левой колонке';
+
+    // Используем Inertia.put для простого обновления
+    router.put(route('admin.actions.tournaments.updateLeft', {tournament: tournament.id}),
+        {left: newLeft},
+        {
+            preserveScroll: true, // Сохраняем скролл
+            preserveState: true,  // Обновляем только измененные props (если бэк отдает reload: false)
+            // Или false, если бэк всегда отдает reload: true и нужно перезагрузить данные
+            onSuccess: () => {
+                // Обновляем состояние локально СРАЗУ ЖЕ (оптимистичное обновление)
+                // Или дожидаемся обновления props, если preserveState: false
+                // tournament.left = newLeft; // Уже не нужно, если preserveState: false
+                toast.success(`Видео "${tournament.name}" ${actionText}.`);
+            },
+            onError: (errors) => {
+                toast.error(errors.left || errors.general || `Ошибка изменения активности для "${tournament.name}".`);
+                // Можно откатить изменение на фронте, если нужно
+                // tournament.left = !newLeft;
+            },
+        }
+    );
+};
+
+/**
+ * Отправляет запрос для изменения статуса активности в главном.
+ */
+const toggleMain = (tournament) => {
+    const newMain = !tournament.main;
+    const actionText = newMain ? 'активировано в главном' : 'деактивировано в главном';
+
+    // Используем Inertia.put для простого обновления
+    router.put(route('admin.actions.tournaments.updateMain', {tournament: tournament.id}),
+        {main: newMain},
+        {
+            preserveScroll: true, // Сохраняем скролл
+            preserveState: true,  // Обновляем только измененные props (если бэк отдает reload: false)
+            // Или false, если бэк всегда отдает reload: true и нужно перезагрузить данные
+            onSuccess: () => {
+                // Обновляем состояние локально СРАЗУ ЖЕ (оптимистичное обновление)
+                // Или дожидаемся обновления props, если preserveState: false
+                // tournament.main = newMain; // Уже не нужно, если preserveState: false
+                toast.success(`Видео "${tournament.name}" ${actionText}.`);
+            },
+            onError: (errors) => {
+                toast.error(errors.main || errors.general || `Ошибка изменения активности для "${tournament.name}".`);
+                // Можно откатить изменение на фронте, если нужно
+                // tournament.main = !newMain;
+            },
+        }
+    );
+};
+
+/**
+ * Отправляет запрос для изменения статуса активности в правой колонке.
+ */
+const toggleRight = (tournament) => {
+    const newRight = !tournament.right;
+    const actionText = newRight ? 'активировано в правой колонке' : 'деактивировано в правой колонке';
+
+    // Используем Inertia.put для простого обновления
+    router.put(route('admin.actions.tournaments.updateRight', {tournament: tournament.id}),
+        {right: newRight},
+        {
+            preserveScroll: true, // Сохраняем скролл
+            preserveState: true,  // Обновляем только измененные props (если бэк отдает reload: false)
+            // Или false, если бэк всегда отдает reload: true и нужно перезагрузить данные
+            onSuccess: () => {
+                // Обновляем состояние локально СРАЗУ ЖЕ (оптимистичное обновление)
+                // Или дожидаемся обновления props, если preserveState: false
+                // tournament.right = newRight; // Уже не нужно, если preserveState: false
+                toast.success(`Видео "${tournament.name}" ${actionText}.`);
+            },
+            onError: (errors) => {
+                toast.error(errors.right || errors.general || `Ошибка изменения активности для "${tournament.name}".`);
+                // Можно откатить изменение на фронте, если нужно
+                // tournament.right = !newRight;
+            },
+        }
+    );
+};
+
+/**
  * Отправляет запрос для изменения статуса активности.
  */
 const toggleActivity = (tournament) => {
@@ -182,6 +270,24 @@ const sortTournaments = (tournaments) => {
     }
     if (sortParam.value === 'inactive') {
         return tournaments.filter(tournament => !tournament.activity);
+    }
+    if (sortParam.value === 'left') {
+        return tournaments.filter(tournament => tournament.left);
+    }
+    if (sortParam.value === 'noLeft') {
+        return tournaments.filter(tournament => !tournament.left);
+    }
+    if (sortParam.value === 'main') {
+        return tournaments.filter(tournament => tournament.main);
+    }
+    if (sortParam.value === 'noMain') {
+        return tournaments.filter(tournament => !tournament.main);
+    }
+    if (sortParam.value === 'right') {
+        return tournaments.filter(tournament => tournament.right);
+    }
+    if (sortParam.value === 'noRight') {
+        return tournaments.filter(tournament => !tournament.right);
     }
     if (sortParam.value === 'locale') {
         // Сортировка по locale в обратном порядке
@@ -410,6 +516,9 @@ const handleBulkAction = (event) => {
                 <TournamentTable
                     :tournaments="paginatedTournaments"
                     :selected-tournaments="selectedTournaments"
+                    @toggle-left="toggleLeft"
+                    @toggle-main="toggleMain"
+                    @toggle-right="toggleRight"
                     @toggle-activity="toggleActivity"
                     @update-sort-order="handleSortOrderUpdate"
                     @delete="confirmDelete"

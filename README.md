@@ -372,3 +372,7 @@ ____________________________
     `docker exec ring-php-app php artisan make:resource Admin/Tournament/TournamentImageResource` <br>
     `docker exec ring-php-app php artisan make:request Admin/Tournament/TournamentRequest` <br>
     `docker exec ring-php-app php artisan make:controller Admin/Tournament/TournamentController --resource` <br>
+    `docker exec ring-php-app php artisan make:migration add_left_main_right_to_tournaments_table --table=tournaments` <br>
+    `docker exec ring-php-app php artisan make:migration create_tournament_has_video_table --create=tournament_has_video`<br>
+    `docker exec ring-php-app php artisan migrate`<br>
+    `docker exec ring-php-app php artisan make:controller Admin/Invokable/RemoveTournamentFromVideoController --invokable` <br>

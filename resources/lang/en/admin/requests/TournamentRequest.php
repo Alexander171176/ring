@@ -8,6 +8,12 @@ return [
 
     'activity.required' => 'The activity field is required.',
     'activity.boolean' => 'The activity field must be a Boolean value.',
+    'left.boolean' => 'The field in the left column must be a Boolean value.',
+    'main.boolean' => 'The make main field must be a Boolean value.',
+    'right.boolean' => 'The field in the right column must be a Boolean value.',
+    'left.required'  => 'The "In the left column" field is required.',
+    'main.required' => 'The "Main video" field is required.',
+    'right.required' => 'The "In the right column" field is required.',
 
     'locale.required' => 'The locale is required.',
     'locale.size' => 'The locale must contain 2 characters.',
@@ -67,4 +73,7 @@ return [
     'deletedImages.array' => 'The deleted image field must be an array.',
     'deletedImages.*.integer' => 'The ID of the deleted image must be a number.',
     'deletedImages.*.exists' => 'The deleted image was not found.',
+
+    'videos.*.id.required_with' => 'Video ID is required.',
+    'videos.*.id.exists'      => 'A non-existent video was selected (ID: :value).',
 ];

@@ -24,6 +24,7 @@ import SelectLocale from "@/Components/Admin/Select/SelectLocale.vue";
 import TypeSelect from "@/Components/Admin/Tournament/Select/TypeSelect.vue";
 import StatusSelect from "@/Components/Admin/Tournament/Select/StatusSelect.vue";
 import SelectAthlete from "@/Components/Admin/Tournament/Select/SelectAthlete.vue";
+import VueMultiselect from "vue-multiselect";
 
 // --- Инициализация ---
 const toast = useToast();
@@ -34,6 +35,7 @@ const {t} = useI18n();
  */
 const props = defineProps({
     images: Array,
+    videos: Array,
     athletes: {
         type: Array,
         required: true
@@ -46,6 +48,9 @@ const props = defineProps({
 const form = useForm({
     sort: '0',
     activity: false, // Активность
+    left: false,
+    main: false,
+    right: false,
     locale: '',
     name: '', // Название турнира
     short: '', // Краткое Описание
@@ -64,6 +69,7 @@ const form = useForm({
     method_of_victory: '', // Метод победы (например, "KO", "Submission")
     round_of_finish: '', // Раунд, в котором завершился поединок
     time_of_finish: '', // Время в раунде завершения поединка (например, "02:35")
+    videos: [],
     images: [] // Добавляем массив для загруженных изображений
 });
 
@@ -93,7 +99,18 @@ const submit = () => {
     form.transform((data) => ({
         ...data,
         activity: data.activity ? 1 : 0,
+        left: data.left ? 1 : 0,
+        main: data.main ? 1 : 0,
+        right: data.right ? 1 : 0,
         is_title_fight: data.is_title_fight ? 1 : 0,
+        images: form.images.map(image => {
+            if (image.file) {
+                return {file: image.file, order: image.order, alt: image.alt, caption: image.caption}; // Новое изображение
+            }
+            if (image.id) {
+                return {id: Number(image.id), order: image.order, alt: image.alt, caption: image.caption}; // Существующее изображение
+            }
+        }).filter(Boolean), // Убираем undefined/null
     }));
 
     // console.log('📝 Отправка формы со следующими данными:', form.data());
@@ -174,6 +191,29 @@ const submit = () => {
                                 class="w-full lg:w-28"
                             />
                             <InputError class="mt-2 lg:mt-0" :message="form.errors.sort"/>
+                        </div>
+
+                    </div>
+
+                    <!-- Показывать в левом сайдбаре, в главных новостях, в правом сайдбаре -->
+                    <div class="mb-3 flex justify-between flex-col lg:flex-row items-center gap-4">
+
+                        <!-- Показывать в левом сайдбаре -->
+                        <div class="flex flex-row items-center gap-2">
+                            <ActivityCheckbox v-model="form.left"/>
+                            <LabelCheckbox for="left" :text="t('left')" class="text-sm h-8 flex items-center"/>
+                        </div>
+
+                        <!-- Показывать в главных новостях -->
+                        <div class="flex flex-row items-center gap-2">
+                            <ActivityCheckbox v-model="form.main"/>
+                            <LabelCheckbox for="main" :text="t('main')" class="text-sm h-8 flex items-center"/>
+                        </div>
+
+                        <!-- Показывать в правом сайдбаре -->
+                        <div class="flex flex-row items-center gap-2">
+                            <ActivityCheckbox v-model="form.right"/>
+                            <LabelCheckbox for="right" :text="t('right')" class="text-sm h-8 flex items-center"/>
                         </div>
 
                     </div>
@@ -363,6 +403,19 @@ const submit = () => {
                     <!-- Изображения турнира -->
                     <MultiImageUpload @update:images="form.images = $event"/>
 
+                    <!-- Выбрать видео для показа -->
+                    <div class="mb-3 flex flex-col items-start">
+                        <LabelInput for="videos" :value="t('videos')" class="mb-1"/>
+                        <VueMultiselect v-model="form.videos"
+                                        :options="videos"
+                                        :multiple="true"
+                                        :close-on-select="true"
+                                        :placeholder="t('select')"
+                                        label="title"
+                                        track-by="title"
+                        />
+                    </div>
+
                     <div class="flex items-center justify-center mt-4">
                         <DefaultButton :href="route('admin.tournaments.index')" class="mb-3">
                             <template #icon>
@@ -390,3 +443,5 @@ const submit = () => {
         </div>
     </AdminLayout>
 </template>
+
+<style src="../../../../css/vue-multiselect.min.css"></style>

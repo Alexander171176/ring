@@ -3,6 +3,7 @@
 namespace App\Models\Admin\Tournament;
 
 use App\Models\Admin\Athlete\Athlete;
+use App\Models\Admin\Video\Video;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -18,6 +19,9 @@ class Tournament extends Model
     protected $fillable = [
         'sort',
         'activity',
+        'left',
+        'main',
+        'right',
         'locale',
         'name',
         'short',
@@ -40,6 +44,9 @@ class Tournament extends Model
 
     protected $casts = [
         'activity' => 'boolean',
+        'left' => 'boolean',
+        'main' => 'boolean',
+        'right' => 'boolean',
         'sort' => 'integer',
         'is_title_fight' => 'boolean',
         'tournament_date_time' => 'datetime',
@@ -74,6 +81,11 @@ class Tournament extends Model
     public function winner(): BelongsTo
     {
         return $this->belongsTo(Athlete::class, 'winner_id');
+    }
+
+    public function videos(): BelongsToMany
+    {
+        return $this->belongsToMany(Video::class, 'tournament_has_video', 'tournament_id', 'video_id' );
     }
 
     // --- Скоупы ---

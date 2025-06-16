@@ -18,6 +18,9 @@ class TournamentRequest extends FormRequest
         return [
             'sort' => ['nullable', 'integer', 'min:0'],
             'activity' => ['required', 'boolean'],
+            'left'            => 'required|boolean',
+            'main'            => 'required|boolean',
+            'right'           => 'required|boolean',
             'locale' => ['required', 'string', 'size:2'],
 
             'name' => ['required', 'string', 'max:255'],
@@ -42,6 +45,9 @@ class TournamentRequest extends FormRequest
             'method_of_victory' => ['nullable', 'string', 'max:255'],
             'round_of_finish' => ['nullable', 'integer', 'min:0', 'max:12'],
             'time_of_finish' => ['nullable', 'string', 'max:255'],
+
+            'videos'        => ['nullable','array'],
+            'videos.*.id'   => ['required_with:videos','integer','exists:videos,id'],
 
             // Изображения
             'images' => ['nullable', 'array'],

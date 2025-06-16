@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\Invokable\RemoveTournamentFromVideoController;
 use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController;
 use Laravel\Fortify\Http\Controllers\EmailVerificationNotificationController;
 use Laravel\Fortify\Http\Controllers\EmailVerificationPromptController;
@@ -355,6 +356,7 @@ Route::group([
             Route::delete('/articles/{article}/tags/{tag}', RemoveArticleFromTagController::class)->name('articles.tags.destroy');
             Route::delete('/sections/{section}/videos/{video}', RemoveSectionFromVideoController::class)->name('sections.videos.destroy');
             Route::delete('/articles/{article}/videos/{video}', RemoveArticleFromVideoController::class)->name('articles.videos.destroy');
+            Route::delete('/tournaments/{tournament}/videos/{video}', RemoveTournamentFromVideoController::class)->name('tournaments.videos.destroy');
 
             // --- Маршруты для дополнительных действий ---
             Route::prefix('actions')->name('actions.')->group(function () { // Группируем доп. действия
@@ -413,6 +415,9 @@ Route::group([
                 Route::put('/videos/{video}/left', [VideoController::class, 'updateLeft'])->name('videos.updateLeft');
                 Route::put('/videos/{video}/main', [VideoController::class, 'updateMain'])->name('videos.updateMain');
                 Route::put('/videos/{video}/right', [VideoController::class, 'updateRight'])->name('videos.updateRight');
+                Route::put('/tournaments/{tournament}/left', [TournamentController::class, 'updateLeft'])->name('tournaments.updateLeft');
+                Route::put('/tournaments/{tournament}/main', [TournamentController::class, 'updateMain'])->name('tournaments.updateMain');
+                Route::put('/tournaments/{tournament}/right', [TournamentController::class, 'updateRight'])->name('tournaments.updateRight');
 
                 // Переключение активности в левой колонке массово
                 Route::put('/admin/actions/articles/bulk-left', [ArticleController::class, 'bulkUpdateLeft'])

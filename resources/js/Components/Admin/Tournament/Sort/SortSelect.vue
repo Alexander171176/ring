@@ -37,6 +37,12 @@ const updateSort = (event) => {
             <option value="status">{{ t('status') }}</option>
             <option value="activity">{{ t('active') }}</option>
             <option value="inactive">{{ t('inactive') }}</option>
+            <option value="left">{{ t('inLeft') }}</option>
+            <option value="noLeft">{{ t('notLeft') }}</option>
+            <option value="main">{{ t('inMain') }}</option>
+            <option value="noMain">{{ t('notMain') }}</option>
+            <option value="right">{{ t('inRight') }}</option>
+            <option value="noRight">{{ t('notRight') }}</option>
         </select>
     </div>
 </template>

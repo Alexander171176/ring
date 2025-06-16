@@ -26,7 +26,8 @@ import MultiImageUpload from '@/Components/Admin/Image/MultiImageUpload.vue'; //
 import MultiImageEdit from '@/Components/Admin/Image/MultiImageEdit.vue';
 import SelectLocale from "@/Components/Admin/Select/SelectLocale.vue";
 import StatusSelect from "@/Components/Admin/Tournament/Select/StatusSelect.vue";
-import SelectAthlete from "@/Components/Admin/Tournament/Select/SelectAthlete.vue";     // для редактирования существующего аватара
+import SelectAthlete from "@/Components/Admin/Tournament/Select/SelectAthlete.vue";
+import VueMultiselect from "vue-multiselect";     // для редактирования существующего аватара
 
 
 // --- Инициализация ---
@@ -38,6 +39,7 @@ const { t } = useI18n();
  */
 const props = defineProps({
     tournament: { type: Object, required: true },
+    videos: Array,
     athletes: { type: Array, required: true }
 });
 
@@ -48,6 +50,9 @@ const form = useForm({
     _method: 'PUT',
     sort: props.tournament.sort ?? 0,
     activity: Boolean(props.tournament.activity),
+    left: Boolean(props.tournament.left),
+    main: Boolean(props.tournament.main),
+    right: Boolean(props.tournament.right),
     locale: props.tournament.locale ?? '',
     name: props.tournament.name ?? '',
     short: props.tournament.short ?? '',
@@ -66,6 +71,7 @@ const form = useForm({
     method_of_victory: props.tournament.method_of_victory ?? '',
     round_of_finish: props.tournament.round_of_finish ?? 0,
     time_of_finish: props.tournament.time_of_finish ?? '',
+    videos: props.tournament.videos ?? [],
     deletedImages: [] // массив для хранения ID удалённых изображений
 });
 
@@ -142,6 +148,9 @@ const submit = () => {
     form.transform((data) => ({
         ...data,
         activity: data.activity ? 1 : 0,
+        left: data.left ? 1 : 0,
+        main: data.main ? 1 : 0,
+        right: data.right ? 1 : 0,
         is_title_fight: data.is_title_fight ? 1 : 0,
         images: [
             ...newImages.value.map(img => ({
@@ -235,6 +244,29 @@ const submit = () => {
                                 class="w-full lg:w-28"
                             />
                             <InputError class="mt-2 lg:mt-0" :message="form.errors.sort"/>
+                        </div>
+
+                    </div>
+
+                    <!-- Показывать в левом сайдбаре, в главных новостях, в правом сайдбаре -->
+                    <div class="mb-3 flex justify-between flex-col lg:flex-row items-center gap-4">
+
+                        <!-- Показывать в левом сайдбаре -->
+                        <div class="flex flex-row items-center gap-2">
+                            <ActivityCheckbox v-model="form.left"/>
+                            <LabelCheckbox for="left" :text="t('left')" class="text-sm h-8 flex items-center"/>
+                        </div>
+
+                        <!-- Показывать в главных новостях -->
+                        <div class="flex flex-row items-center gap-2">
+                            <ActivityCheckbox v-model="form.main"/>
+                            <LabelCheckbox for="main" :text="t('main')" class="text-sm h-8 flex items-center"/>
+                        </div>
+
+                        <!-- Показывать в правом сайдбаре -->
+                        <div class="flex flex-row items-center gap-2">
+                            <ActivityCheckbox v-model="form.right"/>
+                            <LabelCheckbox for="right" :text="t('right')" class="text-sm h-8 flex items-center"/>
                         </div>
 
                     </div>
@@ -493,6 +525,19 @@ const submit = () => {
                         <MultiImageUpload @update:images="handleNewImagesUpdate" />
                     </div>
 
+                    <!-- Выбрать видео для показа -->
+                    <div class="mb-3 flex flex-col items-start">
+                        <LabelInput for="videos" :value="t('videos')" class="mb-1"/>
+                        <VueMultiselect v-model="form.videos"
+                                        :options="videos"
+                                        :multiple="true"
+                                        :close-on-select="true"
+                                        :placeholder="t('select')"
+                                        label="title"
+                                        track-by="title"
+                        />
+                    </div>
+
                     <div class="flex items-center justify-center mt-4">
                         <DefaultButton :href="route('admin.tournaments.index')" class="mb-3">
                             <template #icon>
@@ -520,3 +565,5 @@ const submit = () => {
         </div>
     </AdminLayout>
 </template>
+
+<style src="../../../../css/vue-multiselect.min.css"></style>

@@ -5,12 +5,17 @@ namespace App\Http\Controllers\Admin\Tournament;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Tournament\TournamentRequest;
 use App\Http\Requests\Admin\UpdateActivityRequest;
+use App\Http\Requests\Admin\UpdateLeftRequest;
+use App\Http\Requests\Admin\UpdateMainRequest;
+use App\Http\Requests\Admin\UpdateRightRequest;
 use App\Http\Requests\Admin\UpdateSortEntityRequest;
 use App\Http\Resources\Admin\Tournament\TournamentResource;
 use App\Http\Resources\Admin\Tournament\TournamentSharedResource;
+use App\Http\Resources\Admin\Video\VideoSharedResource;
 use App\Models\Admin\Athlete\Athlete;
 use App\Models\Admin\Tournament\Tournament;
 use App\Models\Admin\Tournament\TournamentImage;
+use App\Models\Admin\Video\Video;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -87,8 +92,11 @@ class TournamentController extends Controller
             ->orderBy('nickname')
             ->get();
 
+        $videos = Video::select('id', 'title')->orderBy('title')->get();
+
         return Inertia::render('Admin/Tournaments/Create', [
             'athletes' => $athletes,
+            'videos' => VideoSharedResource::collection($videos),
         ]);
     }
 
@@ -107,7 +115,8 @@ class TournamentController extends Controller
         // Log::debug('🔍 Валидация пройдена', ['validated' => $data]);
 
         $imagesData = $data['images'] ?? [];
-        unset($data['images']);
+        $videoIds   = collect($data['videos'] ?? [])->pluck('id')->toArray();
+        unset($data['images'], $data['videos']);
 
         DB::beginTransaction();
         try {
@@ -161,6 +170,7 @@ class TournamentController extends Controller
                 $imageIndex++;
             }
 
+            $tournament->videos()->sync($videoIds);
             $tournament->images()->sync($imageSyncData);
             DB::commit();
 
@@ -191,14 +201,16 @@ class TournamentController extends Controller
 
         $tournament->load([
             'images' => fn($q) => $q->orderBy('order'),
-            'fighterRed', 'fighterBlue', 'winner'
+            'fighterRed', 'fighterBlue', 'winner', 'videos',
         ]);
 
         $athletes = Athlete::select('id', 'nickname', 'avatar')->orderBy('nickname')->get();
+        $videos = Video::select('id', 'title')->orderBy('title')->get();
 
         return Inertia::render('Admin/Tournaments/Edit', [
             'tournament' => new TournamentResource($tournament),
             'athletes' => $athletes,
+            'videos' => $videos,
         ]);
     }
 
@@ -220,9 +232,11 @@ class TournamentController extends Controller
         // Извлекаем все данные
         $imagesData       = $data['images'] ?? [];
         $deletedImageIds  = $data['deletedImages'] ?? [];
+        $videoIds       = collect($data['videos'] ?? [])->pluck('id')->toArray();
 
         // Убираем ненужные ключи из $data
         unset(
+            $data['videos'],
             $data['images'],
             $data['deletedImages'],
             $data['_method']
@@ -289,6 +303,7 @@ class TournamentController extends Controller
 
             // 5) Синхронизируем оставшиеся и новые изображения в pivot
             $tournament->images()->sync($syncData);
+            $tournament->videos()->sync($videoIds);
 
             DB::commit();
 
@@ -328,6 +343,94 @@ class TournamentController extends Controller
             return back()->withErrors(['general' => __('admin/controllers/tournaments.delete_error')]);
         }
     }
+
+    /**
+     * Включение Турнира в левом сайдбаре
+     * Использует Route Model Binding и UpdateLeftRequest.
+     *
+     * @param UpdateLeftRequest $request
+     * @param Tournament $tournament
+     * @return RedirectResponse
+     */
+    public function updateLeft(UpdateLeftRequest $request, Tournament $tournament): RedirectResponse
+    {
+        // authorize() в UpdateLeftRequest
+        $validated = $request->validated();
+
+        try {
+            DB::beginTransaction();
+            $tournament->left = $validated['left'];
+            $tournament->save();
+            DB::commit();
+
+            Log::info("Обновлено значение активации в левой колонке для турнира ID {$tournament->id}");
+            return back()->with('success', __('admin/controllers/tournaments.left_updated'));
+
+        } catch (Throwable $e) {
+            DB::rollBack();
+            Log::error("Ошибка обновления значение в левой колонке турнира ID {$tournament->id}: " . $e->getMessage());
+            return back()->withErrors(['general' => __('admin/controllers/tournaments.left_update_error')]);
+        }
+    }
+
+    /**
+     * Включение Главными
+     * Использует Route Model Binding и UpdateMainRequest.
+     *
+     * @param UpdateMainRequest $request
+     * @param Tournament $tournament
+     * @return RedirectResponse
+     */
+    public function updateMain(UpdateMainRequest $request, Tournament $tournament): RedirectResponse
+    {
+        // authorize() в UpdateMainRequest
+        $validated = $request->validated();
+
+        try {
+            DB::beginTransaction();
+            $tournament->main = $validated['main'];
+            $tournament->save();
+            DB::commit();
+
+            Log::info("Обновлено значение активации в главном для турнира ID {$tournament->id}");
+            return back()->with('success', __('admin/controllers/tournaments.main_updated'));
+
+        } catch (Throwable $e) {
+            DB::rollBack();
+            Log::error("Ошибка обновления значение в главном турнира ID {$tournament->id}: " . $e->getMessage());
+            return back()->withErrors(['general' => __('admin/controllers/tournaments.main_update_error')]);
+        }
+    }
+
+    /**
+     * Включение Турнира в правом сайдбаре
+     * Использует Route Model Binding и UpdateRightRequest.
+     *
+     * @param UpdateRightRequest $request
+     * @param Tournament $tournament
+     * @return RedirectResponse
+     */
+    public function updateRight(UpdateRightRequest $request, Tournament $tournament): RedirectResponse
+    {
+        // authorize() в UpdateRightRequest
+        $validated = $request->validated();
+
+        try {
+            DB::beginTransaction();
+            $tournament->right = $validated['right'];
+            $tournament->save();
+            DB::commit();
+
+            Log::info("Обновлено значение активации в правой колонке для турнира ID {$tournament->id}");
+            return back()->with('success', __('admin/controllers/tournaments.right_updated'));
+
+        } catch (Throwable $e) {
+            DB::rollBack();
+            Log::error("Ошибка обновления значение в правой колонке турнира ID {$tournament->id}: " . $e->getMessage());
+            return back()->withErrors(['general' => __('admin/controllers/tournaments.right_update_error')]);
+        }
+    }
+
 
     /**
      * Обновление статуса активности турнира.
