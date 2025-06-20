@@ -23,6 +23,7 @@ class BannerResource extends JsonResource
             'sort'          => $this->sort,     // integer
             'activity'      => $this->activity, // boolean
             'left'          => $this->left,     // boolean
+            'main'          => $this->main,     // boolean
             'right'         => $this->right,    // boolean
             'title'         => $this->title,
             'link'          => $this->link,     // Ссылка баннера

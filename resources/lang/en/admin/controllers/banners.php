@@ -15,6 +15,9 @@ return [
     // Bulk operations
     'bulk_deleted' => 'The selected banners (:count pieces) have been successfully deleted.',
     'bulk_delete_error' => 'An error occurred when deleting banners en masse.',
+    'bulk_left_update_error' => 'Error of mass activity update in the left column.',
+    'bulk_main_update_error' => 'Error mass updating activity in the main column.',
+    'bulk_right_update_error' => 'Error of mass activity update in the right column.',
 
     // Activity
     'activated' => 'activated',
@@ -28,8 +31,10 @@ return [
 
     // Left, right sidebar
     'updated_left_success' => 'The selected banners have been successfully activated in the left column.',
+    'updated_main_success' => 'The selected banners have been successfully activated in the main window.',
     'updated_right_success' => 'The selected banners have been successfully activated in the right column.',
     'updated_left_error' => 'Error updating activity in the left column.',
+    'updated_main_error' => 'Error updating activity in the main.',
     'updated_right_error' => 'Error updating activity in the right column.',
 
 ];

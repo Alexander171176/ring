@@ -512,19 +512,6 @@ const submit = () => {
                         </div>
                     </div>
 
-                    <!-- Блок редактирования существующих изображений -->
-                    <div class="mt-4">
-                        <MultiImageEdit
-                            :images="existingImages"
-                            @update:images="handleExistingImagesUpdate"
-                            @delete-image="handleDeleteExistingImage" />
-                    </div>
-
-                    <!-- Блок загрузки новых изображений -->
-                    <div class="mt-4">
-                        <MultiImageUpload @update:images="handleNewImagesUpdate" />
-                    </div>
-
                     <!-- Выбрать видео для показа -->
                     <div class="mb-3 flex flex-col items-start">
                         <LabelInput for="videos" :value="t('videos')" class="mb-1"/>
@@ -536,6 +523,19 @@ const submit = () => {
                                         label="title"
                                         track-by="title"
                         />
+                    </div>
+
+                    <!-- Блок редактирования существующих изображений -->
+                    <div class="mt-4">
+                        <MultiImageEdit
+                            :images="existingImages"
+                            @update:images="handleExistingImagesUpdate"
+                            @delete-image="handleDeleteExistingImage" />
+                    </div>
+
+                    <!-- Блок загрузки новых изображений -->
+                    <div class="mt-4">
+                        <MultiImageUpload @update:images="handleNewImagesUpdate" />
                     </div>
 
                     <div class="flex items-center justify-center mt-4">

@@ -31,6 +31,7 @@ class Banner extends Model
         'sort',
         'activity',
         'left',
+        'main',
         'right',
         'title',
         'link',
@@ -59,6 +60,7 @@ class Banner extends Model
         'sort' => 'integer',
         'activity' => 'boolean',
         'left' => 'boolean',
+        'main' => 'boolean',
         'right' => 'boolean',
     ];
 
@@ -121,6 +123,9 @@ class Banner extends Model
 
     // Можно добавить другие методы или аксессоры, например, для проверки показа слева/справа
     public function isLeft(): bool { return $this->left; }
+
+    public function isMain(): bool { return $this->main; }
+
     public function isRight(): bool { return $this->right; }
 
 }

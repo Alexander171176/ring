@@ -8,12 +8,14 @@ use App\Http\Resources\Admin\Banner\BannerResource;
 use App\Http\Resources\Admin\Rubric\RubricResource;
 use App\Http\Resources\Admin\Section\SectionResource;
 use App\Http\Resources\Admin\Tournament\TournamentResource;
+use App\Http\Resources\Admin\Video\VideoResource;
 use App\Models\Admin\Article\Article;
 use App\Models\Admin\Banner\Banner;
 use App\Models\Admin\Rubric\Rubric;
 use App\Models\Admin\Section\Section;
 use App\Models\Admin\Setting\Setting;
 use App\Models\Admin\Tournament\Tournament;
+use App\Models\Admin\Video\Video;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
@@ -51,6 +53,11 @@ class RubricController extends Controller
     public function show(string $url): Response
     {
         $locale = app()->getLocale();
+
+        $videos = Video::where('activity', 1)
+            ->orderBy('published_at', 'desc')
+            ->with(['images' => fn($q) => $q->orderBy('order')])
+            ->get();
 
         $rubric = Rubric::with([
             'sections' => function ($query) use ($locale) {
@@ -137,7 +144,21 @@ class RubricController extends Controller
             ->with([
                 'fighterRed',
                 'fighterBlue',
+                'winner',
                 'images' => fn($q) => $q->orderBy('order')
+            ])
+            ->get();
+
+        $mainTournaments = Tournament::query()
+            ->active()
+            ->where('locale', $locale)
+            ->where('main', true)
+            ->orderBy('tournament_date_time', 'desc')
+            ->with([
+                'videos',
+                'fighterRed',
+                'fighterBlue',
+                'images' => fn($q) => $q->orderBy('order'),
             ])
             ->get();
 
@@ -171,6 +192,11 @@ class RubricController extends Controller
             // 🔻 Добавим турниры по статусам:
             'scheduledTournaments' => TournamentResource::collection($scheduledTournaments),
             'completedTournaments' => TournamentResource::collection($completedTournaments),
+
+            // 🔻 Добавим главный турнир
+            'mainTournaments' => TournamentResource::collection($mainTournaments),
+
+            'videos' => VideoResource::collection($videos),
         ]);
     }
 

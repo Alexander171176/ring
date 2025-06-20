@@ -44,6 +44,7 @@ const form = useForm({
     comment: '',
     activity: false,
     left: false,
+    main: false,
     right: false,
     sections: [],
     images: [] // Добавляем массив для загруженных изображений
@@ -59,6 +60,7 @@ const submitForm = () => {
         ...data,
         activity: data.activity ? 1 : 0,
         left: data.left ? 1 : 0,
+        main: data.main ? 1 : 0,
         right: data.right ? 1 : 0,
 
         images: form.images.map(image => {
@@ -152,6 +154,12 @@ const submitForm = () => {
                         <div class="flex flex-row items-center gap-2">
                             <ActivityCheckbox v-model="form.left"/>
                             <LabelCheckbox for="left" :text="t('left')" class="text-sm h-8 flex items-center"/>
+                        </div>
+
+                        <!-- Показывать в главном -->
+                        <div class="flex flex-row items-center gap-2">
+                            <ActivityCheckbox v-model="form.main"/>
+                            <LabelCheckbox for="main" :text="t('main')" class="text-sm h-8 flex items-center"/>
                         </div>
 
                         <!-- Показывать в правом сайдбаре -->

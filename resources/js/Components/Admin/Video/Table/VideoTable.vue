@@ -104,9 +104,6 @@ const getPrimaryImage = (video) => {
                         <div class="font-medium text-left">{{ t('title') }}</div>
                     </th>
                     <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
-                        <div class="font-medium text-left">{{ t('url') }}</div>
-                    </th>
-                    <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
                         <div class="font-medium text-left">{{ t('sections') }}</div>
                     </th>
                     <th class="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
@@ -145,21 +142,21 @@ const getPrimaryImage = (video) => {
                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">
                                 <div class="text-center text-blue-600 dark:text-blue-200">{{ video.id }}</div>
                             </td>
-                            <td class="first:pl-5 last:pr-5 py-1">
+                            <td class="first:pl-5 last:pr-5">
                                 <div class="flex justify-center">
                                     <template v-if="video.images && video.images.length">
                                         <img
                                             :src="getPrimaryImage(video).webp_url || getPrimaryImage(video).url"
                                             :alt="getPrimaryImage(video).alt || t('defaultImageAlt')"
                                             :title="getPrimaryImage(video).caption || t('postImage')"
-                                            class="h-8 w-8 object-cover rounded-full"
+                                            class="h-7 w-9 object-cover rounded-xs"
                                         >
                                     </template>
                                     <template v-else>
                                         <img
                                             src="/storage/video_images/default-image.png"
                                             :alt="t('defaultImageTitle')"
-                                            class="h-8 w-8 object-cover rounded-full"
+                                            class="h-7 w-9 object-cover rounded-xs"
                                         >
                                     </template>
                                 </div>
@@ -176,16 +173,6 @@ const getPrimaryImage = (video) => {
                                 <div class="text-left text-teal-600 dark:text-green-200"
                                      :title="formatDate(video.published_at)">
                                     {{ video.title }}
-                                </div>
-                            </td>
-                            <td class="px-2 first:pl-7 last:pr-7 py-1 whitespace-nowrap">
-                                <div class="text-left">
-                                    <a :href="`/videos/${encodeURIComponent(video.url)}`"
-                                       class="text-violet-600 dark:text-violet-200 hover:underline
-                                              hover:text-violet-800 dark:hover:text-violet-50"
-                                       target="_blank" rel="noopener noreferrer">
-                                        {{ video.url }}
-                                    </a>
                                 </div>
                             </td>
                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">

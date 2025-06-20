@@ -23,6 +23,7 @@ class BannerRequest extends FormRequest
             'sort' => 'nullable|integer|min:0', // Добавим min:0
             'activity' => 'required|boolean',
             'left' => 'required|boolean',
+            'main' => 'required|boolean',
             'right' => 'required|boolean',
             'title' => [
                 'required',

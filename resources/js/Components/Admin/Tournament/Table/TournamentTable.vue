@@ -102,7 +102,7 @@ const getPrimaryImage = (tournament) => {
                         <div class="font-medium text-left">{{ t('name') }}</div>
                     </th>
                     <th class="px-2 py-1 whitespace-nowrap w-2/12">
-                        <div class="font-medium text-left">{{ t('venue') }}</div>
+                        <div class="font-medium text-left">{{ t('date') }}</div>
                     </th>
                     <th class="px-2 py-1 whitespace-nowrap w-2/12">
                         <div class="font-medium text-left">{{ t('status') }}</div>
@@ -131,14 +131,14 @@ const getPrimaryImage = (tournament) => {
                             </td>
                             <td class="px-2 py-1 whitespace-nowrap w-2/12">
                                 <div class="text-left text-amber-500 dark:text-amber-200"
-                                     :title="formatDate(tournament.tournament_date_time)">
+                                     :title="tournament.venue">
                                     {{ tournament.name }}
                                 </div>
                             </td>
                             <td class="px-2 py-1 whitespace-nowrap w-2/12">
                                 <div class="text-left text-teal-500 dark:text-teal-200"
                                      :title="getLocalizedStatus(tournament.status)">
-                                    {{ tournament.venue }}
+                                    {{ formatDate(tournament.tournament_date_time) }}
                                 </div>
                             </td>
                             <td class="px-2 first:pl-5 last:pr-5 py-1 whitespace-nowrap">

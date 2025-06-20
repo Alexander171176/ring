@@ -65,7 +65,7 @@ const filteredSections = computed(() => {
             <meta name="DC.language" :content="rubric.locale || 'ru'"/>
         </Head>
 
-        <div class="flex-1 p-4 selection:bg-red-400 selection:text-white bg-slate-50 dark:bg-slate-950">
+        <div class="flex-1 p-4 selection:bg-red-400 selection:text-white bg-slate-50 dark:bg-blue-950">
 
             <!-- Хлебные крошки -->
             <nav class="text-sm ml-0 md:ml-4 lg:ml-6 xl:ml-8"
@@ -114,7 +114,7 @@ const filteredSections = computed(() => {
                         <!-- Список статей с Компонент пагинацией -->
                         <SectionArticles
                             :articles="section.articles"
-                            :items-per-page="10"
+                            :items-per-page="16"
                         />
 
                         <!-- Если у секции есть баннеры, отображаем их -->

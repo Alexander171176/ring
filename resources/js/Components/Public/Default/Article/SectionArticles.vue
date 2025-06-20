@@ -18,7 +18,7 @@ const props = defineProps({
     articles: Array,
     itemsPerPage: {
         type: Number,
-        default: 2,
+        default: 8,
     },
 });
 
@@ -74,172 +74,143 @@ watch(sortOrder, () => {
 
 <template>
     <div>
-        <div class="space-y-3">
+        <div class="space-y-6">
 
-            <div class="flex justify-end items-center mb-2 text-sm space-x-2">
+            <!-- Панель управления (сортировка + переключатель вида) -->
+            <div class="flex flex-row justify-end items-center gap-4">
 
-                <div class="flex items-center mr-3">
-                    <!-- Сортировка -->
+                <!-- Сортировка -->
+                <div class="flex items-center sm:mr-3">
                     <select v-model="sortOrder"
-                            class="px-3 py-0.5 rounded-sm border
-                               border-gray-400 dark:border-gray-200 dark:bg-gray-700
-                               text-sm text-slate-900 dark:text-slate-100">
+                            class="px-3 py-1 w-full sm:w-48 rounded-sm border
+                                   border-gray-400 dark:border-gray-200 dark:bg-gray-700
+                                   text-sm text-slate-900 dark:text-slate-100">
                         <option value="asc">{{ t('idAsc') }}</option>
                         <option value="desc">{{ t('idDesc') }}</option>
                     </select>
                 </div>
 
                 <!-- Переключатель вида -->
-                <div class="flex justify-end items-center space-x-2">
+                <div class="flex justify-start sm:justify-end items-center space-x-2">
                     <button
                         @click="setViewMode('grid')"
                         :class="[
-                        'p-1 border transition-colors duration-200',
-                        viewMode === 'grid'
-                        ? 'border-slate-400 dark:border-slate-600 text-red-400 dark:text-red-200'
-                        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 hover:border-slate-500 dark:hover:border-slate-500']"
+            'p-1 border transition-colors duration-200 rounded',
+            viewMode === 'grid'
+              ? 'border-slate-400 dark:border-slate-600 text-red-400 dark:text-red-200'
+              : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 hover:border-slate-500 dark:hover:border-slate-500'
+          ]"
                         :title="t('gridView')">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                             stroke="currentColor" stroke-width="2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                             viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                   d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
                         </svg>
                     </button>
+
                     <button
                         @click="setViewMode('horizontal')"
                         :class="[
-                         'p-1 border transition-colors duration-200',
-                         viewMode === 'horizontal'
-                         ? 'border-slate-400 dark:border-slate-600 text-red-400 dark:text-red-200'
-                         : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 hover:border-slate-500 dark:hover:border-slate-500']"
+            'p-1 border transition-colors duration-200 rounded',
+            viewMode === 'horizontal'
+              ? 'border-slate-400 dark:border-slate-600 text-red-400 dark:text-red-200'
+              : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 hover:border-slate-500 dark:hover:border-slate-500'
+          ]"
                         :title="t('horizontalView')">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                             stroke="currentColor" stroke-width="2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                             viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
                         </svg>
                     </button>
                 </div>
-
             </div>
 
-            <!-- Внутренний контейнер grid -->
-            <div v-if="viewMode === 'grid'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Grid отображение -->
+            <div v-if="viewMode === 'grid'" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 <div v-for="article in paginatedArticles" :key="article.id"
-                     class="p-2 rounded-sm shadow-sm
-                       overflow-hidden hover:bg-slate-50 dark:hover:bg-slate-800
-                       hover:shadow-lg hover:shadow-gray-400 dark:hover:shadow-gray-700">
-
-                    <!-- Контейнер Изображения -->
-                    <div class="overflow-hidden h-auto">
-                        <!-- Изображение статьи -->
-                        <Link v-if="article.img"
-                              :href="`/articles/${article.url}`"
-                              class="h-auto overflow-hidden">
-                            <img :src="getImgSrc(article.img)"
-                                 alt="Article image"
-                                 class="w-full h-auto object-cover"/>
-                        </Link>
-                        <Link v-else-if="article.images && article.images.length > 0"
-                              :href="`/articles/${article.url}`"
-                              class="h-auto overflow-hidden">
-                            <ArticleImageSlider
-                                :images="article.images"
-                                :link="`/articles/${article.url}`"
-                                class="w-full h-full object-cover"/>
-                        </Link>
-                        <Link v-else
-                              :href="`/articles/${article.url}`"
-                              class="h-auto flex items-center justify-center bg-gray-200 dark:bg-gray-400">
-                            <span class="text-gray-500 dark:text-gray-700">{{ t('noCurrentImage') }}</span>
-                        </Link>
-                    </div>
-
-                    <!-- Контейнер Контента -->
-                    <div class="flex flex-col flex-grow">
-
-                        <!-- Заголовок -->
-                        <div class="mb-3 my-1 text-left">
-                            <h3 class="text-md font-semibold text-black dark:text-white">
-                                <Link :href="`/articles/${article.url}`"
-                                      class="hover:text-blue-600 dark:hover:text-blue-400 line-clamp-2">
-                                    {{ article.title }}
-                                </Link>
-                            </h3>
-                        </div>
-
-                        <!-- Краткое описание -->
-                        <div class="mb-3">
-                            <p class="text-xs font-semibold text-slate-700 dark:text-slate-300 line-clamp-3">
-                                {{ article.short }}
-                            </p>
-                        </div>
-
-                        <!-- Дата публикации -->
-                        <div class="opacity-75 text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">
-                            {{ formatDate(article.published_at) }}
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-
-            <!-- Внутренний контейнер horizontal -->
-            <div v-else class="space-y-4">
-                <!-- Статьи с пагинацией -->
-                <div
-                    v-for="article in paginatedArticles"
-                    :key="article.id"
-                    class="col-span-full flex flex-row items-start space-x-3 p-2 shadow-sm rounded-sm
-                       overflow-hidden hover:bg-slate-50 dark:hover:bg-slate-800
-                       hover:shadow-lg hover:shadow-gray-400 dark:hover:shadow-gray-700">
+                     class="p-2 rounded shadow-sm overflow-hidden
+                hover:bg-slate-50 dark:hover:bg-slate-800
+                hover:shadow-lg hover:shadow-gray-400 dark:hover:shadow-gray-700">
 
                     <!-- Изображение -->
-                    <div class="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-56
-                            h-auto
-                            shrink-0 overflow-hidden">
-                        <Link v-if="article.img" :href="`/articles/${article.url}`"
-                              class="h-auto overflow-hidden">
-                            <img :src="getImgSrc(article.img)" :alt="article.title"
-                                 class="w-full h-auto object-cover rounded-md border border-black dark:border-gray-200"/>
+                    <div class="overflow-hidden h-auto mb-2">
+                        <Link v-if="article.img" :href="`/articles/${article.url}`">
+                            <img :src="getImgSrc(article.img)" alt="Article image"
+                                 class="w-full h-auto object-cover rounded"/>
                         </Link>
                         <Link v-else-if="article.images?.length" :href="`/articles/${article.url}`">
                             <ArticleImageSlider :images="article.images" :link="`/articles/${article.url}`"/>
                         </Link>
                         <Link v-else :href="`/articles/${article.url}`"
-                              class="h-auto flex items-center justify-center bg-gray-200 dark:bg-gray-400">
+                              class="flex items-center justify-center bg-gray-200 dark:bg-gray-400 h-32">
+                            <span class="text-gray-500 dark:text-gray-700">{{ t('noCurrentImage') }}</span>
+                        </Link>
+                    </div>
+
+                    <!-- Контент -->
+                    <div class="flex flex-col">
+                        <h3 class="text-md font-semibold text-black dark:text-white mb-1">
+                            <Link :href="`/articles/${article.url}`"
+                                  class="hover:text-blue-600 dark:hover:text-blue-400 line-clamp-2">
+                                {{ article.title }}
+                            </Link>
+                        </h3>
+
+                        <p class="text-xs font-semibold text-slate-700 dark:text-slate-300 line-clamp-3 mb-2">
+                            {{ article.short }}
+                        </p>
+
+                        <div class="text-xs font-semibold text-slate-600 dark:text-slate-400 opacity-75">
+                            {{ formatDate(article.published_at) }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Horizontal отображение -->
+            <div v-else class="space-y-4">
+                <div v-for="article in paginatedArticles" :key="article.id"
+                     class="flex flex-col sm:flex-row items-start gap-4 p-2 rounded shadow-sm
+                            hover:bg-slate-50 dark:hover:bg-slate-800
+                            hover:shadow-lg hover:shadow-gray-400 dark:hover:shadow-gray-700">
+
+                    <!-- Картинка -->
+                    <div class="w-full md:w-1/2 lg:w-1/3 xl:w-80">
+                        <Link v-if="article.img" :href="`/articles/${article.url}`">
+                            <img :src="getImgSrc(article.img)" alt="Article image"
+                                 class="w-full h-auto object-cover rounded border border-black dark:border-gray-200"/>
+                        </Link>
+                        <Link v-else-if="article.images?.length" :href="`/articles/${article.url}`">
+                            <ArticleImageSlider :images="article.images" :link="`/articles/${article.url}`"/>
+                        </Link>
+                        <Link v-else :href="`/articles/${article.url}`"
+                              class="flex items-center justify-center bg-gray-200 dark:bg-gray-400 h-32">
                             <span class="text-slate-900 dark:text-slate-100">{{ t('noCurrentImage') }}</span>
                         </Link>
                     </div>
 
-                    <div class="flex flex-col flex-grow pl-3">
+                    <!-- Контент -->
+                    <div class="flex flex-col flex-grow">
+                        <h3 class="text-md font-semibold text-black dark:text-white mb-1">
+                            <Link :href="`/articles/${article.url}`"
+                                  class="hover:text-blue-600 dark:hover:text-blue-400 line-clamp-2">
+                                {{ article.title }}
+                            </Link>
+                        </h3>
 
-                        <!-- Заголовок -->
-                        <div class="mb-3 my-1 text-left">
-                            <h3 class="text-md font-semibold text-black dark:text-white">
-                                <Link :href="`/articles/${article.url}`"
-                                      class="hover:text-blue-600 dark:hover:text-blue-400 line-clamp-2">
-                                    {{ article.title }}
-                                </Link>
-                            </h3>
-                        </div>
+                        <p class="text-xs font-semibold text-slate-700 dark:text-slate-300 line-clamp-3 mb-2">
+                            {{ article.short }}
+                        </p>
 
-                        <!-- Краткое описание -->
-                        <div class="mb-3">
-                            <p class="text-xs font-semibold text-slate-700 dark:text-slate-300 line-clamp-3">
-                                {{ article.short }}
-                            </p>
-                        </div>
-
-                        <!-- Дата публикации -->
-                        <div class="opacity-75 text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">
+                        <div class="text-xs font-semibold text-slate-600 dark:text-slate-400 opacity-75">
                             {{ formatDate(article.published_at) }}
                         </div>
-
                     </div>
                 </div>
             </div>
 
         </div>
+
 
         <!-- Пагинация -->
         <div v-if="totalPages > 1"
@@ -247,7 +218,7 @@ watch(sortOrder, () => {
 
             <!-- Кнопка назад -->
             <button @click="prevPage" :disabled="currentPage === 1"
-                    class="px-3 py-1 rounded bg-white dark:bg-gray-700
+                    class="px-3 py-1 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
                            border border-gray-400 dark:border-gray-200 disabled:opacity-50">
                 «
             </button>
@@ -266,7 +237,7 @@ watch(sortOrder, () => {
 
             <!-- Кнопка вперёд -->
             <button @click="nextPage" :disabled="currentPage === totalPages"
-                    class="px-3 py-1 rounded bg-white dark:bg-gray-700
+                    class="px-3 py-1 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
                            border border-gray-400 dark:border-gray-200 disabled:opacity-50">
                 »
             </button>

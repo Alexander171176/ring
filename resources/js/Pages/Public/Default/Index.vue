@@ -1,11 +1,16 @@
 <script setup>
-import {Head, usePage} from '@inertiajs/vue3';
+import {Head, Link, usePage} from '@inertiajs/vue3';
+import {useI18n} from 'vue-i18n';
 import DefaultLayout from '@/Layouts/DefaultLayout.vue';
-import MaintenanceModal from "@/Components/Public/Default/Partials/MaintenanceModal.vue";
+import MaintenanceModal from '@/Components/Public/Default/Partials/MaintenanceModal.vue';
+import MainArticleSlider from '@/Components/Public/Default/Article/MainArticleSlider.vue';
+import RightArticleList from "@/Components/Public/Default/Article/RightArticleList.vue";
+import LatestArticleCard from "@/Components/Public/Default/Article/LatestArticleCard.vue";
+import MainBannerSlider from "@/Components/Public/Default/Banner/MainBannerSlider.vue";
 
-// Получаем доступ к глобальным свойствам страницы
+const {t} = useI18n();
 const {locale} = usePage().props;
-//console.log('Текущая локаль:', locale);
+const {rightArticles, latestArticles, mainBanners, appUrl} = usePage().props;
 
 defineProps({
     title: String,
@@ -20,79 +25,80 @@ defineProps({
         :can-login="canLogin"
         :can-register="canRegister"
     >
-        <Head title="Welcome"/>
+        <Head>
+            <title>{{ t('home') }}</title>
+            <!-- Основные метатеги, Open Graph, Twitter, Dublin Core, Schema.org и т.д. -->
+            <meta name="title" content="Новости профессионального бокса — Ring"/>
+            <meta name="description" content="Свежие новости профессионального бокса: актуальные события, интервью, аналитика и результаты боёв. Следите за последними тенденциями в мире бокса"/>
+            <meta name="keywords" content="бокс, профессиональный бокс, новости бокса, интервью с боксёрами, аналитика боёв, результаты боёв, казахстанский бокс, мировые боксёрские события"/>
+            <meta name="author" content="RING"/>
+            <meta name="viewport" content="width=device-width, initial-scale=1"/>
 
-<!--        <MaintenanceModal />-->
+            <!-- Open Graph / Facebook -->
+            <meta property="og:title" content="Новости профессионального бокса — Ring"/>
+            <meta property="og:description" content="Свежие новости профессионального бокса: актуальные события, интервью, аналитика и результаты боёв. Следите за последними тенденциями в мире бокса"/>
+            <meta property="og:type" content="Новости"/>
+            <meta property="og:url" :content="`/home`"/>
+            <meta property="og:locale" :content="locale || 'ru_RU'"/>
 
-        <div class="relative sm:flex sm:justify-center sm:items-center min-h-screen
-                    bg-dots-darker bg-center bg-gray-100 dark:bg-dots-lighter dark:bg-slate-900
-                    selection:bg-red-500 selection:text-white">
-            <div class="max-w-8xl mx-auto">
+            <!-- Twitter -->
+            <meta name="twitter:title" content="Новости профессионального бокса — Ring"/>
+            <meta name="twitter:description" content="Свежие новости профессионального бокса: актуальные события, интервью, аналитика и результаты боёв. Следите за последними тенденциями в мире бокса"/>
 
-                <div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
-                        <a href="https://laravel.com/docs/10.x"
-                           class="scale-100 p-6 bg-white dark:bg-gray-800/50 dark:bg-gradient-to-bl from-gray-700/50 via-transparent dark:ring-1 dark:ring-inset dark:ring-white/5 rounded-lg shadow-2xl shadow-gray-500/20 dark:shadow-none flex motion-safe:hover:scale-[1.01] transition-all duration-250 focus:outline focus:outline-2 focus:outline-red-500">
-                            <div>
-                                <div
-                                    class="h-16 w-16 bg-red-50 dark:bg-red-800/20 flex items-center justify-center rounded-full">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                         stroke-width="1.5" class="w-7 h-7 stroke-red-500">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                              d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/>
-                                    </svg>
-                                </div>
+            <!-- Schema.org / Google -->
+            <meta itemprop="name" content="Новости профессионального бокса — Ring"/>
+            <meta itemprop="description" content="Свежие новости профессионального бокса: актуальные события, интервью, аналитика и результаты боёв. Следите за последними тенденциями в мире бокса"/>
+        </Head>
 
-                                <h2 class="mt-6 text-xl font-semibold text-gray-900 dark:text-white">Документация
-                                    Laravel</h2>
+        <div class="flex-1 p-4 selection:bg-red-400 selection:text-white bg-slate-50 dark:bg-blue-950">
 
-                                <p class="mt-4 text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
-                                    В Laravel есть замечательная документация, охватывающая каждый аспект фреймворка.
-                                    Независимо от того, являетесь ли вы новичком или имеете предыдущий опыт работы с
-                                    Laravel, мы рекомендуем прочитать нашу документацию от начала до конца.
-                                </p>
+            <!-- Хлебные крошки -->
+            <nav class="text-sm ml-0 md:ml-4 lg:ml-6 xl:ml-8"
+                 aria-label="Breadcrumb">
+                <ol class="list-reset flex items-center space-x-0">
+                    <li class="text-slate-900 dark:text-slate-100">
+                        {{ t('home') }}
+                    </li>
+                    <li>
+                        <span class="mx-1 text-slate-900 dark:text-slate-100">/</span>
+                    </li>
+                </ol>
+            </nav>
+
+            <div class="space-y-8">
+                <div class="overflow-hidden">
+                    <div class="p-6">
+
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <!-- Слайдер занимает 2/3 ширины на больших экранах -->
+                            <div class="lg:col-span-2">
+                                <MainArticleSlider/>
                             </div>
 
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                                 class="self-center shrink-0 stroke-red-500 w-6 h-6 mx-6">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                      d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75"/>
-                            </svg>
-                        </a>
-
-                        <a href="https://laracasts.com"
-                           class="scale-100 p-6 bg-white dark:bg-gray-800/50 dark:bg-gradient-to-bl from-gray-700/50 via-transparent dark:ring-1 dark:ring-inset dark:ring-white/5 rounded-lg shadow-2xl shadow-gray-500/20 dark:shadow-none flex motion-safe:hover:scale-[1.01] transition-all duration-250 focus:outline focus:outline-2 focus:outline-red-500">
+                            <!-- Правая колонка -->
                             <div>
-                                <div
-                                    class="h-16 w-16 bg-red-50 dark:bg-red-800/20 flex items-center justify-center rounded-full">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                         stroke-width="1.5" class="w-7 h-7 stroke-red-500">
-                                        <path stroke-linecap="round"
-                                              d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z"/>
-                                    </svg>
-                                </div>
-
-                                <h2 class="mt-6 text-xl font-semibold text-gray-900 dark:text-white">Laracasts</h2>
-
-                                <p class="mt-4 text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
-                                    Laracasts предлагает тысячи видеоуроков по разработке на Laravel, PHP и JavaScript.
-                                    Ознакомьтесь с ними, убедитесь сами и значительно повысьте свои навыки разработки в
-                                    процессе.
-                                </p>
+                                <RightArticleList :articles="rightArticles" :app-url="appUrl"/>
                             </div>
+                        </div>
 
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                                 class="self-center shrink-0 stroke-red-500 w-6 h-6 mx-6">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                      d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75"/>
-                            </svg>
-                        </a>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-16">
+                            <LatestArticleCard
+                                v-for="article in latestArticles"
+                                :key="article.id"
+                                :article="article"
+                                :app-url="appUrl"
+                            />
+                        </div>
+
+                        <div class="mt-10">
+                            <MainBannerSlider :banners="mainBanners" />
+                        </div>
+
                     </div>
                 </div>
 
             </div>
         </div>
-
     </DefaultLayout>
 </template>
 

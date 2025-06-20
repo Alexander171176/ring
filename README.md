@@ -135,6 +135,7 @@
     `docker exec ring-php-app php artisan make:controller Admin/System/ComposerController` <br>
     `docker exec ring-php-app php artisan make:controller Admin/System/PackageController` <br>
     `docker exec ring-php-app php artisan make:controller Admin/System/EnvController` <br>
+    `docker exec ring-php-app php artisan make:controller Public/Default/HomeController` <br>
 
 21)  Create middleware ShareSettings <br>
      `docker exec ring-php-app php artisan make:resource Admin/Setting/SettingSharedResource` <br>
@@ -374,5 +375,6 @@ ____________________________
     `docker exec ring-php-app php artisan make:controller Admin/Tournament/TournamentController --resource` <br>
     `docker exec ring-php-app php artisan make:migration add_left_main_right_to_tournaments_table --table=tournaments` <br>
     `docker exec ring-php-app php artisan make:migration create_tournament_has_video_table --create=tournament_has_video`<br>
+    `docker exec ring-php-app php artisan make:migration add_main_column_to_banners_table`<br>
     `docker exec ring-php-app php artisan migrate`<br>
     `docker exec ring-php-app php artisan make:controller Admin/Invokable/RemoveTournamentFromVideoController --invokable` <br>

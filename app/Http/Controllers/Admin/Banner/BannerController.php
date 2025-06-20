@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Banner\BannerRequest;
 use App\Http\Requests\Admin\UpdateActivityRequest;
 use App\Http\Requests\Admin\UpdateLeftRequest;
+use App\Http\Requests\Admin\UpdateMainRequest;
 use App\Http\Requests\Admin\UpdateRightRequest;
 use App\Http\Requests\Admin\UpdateSortEntityRequest;
 use App\Http\Resources\Admin\Banner\BannerResource;
@@ -418,6 +419,60 @@ class BannerController extends Controller
         Banner::whereIn('id', $data['ids'])->update(['left' => $data['left']]);
 
         return response()->json(['success' => true]);
+    }
+
+    /**
+     * Включение Главными
+     * Использует Route Model Binding и UpdateMainRequest.
+     *
+     * @param UpdateMainRequest $request
+     * @param Banner $banner
+     * @return RedirectResponse
+     */
+    public function updateMain(UpdateMainRequest $request, Banner $banner): RedirectResponse
+    {
+        // authorize() в UpdateMainRequest
+        $validated = $request->validated();
+
+        try {
+            $banner->main = $validated['main'];
+            $banner->save();
+
+            Log::info("Обновлено значение активации в главном для баннера ID {$banner->id}");
+            return redirect()->route('admin.banners.index')
+                ->with('success', __('admin/controllers/banners.updated_main_success'));
+
+        } catch (Throwable $e) {
+            Log::error("Ошибка обновления значение в главном баннера ID {$banner->id}: " . $e->getMessage());
+            return back()->withErrors(['general' => __('admin/controllers/banners.main_update_error')]);
+        }
+    }
+
+    /**
+     * Обновление статуса активности в главном массово
+     *
+     * @param Request $request
+     * @return JsonResponse Json ответ
+     */
+    public function bulkUpdateMain(Request $request): JsonResponse
+    {
+        // TODO: Проверка прав $this->authorize('update-banners', $banner);
+        $data = $request->validate([
+            'ids'      => 'required|array',
+            'ids.*'    => 'required|integer|exists:banners,id',
+            'main' => 'required|boolean',
+        ]);
+
+        try {
+            Banner::whereIn('id', $data['ids'])->update(['main' => $data['main']]);
+            return response()->json(['success' => true]);
+        } catch (Throwable $e) {
+            Log::error('Ошибка массового обновления активности в главном: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => __('admin/controllers/banners.bulk_main_update_error'),
+            ], 500);
+        }
     }
 
     /**

@@ -1,16 +1,14 @@
 <script setup>
 import {Head, Link, usePage} from '@inertiajs/vue3';
-import {ref, computed, onUnmounted, onMounted} from 'vue';
+import {ref, computed} from 'vue';
 import { useI18n } from 'vue-i18n';
 import DefaultLayout from '@/Layouts/DefaultLayout.vue';
-import MainSlider from "@/Components/Public/Default/Article/MainSlider.vue";
-import LeftColumn from "@/Components/Public/Default/Partials/LeftColumn.vue";
 import SectionArticlesPagination from "@/Components/Public/Default/Article/SectionArticlesPagination.vue";
 import BannerImageSlider from "@/Components/Public/Default/Banner/BannerImageSlider.vue";
 
 const { t } = useI18n();
 
-const { rubric, sections, activeArticlesCount, siteSettings } = usePage().props;
+const { rubric, sections } = usePage().props;
 
 // Реактивная переменная для поискового запроса
 const searchQuery = ref('');
@@ -63,7 +61,7 @@ const filteredSections = computed(() => {
             <meta name="DC.language" :content="rubric.locale || 'ru'"/>
         </Head>
 
-        <div class="flex-1 p-4 selection:bg-red-400 selection:text-white bg-slate-50 dark:bg-slate-950">
+        <div class="flex-1 p-4 selection:bg-red-400 selection:text-white bg-slate-50 dark:bg-blue-950">
 
             <!-- Хлебные крошки -->
             <nav class="text-sm ml-0 md:ml-4 lg:ml-6 xl:ml-8"
@@ -119,7 +117,7 @@ const filteredSections = computed(() => {
                         <!-- Список статей с Компонент пагинацией -->
                         <SectionArticlesPagination
                             :articles="section.articles"
-                            :items-per-page="10"
+                            :items-per-page="16"
                         />
 
                         <!-- Если у секции есть баннеры, отображаем их -->

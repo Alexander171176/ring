@@ -118,7 +118,8 @@ Route::group([
         $publicRubricController = "App\\Http\\Controllers\\Public\\{$siteLayout}\\RubricController";
         Route::get('/api/menu-rubrics', [$publicRubricController, 'menuRubrics'])->name('api.rubrics.menu');
 
-        Route::get('/', fn() => Inertia::render('Public/' . $siteLayout . '/Index'))->name('home'); // Добавим имя
+        $publicHomeController = "App\\Http\\Controllers\\Public\\{$siteLayout}\\HomeController";
+        Route::get('/', [$publicHomeController, 'index'])->name('home');
 
         $publicRubricController = "App\\Http\\Controllers\\Public\\{$siteLayout}\\RubricController";
         Route::get('/rubrics/{url}', [$publicRubricController, 'show'])->where('url', '.*')->name('public.rubrics.show');
@@ -411,6 +412,7 @@ Route::group([
                 Route::put('/articles/{article}/main', [ArticleController::class, 'updateMain'])->name('articles.updateMain');
                 Route::put('/articles/{article}/right', [ArticleController::class, 'updateRight'])->name('articles.updateRight');
                 Route::put('/banners/{banner}/left', [BannerController::class, 'updateLeft'])->name('banners.updateLeft');
+                Route::put('/banners/{banner}/main', [BannerController::class, 'updateMain'])->name('banners.updateMain');
                 Route::put('/banners/{banner}/right', [BannerController::class, 'updateRight'])->name('banners.updateRight');
                 Route::put('/videos/{video}/left', [VideoController::class, 'updateLeft'])->name('videos.updateLeft');
                 Route::put('/videos/{video}/main', [VideoController::class, 'updateMain'])->name('videos.updateMain');
@@ -430,6 +432,8 @@ Route::group([
                 // Переключение активности в главном массово
                 Route::put('/admin/actions/articles/bulk-main', [ArticleController::class, 'bulkUpdateMain'])
                     ->name('articles.bulkUpdateMain');
+                Route::put('/admin/actions/banners/bulk-main', [BannerController::class, 'bulkUpdateMain'])
+                    ->name('banners.bulkUpdateMain');
                 Route::put('/admin/actions/videos/bulk-main', [VideoController::class, 'bulkUpdateMain'])
                     ->name('videos.bulkUpdateMain');
 

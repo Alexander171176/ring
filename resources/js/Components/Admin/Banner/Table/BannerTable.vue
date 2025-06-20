@@ -3,6 +3,7 @@ import {defineProps, defineEmits, watch, ref} from 'vue';
 import { useI18n } from 'vue-i18n';
 import draggable from 'vuedraggable';
 import LeftToggle from "@/Components/Admin/Buttons/LeftToggle.vue";
+import MainToggle from "@/Components/Admin/Buttons/MainToggle.vue";
 import RightToggle from "@/Components/Admin/Buttons/RightToggle.vue";
 import ActivityToggle from '@/Components/Admin/Buttons/ActivityToggle.vue';
 import DeleteIconButton from '@/Components/Admin/Buttons/DeleteIconButton.vue';
@@ -17,6 +18,7 @@ const props = defineProps({
 
 const emits = defineEmits([
     'toggle-left',
+    'toggle-main',
     'toggle-right',
     'toggle-activity',
     'edit',
@@ -145,6 +147,9 @@ const getPrimaryImage = (banner) => {
                                     <LeftToggle :isActive="banner.left"
                                                 @toggle-left="$emit('toggle-left', banner)"
                                                 :title="banner.left ? t('enabled') : t('disabled')"/>
+                                    <MainToggle :isActive="banner.main"
+                                                @toggle-main="$emit('toggle-main', banner)"
+                                                :title="banner.main ? t('enabled') : t('disabled')"/>
                                     <RightToggle :isActive="banner.right"
                                                  @toggle-right="$emit('toggle-right', banner)"
                                                  :title="banner.right ? t('enabled') : t('disabled')"/>

@@ -25,6 +25,9 @@ return [
     'left.required' => 'The field "In the left column" must be filled in.',
     'left.boolean' => 'The "In the left column" field must be a boolean value.',
 
+    'main.required' => 'The "Main banner" field must be filled in.',
+    'main.boolean' => 'The "Main Banner" field must be a boolean value.',
+
     'right.required' => 'The "In the right column" field must be filled in.',
     'right.boolean' => 'The "In the right column" field must be a boolean value.',
 

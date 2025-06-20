@@ -19,8 +19,6 @@ const updateValue = (event) => {
     const value = parseInt(event.target.value);
     emit('update:modelValue', isNaN(value) ? '' : value);
 };
-
-const defaultImage = '/storage/athlete_images/default-image.png';
 </script>
 
 <template>
@@ -43,15 +41,6 @@ const defaultImage = '/storage/athlete_images/default-image.png';
                     {{ athlete.nickname }}
                 </option>
             </select>
-
-            <!-- Показываем текущий аватар справа от select -->
-            <div v-if="modelValue" class="absolute top-0 right-1">
-                <img
-                    :src="(options.find(a => a.id === modelValue)?.avatar) || defaultImage"
-                    alt="avatar"
-                    class="w-8 h-8 rounded-full object-cover border"
-                />
-            </div>
         </div>
 
         <p v-if="error" class="text-red-500 text-xs mt-1">{{ error }}</p>

@@ -48,6 +48,7 @@ const form = useForm({
     comment: props.banner.comment ?? '',
     activity: Boolean(props.banner.activity),
     left: Boolean(props.banner.left),
+    main: Boolean(props.banner.main),
     right: Boolean(props.banner.right),
     sections: props.banner.sections ?? [],
     deletedImages: [] // массив для хранения ID удалённых изображений
@@ -110,6 +111,7 @@ const submitForm = () => {
         ...data,
         activity: data.activity ? 1 : 0,
         left: data.left ? 1 : 0,
+        main: data.main ? 1 : 0,
         right: data.right ? 1 : 0,
         images: [
             ...newImages.value.map(img => ({
@@ -204,6 +206,12 @@ const submitForm = () => {
                         <div class="flex flex-row items-center gap-2">
                             <ActivityCheckbox v-model="form.left"/>
                             <LabelCheckbox for="left" :text="t('left')" class="text-sm h-8 flex items-center"/>
+                        </div>
+
+                        <!-- Показывать в главном -->
+                        <div class="flex flex-row items-center gap-2">
+                            <ActivityCheckbox v-model="form.main"/>
+                            <LabelCheckbox for="main" :text="t('main')" class="text-sm h-8 flex items-center"/>
                         </div>
 
                         <!-- Показывать в правом сайдбаре -->

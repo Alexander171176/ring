@@ -34,7 +34,6 @@ const filteredSections = computed(() => {
 
 </script>
 
-
 <template>
     <DefaultLayout :title="rubric.title"
                    :can-login="$page.props.canLogin"
@@ -65,7 +64,7 @@ const filteredSections = computed(() => {
             <meta name="DC.language" :content="rubric.locale || 'ru'"/>
         </Head>
 
-        <div class="flex-1 p-4 selection:bg-red-400 selection:text-white bg-slate-50 dark:bg-slate-950">
+        <div class="flex-1 p-4 selection:bg-red-400 selection:text-white bg-slate-50 dark:bg-blue-950">
 
             <!-- Хлебные крошки -->
             <nav class="text-sm ml-0 md:ml-4 lg:ml-6 xl:ml-8"
@@ -97,9 +96,9 @@ const filteredSections = computed(() => {
             <div class="max-w-xl mx-auto">
                 <input v-model="searchQuery" type="text" :placeholder="t('searchByName')"
                        class="w-full px-3 py-0.5 bg-white dark:bg-gray-700
-                           font-semibold text-sm text-slate-600 dark:text-slate-100
-                           border border-slate-500 dark:border-slate-400 rounded-sm
-                           focus:outline-none focus:ring-1 focus:border-blue-300"
+                              font-semibold text-sm text-slate-600 dark:text-slate-100
+                              border border-slate-500 dark:border-slate-400 rounded-sm
+                              focus:outline-none focus:ring-1 focus:border-blue-300"
                 />
             </div>
 
@@ -114,7 +113,7 @@ const filteredSections = computed(() => {
                         <!-- Список статей с Компонент пагинацией -->
                         <SectionArticles
                             :articles="section.articles"
-                            :items-per-page="10"
+                            :items-per-page="16"
                         />
 
                         <!-- Если у секции есть баннеры, отображаем их -->

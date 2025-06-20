@@ -400,9 +400,6 @@ const submit = () => {
                         <InputError class="mt-2" :message="form.errors.description"/>
                     </div>
 
-                    <!-- Изображения турнира -->
-                    <MultiImageUpload @update:images="form.images = $event"/>
-
                     <!-- Выбрать видео для показа -->
                     <div class="mb-3 flex flex-col items-start">
                         <LabelInput for="videos" :value="t('videos')" class="mb-1"/>
@@ -415,6 +412,9 @@ const submit = () => {
                                         track-by="title"
                         />
                     </div>
+
+                    <!-- Изображения турнира -->
+                    <MultiImageUpload @update:images="form.images = $event"/>
 
                     <div class="flex items-center justify-center mt-4">
                         <DefaultButton :href="route('admin.tournaments.index')" class="mb-3">

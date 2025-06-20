@@ -158,6 +158,35 @@ const toggleLeft = (banner) => {
 };
 
 /**
+ * Отправляет запрос для изменения статуса активности в главном.
+ */
+const toggleMain = (banner) => {
+    const newMain = !banner.main;
+    const actionText = newMain ? 'активирован в главном' : 'деактивирован в главном';
+
+    // Используем Inertia.put для простого обновления
+    router.put(route('admin.actions.banners.updateMain', {banner: banner.id}),
+        {main: newMain},
+        {
+            preserveScroll: true, // Сохраняем скролл
+            preserveState: true,  // Обновляем только измененные props (если бэк отдает reload: false)
+            // Или false, если бэк всегда отдает reload: true и нужно перезагрузить данные
+            onSuccess: () => {
+                // Обновляем состояние локально СРАЗУ ЖЕ (оптимистичное обновление)
+                // Или дожидаемся обновления props, если preserveState: false
+                // banner.main = newMain; // Уже не нужно, если preserveState: false
+                toast.success(`Баннер "${banner.title}" ${actionText}.`);
+            },
+            onError: (errors) => {
+                toast.error(errors.main || errors.general || `Ошибка изменения активности для "${banner.title}".`);
+                // Можно откатить изменение на фронте, если нужно
+                // banner.main = !newMain;
+            },
+        }
+    );
+};
+
+/**
  * Отправляет запрос для изменения статуса активности в правой колонке.
  */
 const toggleRight = (banner) => {
@@ -248,6 +277,12 @@ const sortBanners = (banners) => {
     }
     if (sortParam.value === 'noLeft') {
         return banners.filter(banner => !banner.left);
+    }
+    if (sortParam.value === 'main') {
+        return banners.filter(banner => banner.main);
+    }
+    if (sortParam.value === 'noMain') {
+        return banners.filter(banner => !banner.main);
     }
     if (sortParam.value === 'right') {
         return banners.filter(banner => banner.right);
@@ -422,6 +457,38 @@ const bulkToggleLeft = (newLeft) => {
 };
 
 /**
+ * Выполняет массовое включение/выключение активности в главном.
+ */
+const bulkToggleMain = (newMain) => {
+    if (selectedBanners.value.length === 0) {
+        toast.warning(`Выберите баннера для ${newMain
+            ? 'активации в главном'
+            : 'деактивации в главном'}.`);
+        return;
+    }
+    axios
+        .put(route('admin.actions.banners.bulkUpdateMain'), {
+            ids: selectedBanners.value,
+            main: newMain,
+        })
+        .then(() => {
+            toast.success('Статус в главном массово обновлен')
+            // сразу очистим выбор
+            const updatedIds = [...selectedBanners.value]
+            selectedBanners.value = []
+            // и оптимистично поправим флаг в таблице
+            paginatedBanners.value.forEach((a) => {
+                if (updatedIds.includes(a.id)) {
+                    a.main = newMain
+                }
+            })
+        })
+        .catch(() => {
+            toast.error('Не удалось обновить статус в главном')
+        });
+};
+
+/**
  * Выполняет массовое включение/выключение активности в правой колонке.
  */
 const bulkToggleRight = (newRight) => {
@@ -499,6 +566,10 @@ const handleBulkAction = (event) => {
         bulkToggleLeft(true);
     } else if (action === 'noLeft') {
         bulkToggleLeft(false);
+    } else if (action === 'main') {
+        bulkToggleMain(true);
+    } else if (action === 'noMain') {
+        bulkToggleMain(false);
     } else if (action === 'right') {
         bulkToggleRight(true);
     } else if (action === 'noRight') {
@@ -540,6 +611,7 @@ const handleBulkAction = (event) => {
                     :banners="paginatedBanners"
                     :selected-banners="selectedBanners"
                     @toggle-left="toggleLeft"
+                    @toggle-main="toggleMain"
                     @toggle-right="toggleRight"
                     @toggle-activity="toggleActivity"
                     @delete="confirmDelete"
