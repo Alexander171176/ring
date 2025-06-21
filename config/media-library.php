@@ -28,7 +28,9 @@ return [
 
     /*
      * By default all conversions will be performed on a queue.
+     * Поменять местами на проде из за отсутствия разрешения
      */
+//      'queue_conversions_by_default' => false,
     'queue_conversions_by_default' => env('QUEUE_CONVERSIONS_BY_DEFAULT', false), // Для продакшена true и настроить очереди
 
     /*
@@ -119,6 +121,7 @@ return [
      * The media library will try to optimize all converted images by removing
      * metadata and applying a little bit of compression. These are
      * the optimizers that will be used by default.
+     * Закомментировать в массиве на проде из за отсутствия разрешения
      */
     'image_optimizers' => [
         Spatie\ImageOptimizer\Optimizers\Jpegoptim::class => [

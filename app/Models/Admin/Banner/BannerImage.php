@@ -63,6 +63,7 @@ class BannerImage extends Model implements HasMedia
 
     /**
      * Регистрация медиа-конверсий.
+     * Могут отсутствовать разрешения на виртуальном хостинге
      */
     public function registerMediaConversions(?Media $media = null): void
     {

@@ -335,6 +335,7 @@
     `docker exec -it ring-php-app php artisan config:clear`  <br>
     `docker exec -it ring-php-app php artisan route:clear`  <br>
     `docker exec -it ring-php-app php artisan view:clear`  <br>
+    `docker exec -it ring-php-app php artisan permission:cache-reset`  <br>
     `docker restart ring-php-app`  <br>
     `docker exec -it ring-php-app php artisan route:list`  <br>
     `mkdir -p app/Services`  <br>

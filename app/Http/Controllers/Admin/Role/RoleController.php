@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\Role\RoleRequest; // Используем
 use App\Http\Resources\Admin\Permission\PermissionResource;
 use App\Http\Resources\Admin\Role\RoleResource;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB; // Для транзакций
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
@@ -16,6 +17,7 @@ use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 use Throwable;
+
 
 /**
  * Контроллер для управления Ролями в административной панели.
@@ -39,6 +41,29 @@ class RoleController extends Controller
      */
     public function index(): Response
     {
+//        $user = auth()->user();
+//        $data = [
+//            '✅ Authenticated via sanctum' => Auth::guard('sanctum')->check(),
+//            '✅ Authenticated via web' => Auth::guard('web')->check(),
+//
+//            '👤 User via auth()->user()' => auth()->user()?->toArray(),
+//            '👤 User via Auth::guard(sanctum)' => Auth::guard('sanctum')->user()?->toArray(),
+//            '👤 User via Auth::guard(web)' => Auth::guard('web')->user()?->toArray(),
+//
+//            '🆔 User ID' => auth()->id(),
+//
+//            '🔐 Role names (via getRoleNames())' => auth()->user()?->getRoleNames()->toArray(),
+//            '🔐 Roles (via roles relation)' => auth()->user()?->roles->pluck('name')->toArray(),
+//
+//            '🔏 Permission names (via getPermissionNames())' => auth()->user()?->getPermissionNames()->toArray(),
+//            '🔏 Permissions (via permissions relation)' => auth()->user()?->permissions->pluck('name')->toArray(),
+//
+//            '📋 All roles in system with guard=sanctum' => Role::where('guard_name', 'sanctum')->pluck('name')->toArray(),
+//            '📋 All permissions in system with guard=sanctum' => Permission::where('guard_name', 'sanctum')->pluck('name')->toArray(),
+//        ];
+//
+//        echo '<pre>' . print_r($data, true) . '</pre>';
+
         // TODO: Проверка прав $this->authorize('show-roles', Role::class);
 
         $adminCountRoles = config('site_settings.AdminCountRoles', 15);

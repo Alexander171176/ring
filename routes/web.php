@@ -270,8 +270,14 @@ Route::group([
     });
 
     // --- Маршруты Панели Администратора ---
-    Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',])
-        ->prefix('admin')->name('admin.')
+    Route::middleware([
+        'auth:sanctum',
+        config('jetstream.auth_session'),
+        'verified',
+        'role:admin|editor,sanctum' // <-- обязательно указать второй аргумент: guard
+    ])
+        ->prefix('admin')
+        ->name('admin.')
         ->group(function () {
 
             // Главная страница админки

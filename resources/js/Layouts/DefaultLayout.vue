@@ -7,8 +7,10 @@ import Header from "@/Partials/Default/Header.vue";
 import LeftSidebar from "@/Components/Public/Default/Partials/LeftSidebar.vue";
 import RightSidebar from "@/Components/Public/Default/Partials/RightSidebar.vue";
 import Footer from "@/Partials/Default/Footer.vue";
+import YandexMetrika from "@/Components/System/YandexMetrika.vue";
+import LiveInternetCounter from "@/Components/System/LiveInternetCounter.vue";
 
-const { siteSettings } = usePage().props;
+const {siteSettings} = usePage().props;
 
 const props = defineProps({
     title: String,
@@ -33,13 +35,18 @@ const {props: pageProps} = usePage();
 
     <main class="min-h-screen flex justify-center flex-col lg:flex-row tracking-wider bg-slate-50 dark:bg-slate-950">
         <!-- Левый сайдбар: не показываем, если параметр равен "false" -->
-        <LeftSidebar v-if="!siteSettings.ViewLeftColumn || siteSettings.ViewLeftColumn === 'true'" />
+        <LeftSidebar v-if="!siteSettings.ViewLeftColumn || siteSettings.ViewLeftColumn === 'true'"/>
 
         <slot/>
 
         <!-- Правый сайдбар: не показываем, если параметр равен "false" -->
-        <RightSidebar v-if="!siteSettings.ViewRightColumn || siteSettings.ViewRightColumn === 'true'" />
+        <RightSidebar v-if="!siteSettings.ViewRightColumn || siteSettings.ViewRightColumn === 'true'"/>
     </main>
+
+    <div class="flex items-center justify-center gap-1">
+        <LiveInternetCounter/>
+        <YandexMetrika/>
+    </div>
 
     <Footer :can-login="canLogin" :can-register="canRegister"/>
 

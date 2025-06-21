@@ -90,9 +90,7 @@ defineProps({
                             />
                         </div>
 
-                        <div class="mt-10">
-                            <MainBannerSlider :banners="mainBanners" />
-                        </div>
+                        <MainBannerSlider :banners="mainBanners" />
 
                     </div>
                 </div>
