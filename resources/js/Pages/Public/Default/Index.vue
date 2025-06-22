@@ -7,10 +7,18 @@ import MainArticleSlider from '@/Components/Public/Default/Article/MainArticleSl
 import RightArticleList from "@/Components/Public/Default/Article/RightArticleList.vue";
 import LatestArticleCard from "@/Components/Public/Default/Article/LatestArticleCard.vue";
 import MainBannerSlider from "@/Components/Public/Default/Banner/MainBannerSlider.vue";
+import ScheduledTournaments from "@/Components/Public/Default/Tournament/ScheduledTournaments.vue";
+import ScheduledTournamentsIndex from "@/Components/Public/Default/Tournament/ScheduledTournamentsIndex.vue";
 
 const {t} = useI18n();
 const {locale} = usePage().props;
-const {rightArticles, latestArticles, mainBanners, appUrl} = usePage().props;
+const {
+    rightArticles,
+    latestArticles,
+    mainBanners,
+    scheduledTournaments,
+    appUrl
+} = usePage().props;
 
 defineProps({
     title: String,
@@ -67,21 +75,18 @@ defineProps({
 
             <div class="space-y-8">
                 <div class="overflow-hidden">
-                    <div class="p-6">
+                    <div class="p-0 xl:p-6">
 
-                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            <!-- Слайдер занимает 2/3 ширины на больших экранах -->
-                            <div class="lg:col-span-2">
-                                <MainArticleSlider/>
-                            </div>
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
+
+                            <MainArticleSlider/>
 
                             <!-- Правая колонка -->
-                            <div>
-                                <RightArticleList :articles="rightArticles" :app-url="appUrl"/>
-                            </div>
+                            <RightArticleList :articles="rightArticles" :app-url="appUrl"/>
+
                         </div>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-16">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                             <LatestArticleCard
                                 v-for="article in latestArticles"
                                 :key="article.id"
@@ -91,6 +96,8 @@ defineProps({
                         </div>
 
                         <MainBannerSlider :banners="mainBanners" />
+
+                        <ScheduledTournamentsIndex :tournaments="scheduledTournaments" />
 
                     </div>
                 </div>

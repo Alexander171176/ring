@@ -116,11 +116,15 @@ function highlightVs(name) {
 </script>
 
 <template>
-    <div v-if="paginated.length" class="max-w-3xl mx-auto relative overflow-hidden shadow-lg shadow-gray-600">
+    <div v-if="paginated.length"
+         class="max-w-3xl mx-auto relative overflow-hidden rounded-xl
+                shadow-lg shadow-gray-400 dark:shadow-gray-950
+                border-2 border-blue-700 dark:border-blue-600">
+
         <div class="relative w-full">
             <div v-for="tournament in paginated" :key="tournament.id"
-                 class="min-w-full px-4 pt-4 bg-blue-900 text-slate-100 text-lg font-semibold uppercase relative"
-            >
+                 class="min-w-full px-4 pt-4 bg-blue-900
+                        text-slate-100 text-lg font-semibold uppercase relative">
                 <div class="text-center">
                     <h3
                         class="uppercase font-semibold text-center dark:text-white mb-2"

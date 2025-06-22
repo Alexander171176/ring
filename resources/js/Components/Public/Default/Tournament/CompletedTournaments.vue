@@ -102,7 +102,7 @@ function highlightVs(name) {
         <div class="flex flex-col md:flex-row justify-between items-center gap-4 px-4 mt-6">
 
             <h2 class="text-lg font-semibold text-slate-800 dark:text-slate-100">
-                {{ t('statusScheduled') }}
+                {{ t('statusCompleted') }}
             </h2>
 
             <div class="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
@@ -132,8 +132,8 @@ function highlightVs(name) {
                             :class="[
                   'p-1 border transition-colors duration-200 rounded',
                   viewMode === 'grid'
-                  ? 'border-slate-400 dark:border-slate-600 text-red-400 dark:text-red-200'
-                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 hover:border-slate-500 dark:hover:border-slate-500']">
+                  ? 'border-slate-400 dark:border-slate-200 text-red-400 dark:text-red-200'
+                  : 'border-slate-300 dark:border-slate-400 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 hover:border-slate-500 dark:hover:border-slate-500']">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                   d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
@@ -144,8 +144,8 @@ function highlightVs(name) {
                             :class="[
                   'p-1 border transition-colors duration-200 rounded',
                   viewMode === 'horizontal'
-                  ? 'border-slate-400 dark:border-slate-600 text-red-400 dark:text-red-200'
-                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 hover:border-slate-500 dark:hover:border-slate-500']">
+                  ? 'border-slate-400 dark:border-slate-200 text-red-400 dark:text-red-200'
+                  : 'border-slate-300 dark:border-slate-400 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 hover:border-slate-500 dark:hover:border-slate-500']">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
                         </svg>
@@ -165,12 +165,18 @@ function highlightVs(name) {
                 <!-- Изображение -->
                 <template v-if="tournament.images?.length">
                     <img :src="tournament.images[0].url" :alt="tournament.images[0].alt"
-                         class="w-full max-w-3xl h-auto mx-auto object-cover rounded-md mb-4" />
+                         class="w-full max-w-3xl h-auto mx-auto object-cover rounded-xl mb-4
+                                border-2 border-gray-400 dark:border-gray-600
+                                shadow-lg shadow-gray-400 dark:shadow-gray-950"/>
                 </template>
 
                 <!-- Бойцы -->
-                <div v-else class="max-w-3xl mx-auto bg-gray-800 pt-8 mb-4 rounded-md
-                                   flex flex-col sm:flex-row items-center justify-center gap-4">
+                <div v-else
+                     class="max-w-3xl mx-auto bg-gray-300 dark:bg-gray-700 py-8 mb-4 rounded-xl
+                            border-2 border-gray-400 dark:border-gray-600
+                            shadow-lg shadow-gray-400 dark:shadow-gray-950
+                            flex flex-col sm:flex-row items-center justify-center gap-4">
+
                     <div class="flex flex-col items-center w-full sm:w-1/2 max-w-xs">
                         <div class="relative w-52 h-52">
                             <div class="absolute inset-0 bg-red-600 rounded-full z-0"></div>
@@ -179,9 +185,9 @@ function highlightVs(name) {
                                  class="absolute left-1/2 -top-4 transform -translate-x-1/2 z-10 w-52 h-52 object-contain"
                                  :alt="tournament.fighter_red.nickname" />
                         </div>
-                        <span class="my-4 text-center text-sm font-semibold uppercase text-slate-100">
-                            {{ tournament.fighter_red?.nickname.replaceAll('-', ' ') }}
-                        </span>
+<!--                        <span class="my-4 text-center text-sm font-semibold uppercase text-slate-100">-->
+<!--                            {{ tournament.fighter_red?.nickname.replaceAll('-', ' ') }}-->
+<!--                        </span>-->
                     </div>
 
                     <span class="text-xl sm:text-2xl font-bold text-orange-400">vs</span>
@@ -194,17 +200,17 @@ function highlightVs(name) {
                                  class="absolute left-1/2 -top-4 transform -translate-x-1/2 z-10 w-52 h-52 object-contain"
                                  :alt="tournament.fighter_blue.nickname" />
                         </div>
-                        <span class="my-4 text-center text-sm font-semibold uppercase text-slate-100">
-                            {{ tournament.fighter_blue?.nickname.replaceAll('-', ' ') }}
-                        </span>
+<!--                        <span class="my-4 text-center text-sm font-semibold uppercase text-slate-100">-->
+<!--                            {{ tournament.fighter_blue?.nickname.replaceAll('-', ' ') }}-->
+<!--                        </span>-->
                     </div>
                 </div>
 
                 <!-- Информация -->
                 <div class="text-center space-y-1">
                     <h3 class="uppercase font-semibold dark:text-white" v-html="highlightVs(tournament.name)"></h3>
-                    <div class="flex flex-row items-center justify-center text-xs text-amber-600 dark:text-amber-400">
-                        <svg class="w-3 h-3 fill-current shrink-0 text-amber-600 dark:text-amber-400 mr-1"
+                    <div class="flex flex-row items-center justify-center text-xs text-slate-600 dark:text-slate-200">
+                        <svg class="w-3 h-3 fill-current shrink-0 text-slate-600 dark:text-slate-200 mr-1"
                              viewBox="0 0 16 16">
                             <path d="M15 2h-2V0h-2v2H9V0H7v2H5V0H3v2H1a1 1 0 00-1 1v12a1 1 0 001 1h14a1 1 0 001-1V3a1 1 0 00-1-1zm-1 12H2V6h12v8z"></path>
                         </svg>
@@ -215,23 +221,27 @@ function highlightVs(name) {
                     </div>
                     <div v-if="tournament.winner"
                          class="flex items-center justify-center px-2
-                                    font-semibold text-xs text-amber-500 dark:text-amber-300">
+                                    font-semibold text-xs text-slate-800 dark:text-slate-200">
                         {{ t('winner') }}:
                         <div class="ml-1 uppercase">
                             {{ tournament.winner.nickname.replaceAll('-', ' ') }}
                         </div>
                     </div>
-                    <span v-if="tournament.short?.trim() !== ''" class="block text-xs text-slate-900 dark:text-slate-100">
-                      {{ tournament.short }}
-                    </span>
+<!--                    <span v-if="tournament.short?.trim() !== ''" class="block text-xs text-slate-900 dark:text-slate-100">-->
+<!--                      {{ tournament.short }}-->
+<!--                    </span>-->
                 </div>
             </div>
         </div>
 
         <!-- grid view -->
         <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 px-4">
+
             <div v-for="tournament in paginatedCompleted" :key="tournament.id"
-                 class="flex flex-col bg-white dark:bg-gray-800 rounded shadow p-2 space-y-2">
+                 class="flex flex-col bg-white dark:bg-gray-800 rounded-lg
+                        shadow-xl shadow-gray-400 dark:shadow-gray-950
+                        border border-gray-500 dark:border-gray-700
+                        p-2 space-y-2">
 
                 <!-- Блок изображения -->
                 <template v-if="tournament.images?.length">
@@ -240,7 +250,7 @@ function highlightVs(name) {
                 </template>
 
                 <!-- Блок бойцов -->
-                <div v-else class="flex justify-around items-end bg-gray-800 rounded-md py-2">
+                <div v-else class="flex justify-around items-end bg-gray-300 dark:bg-gray-700 rounded-md py-2">
                     <div class="flex flex-col items-center">
                         <div class="relative w-24 h-24">
                             <div class="absolute inset-0 bg-red-600 rounded-full"></div>
@@ -249,9 +259,9 @@ function highlightVs(name) {
                                  class="absolute inset-0 m-auto z-10 w-20 h-20 object-contain"
                                  :alt="tournament.fighter_red?.nickname"/>
                         </div>
-                        <span class="uppercase text-xs font-semibold text-slate-100 mt-1 pl-1">
-                            {{ tournament.fighter_red?.nickname.replaceAll('-', ' ') }}
-                        </span>
+<!--                        <span class="uppercase text-xs font-semibold text-slate-100 mt-1 pl-1">-->
+<!--                            {{ tournament.fighter_red?.nickname.replaceAll('-', ' ') }}-->
+<!--                        </span>-->
                     </div>
                     <span class="text-orange-400 text-lg font-bold">vs</span>
                     <div class="flex flex-col items-center">
@@ -262,9 +272,9 @@ function highlightVs(name) {
                                  class="absolute inset-0 m-auto z-10 w-20 h-20 object-contain"
                                  :alt="tournament.fighter_blue?.nickname"/>
                         </div>
-                        <span class="uppercase text-center text-xs font-semibold text-slate-100 mt-1 pl-1">
-                            {{ tournament.fighter_blue?.nickname.replaceAll('-', ' ') }}
-                        </span>
+<!--                        <span class="uppercase text-center text-xs font-semibold text-slate-100 mt-1 pl-1">-->
+<!--                            {{ tournament.fighter_blue?.nickname.replaceAll('-', ' ') }}-->
+<!--                        </span>-->
                     </div>
                 </div>
 
@@ -272,8 +282,8 @@ function highlightVs(name) {
                 <div class="text-center">
                     <h3 class="uppercase font-semibold dark:text-white text-sm"
                         v-html="highlightVs(tournament.name)"></h3>
-                    <div class="flex flex-row items-center justify-center text-xs text-amber-600 dark:text-amber-400">
-                        <svg class="w-3 h-3 fill-current shrink-0 text-amber-600 dark:text-amber-400 mr-1"
+                    <div class="flex flex-row items-center justify-center text-xs text-slate-600 dark:text-slate-200">
+                        <svg class="w-3 h-3 fill-current shrink-0 text-slate-600 dark:text-slate-200 mr-1"
                              viewBox="0 0 16 16">
                             <path d="M15 2h-2V0h-2v2H9V0H7v2H5V0H3v2H1a1 1 0 00-1 1v12a1 1 0 001 1h14a1 1 0 001-1V3a1 1 0 00-1-1zm-1 12H2V6h12v8z"></path>
                         </svg>
@@ -284,15 +294,15 @@ function highlightVs(name) {
                     </div>
                     <div v-if="tournament.winner"
                          class="flex items-center justify-center px-2
-                                    font-semibold text-xs text-amber-500 dark:text-amber-300">
+                                    font-semibold text-xs text-slate-800 dark:text-slate-200">
                         {{ t('winner') }}:
                         <div class="ml-1 uppercase">
                             {{ tournament.winner.nickname.replaceAll('-', ' ') }}
                         </div>
                     </div>
-                    <span v-if="tournament.short?.trim() !== ''" class="block text-xs text-slate-900 dark:text-slate-100">
-                      {{ tournament.short }}
-                    </span>
+<!--                    <span v-if="tournament.short?.trim() !== ''" class="block text-xs text-slate-900 dark:text-slate-100">-->
+<!--                      {{ tournament.short }}-->
+<!--                    </span>-->
                 </div>
             </div>
         </div>

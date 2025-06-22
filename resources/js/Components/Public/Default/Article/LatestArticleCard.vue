@@ -16,21 +16,21 @@ const getImgSrc = (imgPath) => {
 
 <template>
     <Link :href="`/articles/${article.url}`"
-          class="flex h-fit rounded-md overflow-hidden">
+          class="flex h-fit rounded-md">
 
         <!-- Изображение слева -->
-        <div class="w-48 h-full">
+        <div class="overflow-hidden w-48 h-auto max-h-28 rounded-md border-2 border-gray-400">
             <img
                 v-if="article.images && article.images.length > 0"
                 :src="article.images[0].webp_url || article.images[0].url"
                 :alt="article.title"
-                class="w-full h-auto object-cover rounded-md border-2 border-gray-400"
+                class="w-full h-auto object-cover"
             />
             <img
                 v-else-if="article.img"
                 :src="getImgSrc(article.img)"
                 :alt="article.title"
-                class="w-full h-auto object-cover rounded-md border-2 border-gray-400"
+                class="w-full h-auto object-cover"
             />
             <img
                 v-else
@@ -42,7 +42,7 @@ const getImgSrc = (imgPath) => {
 
         <!-- Текст справа -->
         <div class="flex-1 flex items-center px-3">
-            <h2 class="text-sm font-semibold text-gray-800 dark:text-white line-clamp-2">
+            <h2 class="text-xs md:text-sm lg:text-lg font-semibold text-gray-800 dark:text-white">
                 {{ article.title }}
             </h2>
         </div>

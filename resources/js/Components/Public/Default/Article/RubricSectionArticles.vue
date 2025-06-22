@@ -101,8 +101,8 @@ watch(sortOrder, () => {
                                 :class="[
                   'p-1 border transition-colors duration-200 rounded',
                   viewMode === 'grid'
-                  ? 'border-slate-400 dark:border-slate-600 text-red-400 dark:text-red-200'
-                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 hover:border-slate-500 dark:hover:border-slate-500']">
+                  ? 'border-slate-400 dark:border-slate-200 text-red-400 dark:text-red-200'
+                  : 'border-slate-300 dark:border-slate-400 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 hover:border-slate-500 dark:hover:border-slate-500']">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                       d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
@@ -113,8 +113,8 @@ watch(sortOrder, () => {
                                 :class="[
                   'p-1 border transition-colors duration-200 rounded',
                   viewMode === 'horizontal'
-                  ? 'border-slate-400 dark:border-slate-600 text-red-400 dark:text-red-200'
-                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 hover:border-slate-500 dark:hover:border-slate-500']">
+                  ? 'border-slate-400 dark:border-slate-200 text-red-400 dark:text-red-200'
+                  : 'border-slate-300 dark:border-slate-400 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 hover:border-slate-500 dark:hover:border-slate-500']">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
                             </svg>
@@ -128,13 +128,17 @@ watch(sortOrder, () => {
             <!-- Внутренний контейнер grid -->
             <div v-if="viewMode === 'grid'"
                  class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+
                 <div v-for="article in paginatedArticles" :key="article.id"
                      class="p-2 rounded-sm shadow-sm
                        overflow-hidden hover:bg-slate-50 dark:hover:bg-slate-800
                        hover:shadow-lg hover:shadow-gray-400 dark:hover:shadow-gray-700">
 
                     <!-- Контейнер Изображения -->
-                    <div class="overflow-hidden h-auto">
+                    <div class="overflow-hidden h-auto mb-2
+                                border border-gray-800 dark:border-gray-400
+                                shadow-lg shadow-gray-400 dark:shadow-gray-900">
+
                         <!-- Изображение статьи -->
                         <Link v-if="article.img"
                               :href="`/articles/${article.url}`"
@@ -189,7 +193,7 @@ watch(sortOrder, () => {
 
             <!-- Внутренний контейнер horizontal -->
             <div v-else class="space-y-4">
-                <!-- Статьи с пагинацией -->
+
                 <div
                     v-for="article in paginatedArticles"
                     :key="article.id"
@@ -198,13 +202,14 @@ watch(sortOrder, () => {
                        hover:shadow-lg hover:shadow-gray-400 dark:hover:shadow-gray-700">
 
                     <!-- Изображение -->
-                    <div class="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-56
-                            h-auto
-                            shrink-0 overflow-hidden">
+                    <div class="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-56 h-auto
+                                shrink-0 overflow-hidden">
+
                         <Link v-if="article.img" :href="`/articles/${article.url}`"
                               class="h-auto overflow-hidden">
                             <img :src="getImgSrc(article.img)" :alt="article.title"
-                                 class="w-full h-auto object-cover rounded-md border border-black dark:border-gray-200"/>
+                                 class="w-full h-auto object-cover rounded-lg
+                                        border border-black dark:border-gray-200"/>
                         </Link>
                         <Link v-else-if="article.images?.length" :href="`/articles/${article.url}`">
                             <ArticleImageSlider :images="article.images" :link="`/articles/${article.url}`"/>

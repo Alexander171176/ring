@@ -37,12 +37,14 @@ onBeforeUnmount(stopSlider);
 
 <template>
     <div v-if="banners.length" class="mt-10">
-        <div class="p-4 sm:p-6 md:p-8 bg-gradient-to-br from-slate-200 to-slate-100
-                    dark:from-slate-700 dark:to-slate-800
-                    rounded-md shadow-xl ring-4 ring-gray-400/40">
+        <div class="p-2 sm:p-4 md:p-6 bg-gradient-to-br from-blue-900 to-blue-950
+                    dark:from-blue-800 dark:to-blue-900
+                    ring-2 ring-blue-900/40
+                    rounded-sm shadow-lg shadow-gray-500 dark:shadow-gray-950
+                    border border-blue-700 dark:border-blue-950">
             <div
                 class="relative w-full h-[200px] sm:h-[300px] md:h-[400px] lg:h-[500px] xl:h-[600px]
-                   overflow-hidden rounded-3xl border-8 border-yellow-400
+                   overflow-hidden rounded-3xl border-4 border-yellow-400
                    bg-slate-100 dark:bg-slate-900 shadow-inner"
                 @mouseenter="isHovered = true"
                 @mouseleave="isHovered = false"
