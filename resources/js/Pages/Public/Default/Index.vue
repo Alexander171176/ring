@@ -7,8 +7,9 @@ import MainArticleSlider from '@/Components/Public/Default/Article/MainArticleSl
 import RightArticleList from "@/Components/Public/Default/Article/RightArticleList.vue";
 import LatestArticleCard from "@/Components/Public/Default/Article/LatestArticleCard.vue";
 import MainBannerSlider from "@/Components/Public/Default/Banner/MainBannerSlider.vue";
-import ScheduledTournaments from "@/Components/Public/Default/Tournament/ScheduledTournaments.vue";
 import ScheduledTournamentsIndex from "@/Components/Public/Default/Tournament/ScheduledTournamentsIndex.vue";
+import CompletedTournamentsIndex from "@/Components/Public/Default/Tournament/ComletedTournamentsIndex.vue";
+import SectionList from "@/Components/Public/Default/Section/SectionList.vue";
 
 const {t} = useI18n();
 const {locale} = usePage().props;
@@ -17,6 +18,8 @@ const {
     latestArticles,
     mainBanners,
     scheduledTournaments,
+    completedTournaments,
+    sections,
     appUrl
 } = usePage().props;
 
@@ -98,6 +101,10 @@ defineProps({
                         <MainBannerSlider :banners="mainBanners" />
 
                         <ScheduledTournamentsIndex :tournaments="scheduledTournaments" />
+
+                        <CompletedTournamentsIndex :tournaments="completedTournaments" />
+
+                        <SectionList :sections="sections" :app-url="appUrl" />
 
                     </div>
                 </div>

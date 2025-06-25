@@ -1,4 +1,4 @@
-<!-- Компонент: ScheduledTournamentsIndex.vue -->
+<!-- Компонент: CompletedTournamentsIndex.vue -->
 <script setup>
 import {ref, computed, watch} from 'vue';
 import {Link} from '@inertiajs/vue3';
@@ -17,9 +17,9 @@ const currentPage = ref(1);
 const sortOrder = ref('desc'); // 'asc' | 'desc'
 const itemsPerPage = 2;
 
-const scheduledTournaments = computed(() => {
+const completedTournaments = computed(() => {
     return [...props.tournaments]
-        .filter(t => t.status === 'scheduled')
+        .filter(t => t.status === 'completed')
         .sort((a, b) => {
             const aTime = new Date(a.tournament_date_time);
             const bTime = new Date(b.tournament_date_time);
@@ -28,12 +28,12 @@ const scheduledTournaments = computed(() => {
 });
 
 const totalPages = computed(() =>
-    Math.max(1, Math.ceil(scheduledTournaments.value.length / itemsPerPage))
+    Math.max(1, Math.ceil(completedTournaments.value.length / itemsPerPage))
 );
 
-const paginatedScheduled = computed(() => {
+const paginatedCompleted = computed(() => {
     const start = (currentPage.value - 1) * itemsPerPage;
-    return scheduledTournaments.value.slice(start, start + itemsPerPage);
+    return completedTournaments.value.slice(start, start + itemsPerPage);
 });
 
 const prevPage = () => {
@@ -54,15 +54,15 @@ function highlightVs(name) {
 </script>
 
 <template>
-    <div v-if="scheduledTournaments.length" class="mt-8">
+    <div v-if="completedTournaments.length" class="mt-4">
 
         <h2 class="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-4">
-            {{ t('statusScheduled') }}
+            {{ t('statusCompleted') }}
         </h2>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
-            <div v-for="tournament in paginatedScheduled" :key="tournament.id"
+            <div v-for="tournament in paginatedCompleted" :key="tournament.id"
                  class="overflow-hidden bg-gray-300
                         border-2 border-blue-800 dark:border-slate-400
                         shadow-md shadow-gray-400 dark:shadow-gray-900">

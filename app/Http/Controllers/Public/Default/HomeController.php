@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Public\Default;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Admin\Article\ArticleResource;
 use App\Http\Resources\Admin\Banner\BannerResource;
+use App\Http\Resources\Admin\Section\SectionResource;
 use App\Http\Resources\Admin\Tournament\TournamentResource;
 use App\Models\Admin\Article\Article;
 use App\Models\Admin\Banner\Banner;
+use App\Models\Admin\Section\Section;
 use App\Models\Admin\Tournament\Tournament;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -79,6 +81,22 @@ class HomeController extends Controller
             ])
             ->get();
 
+        $sections = Section::where('activity', 1)
+            ->where('locale', $locale)
+            ->orderBy('sort')
+            ->with([
+                'articles' => function ($query) use ($locale) {
+                    $query->where('activity', 1)
+                        ->where('locale', $locale)
+                        ->orderBy('published_at', 'desc')
+                        ->with([
+                            'images' => fn($q) => $q->orderBy('order'),
+                            'tags',
+                        ]);
+                },
+            ])
+            ->get();
+
         return Inertia::render('Public/Default/Index', [
             'latestArticles' => ArticleResource::collection($latestArticles),
             'mainArticles' => ArticleResource::collection($mainArticles),
@@ -86,6 +104,7 @@ class HomeController extends Controller
             'mainBanners' => BannerResource::collection($mainBanners),
             'scheduledTournaments' => TournamentResource::collection($scheduledTournaments),
             'completedTournaments' => TournamentResource::collection($completedTournaments),
+            'sections' => SectionResource::collection($sections),
         ]);
     }
 }

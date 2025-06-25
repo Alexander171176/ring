@@ -42,7 +42,8 @@ const getImgSrc = (imgPath) => {
 
         <!-- Текст справа -->
         <div class="flex-1 flex items-center px-3">
-            <h2 class="text-xs md:text-sm lg:text-lg font-semibold text-gray-800 dark:text-white">
+            <h2 class="text-xs md:text-sm lg:text-lg font-semibold text-gray-800 dark:text-white
+                       hover:text-red-500 dark:hover:text-orange-300">
                 {{ article.title }}
             </h2>
         </div>
