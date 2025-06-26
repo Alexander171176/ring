@@ -2,7 +2,6 @@
 import {Head, Link, usePage} from '@inertiajs/vue3';
 import {useI18n} from 'vue-i18n';
 import DefaultLayout from '@/Layouts/DefaultLayout.vue';
-import MaintenanceModal from '@/Components/Public/Default/Partials/MaintenanceModal.vue';
 import MainArticleSlider from '@/Components/Public/Default/Article/MainArticleSlider.vue';
 import RightArticleList from "@/Components/Public/Default/Article/RightArticleList.vue";
 import LatestArticleCard from "@/Components/Public/Default/Article/LatestArticleCard.vue";
@@ -10,6 +9,8 @@ import MainBannerSlider from "@/Components/Public/Default/Banner/MainBannerSlide
 import ScheduledTournamentsIndex from "@/Components/Public/Default/Tournament/ScheduledTournamentsIndex.vue";
 import CompletedTournamentsIndex from "@/Components/Public/Default/Tournament/ComletedTournamentsIndex.vue";
 import SectionList from "@/Components/Public/Default/Section/SectionList.vue";
+import HomeVideoGrid from "@/Components/Public/Default/Video/HomeVideoGrid.vue";
+
 
 const {t} = useI18n();
 const {locale} = usePage().props;
@@ -20,6 +21,7 @@ const {
     scheduledTournaments,
     completedTournaments,
     sections,
+    videos,
     appUrl
 } = usePage().props;
 
@@ -105,6 +107,8 @@ defineProps({
                         <CompletedTournamentsIndex :tournaments="completedTournaments" />
 
                         <SectionList :sections="sections" :app-url="appUrl" />
+
+                        <HomeVideoGrid :videos="videos" />
 
                     </div>
                 </div>

@@ -7,10 +7,12 @@ use App\Http\Resources\Admin\Article\ArticleResource;
 use App\Http\Resources\Admin\Banner\BannerResource;
 use App\Http\Resources\Admin\Section\SectionResource;
 use App\Http\Resources\Admin\Tournament\TournamentResource;
+use App\Http\Resources\Admin\Video\VideoResource;
 use App\Models\Admin\Article\Article;
 use App\Models\Admin\Banner\Banner;
 use App\Models\Admin\Section\Section;
 use App\Models\Admin\Tournament\Tournament;
+use App\Models\Admin\Video\Video;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -97,6 +99,13 @@ class HomeController extends Controller
             ])
             ->get();
 
+        $videos = Video::where('activity', 1)
+            ->with([
+                'images' => fn($q) => $q->orderBy('order'),
+            ])
+            ->orderBy('published_at', 'desc')
+            ->get();
+
         return Inertia::render('Public/Default/Index', [
             'latestArticles' => ArticleResource::collection($latestArticles),
             'mainArticles' => ArticleResource::collection($mainArticles),
@@ -105,6 +114,7 @@ class HomeController extends Controller
             'scheduledTournaments' => TournamentResource::collection($scheduledTournaments),
             'completedTournaments' => TournamentResource::collection($completedTournaments),
             'sections' => SectionResource::collection($sections),
+            'videos' => VideoResource::collection($videos),
         ]);
     }
 }
