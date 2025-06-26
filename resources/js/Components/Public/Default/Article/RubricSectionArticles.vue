@@ -127,7 +127,7 @@ watch(sortOrder, () => {
 
             <!-- Внутренний контейнер grid -->
             <div v-if="viewMode === 'grid'"
-                 class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                 class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
 
                 <div v-for="article in paginatedArticles" :key="article.id"
                      class="p-2 rounded-sm shadow-sm

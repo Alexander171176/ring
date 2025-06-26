@@ -107,10 +107,10 @@ const getVideoUrl = (video) => {
                         </template>
 
                         <iframe v-else-if="['youtube', 'vimeo'].includes(video.source_type)"
-                                class="w-full h-screen"
+                                class="w-full h-full"
                                 :src="getVideoUrl(video)"
                                 frameborder="0"
-                                allow="autoplay; fullscreen; picture-in-picture"
+                                allow="fullscreen; picture-in-picture"
                                 allowfullscreen>
                         </iframe>
 

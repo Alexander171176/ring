@@ -109,7 +109,7 @@ const filteredSections = computed(() => {
                 <div v-for="section in filteredSections" :key="section.id"
                      class="overflow-hidden">
 
-                    <div class="p-6">
+                    <div class="p-1">
 
                         <!-- Список статей с Компонент пагинацией -->
                         <SectionArticles

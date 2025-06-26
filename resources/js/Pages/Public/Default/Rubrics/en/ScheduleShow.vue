@@ -87,7 +87,7 @@ const {t} = useI18n();
                 <div v-for="section in sections" :key="section.id"
                      class="overflow-hidden">
 
-                    <div class="p-2">
+                    <div class="p-1">
 
                         <!-- Список статей с Компонент пагинацией -->
                         <RubricSectionArticles

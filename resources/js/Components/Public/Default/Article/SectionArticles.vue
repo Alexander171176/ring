@@ -74,7 +74,7 @@ watch(sortOrder, () => {
 
 <template>
     <div>
-        <div class="space-y-6">
+        <div class="space-y-2">
 
             <!-- Панель управления (сортировка + переключатель вида) -->
             <div class="flex flex-row justify-end items-center gap-4">
@@ -120,7 +120,7 @@ watch(sortOrder, () => {
 
             <!-- Grid отображение -->
             <div v-if="viewMode === 'grid'"
-                 class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                 class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
 
                 <div v-for="article in paginatedArticles" :key="article.id"
                      class="p-2 rounded-sm shadow-sm
@@ -147,14 +147,14 @@ watch(sortOrder, () => {
 
                     <!-- Контент -->
                     <div class="flex flex-col">
-                        <h3 class="text-md font-semibold text-black dark:text-white mb-1">
+                        <h3 class="text-md font-semibold text-black dark:text-white my-1">
                             <Link :href="`/articles/${article.url}`"
-                                  class="hover:text-blue-600 dark:hover:text-blue-400 line-clamp-2">
+                                  class="hover:text-blue-600 dark:hover:text-blue-400">
                                 {{ article.title }}
                             </Link>
                         </h3>
 
-                        <p class="text-xs font-semibold text-slate-700 dark:text-slate-300 line-clamp-3 mb-2">
+                        <p class="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
                             {{ article.short }}
                         </p>
 
@@ -169,7 +169,7 @@ watch(sortOrder, () => {
             <div v-else class="space-y-4">
 
                 <div v-for="article in paginatedArticles" :key="article.id"
-                     class="col-span-full flex flex-row items-start space-x-3 p-2 shadow-sm rounded-sm
+                     class="col-span-full flex flex-col sm:flex-row items-start space-x-3 p-2 shadow-sm rounded-sm
                             overflow-hidden hover:bg-slate-50 dark:hover:bg-slate-800
                             hover:shadow-lg hover:shadow-gray-400 dark:hover:shadow-gray-700">
 
@@ -193,14 +193,14 @@ watch(sortOrder, () => {
 
                     <!-- Контент -->
                     <div class="flex flex-col flex-grow">
-                        <h3 class="text-md font-semibold text-black dark:text-white mb-1">
+                        <h3 class="text-md font-semibold text-black dark:text-white my-1">
                             <Link :href="`/articles/${article.url}`"
-                                  class="hover:text-blue-600 dark:hover:text-blue-400 line-clamp-2">
+                                  class="hover:text-blue-600 dark:hover:text-blue-400">
                                 {{ article.title }}
                             </Link>
                         </h3>
 
-                        <p class="text-xs font-semibold text-slate-700 dark:text-slate-300 line-clamp-3 mb-2">
+                        <p class="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
                             {{ article.short }}
                         </p>
 

@@ -64,7 +64,8 @@ watch(currentLocale, (newLocale, oldLocale) => {
             <li>
                 <a href="https://www.nextgensports.live/" target="_blank" rel="noopener noreferrer"
                    class="flex items-center mx-2 pt-1 uppercase
-                          text-xs font-semibold text-slate-900 hover:text-red-400 transition duration-300">
+                          text-xs font-semibold text-slate-900 dark:text-slate-100
+                          hover:text-red-400 transition duration-300">
                     NextGenSports
                 </a>
             </li>

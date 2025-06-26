@@ -231,7 +231,7 @@ function highlightVs(name) {
         </div>
 
         <!-- grid view -->
-        <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 px-4">
+        <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 px-4">
             <div v-for="tournament in paginatedScheduled" :key="tournament.id"
                  class="flex flex-col bg-white dark:bg-gray-800 rounded-lg
                         shadow-xl shadow-gray-400 dark:shadow-gray-950

@@ -149,10 +149,10 @@ const playVideo = (id) => {
                 />
             </div>
 
-            <div class="space-y-8 mt-8 mx-8">
+            <div class="space-y-2 mt-4 sm:mt-8 mx-1">
 
                 <!-- Список видео -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
 
                     <div v-for="video in paginatedVideos" :key="video.id"
                          class="relative flex flex-col rounded
