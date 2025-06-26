@@ -5,7 +5,7 @@ export default {
 </script>
 
 <template>
-    <h1 class="text-center text-3xl text-teal-600 font-semibold mb-6">
+    <h1 class="text-center text-xl text-teal-200 font-semibold mb-6">
         <slot type="text"></slot> ✨
     </h1>
 </template>
