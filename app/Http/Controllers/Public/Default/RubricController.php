@@ -73,19 +73,21 @@ class RubricController extends Controller
                                     'images' => fn($query) => $query->orderBy('order', 'asc'),
                                     'tags'
                                 ]);
-                        },
-                        'banners' => function ($query) {
-                            $query->where('activity', 1)
-                                ->orderBy('sort', 'desc')
-                                ->with([
-                                    'images' => fn($query) => $query->orderBy('order', 'asc'),
-                                ]);
                         }
                     ]);
             }
         ])
             ->where('url', $url)
             ->firstOrFail();
+
+        $sectionBanners = Banner::where('activity', 1)
+            ->whereHas('sections', fn($q) => $q->where('activity', 1)->where('locale', $locale))
+            ->with([
+                'images' => fn($q) => $q->orderBy('order'),
+                'sections' => fn($q) => $q->where('activity', 1)->where('locale', $locale),
+            ])
+            ->orderBy('sort')
+            ->get();
 
         $activeArticlesCount = $rubric->sections->reduce(function ($carry, $section) {
             return $carry + ($section->articles ? $section->articles->count() : 0);
@@ -181,6 +183,7 @@ class RubricController extends Controller
         return Inertia::render($component, [
             'rubric' => new RubricResource($rubric),
             'sections' => SectionResource::collection($rubric->sections),
+            'sectionBanners' => BannerResource::collection($sectionBanners),
             'sectionsCount' => $rubric->sections->count(),
             'activeArticlesCount' => $activeArticlesCount,
             'leftArticles' => ArticleResource::collection($leftArticles),

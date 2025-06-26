@@ -7,9 +7,19 @@ import ScheduledTournaments from '@/Components/Public/Default/Tournament/Schedul
 import CompletedTournaments from '@/Components/Public/Default/Tournament/CompletedTournaments.vue';
 import RubricSectionArticles from '@/Components/Public/Default/Article/RubricSectionArticles.vue';
 import BannerImageSlider from '@/Components/Public/Default/Banner/BannerImageSlider.vue';
+import MainBannerSlider from "@/Components/Public/Default/Banner/MainBannerSlider.vue";
 
-const {rubric, sections, mainTournaments, scheduledTournaments, completedTournaments,} = usePage().props;
 const {t} = useI18n();
+
+const {
+    rubric,
+    sections,
+    sectionBanners,
+    mainTournaments,
+    scheduledTournaments,
+    completedTournaments,
+} = usePage().props;
+
 </script>
 
 <template>
@@ -96,55 +106,20 @@ const {t} = useI18n();
                             :items-per-page="16"
                         />
 
-                        <!-- Если у секции есть баннеры, отображаем их -->
-                        <div v-if="section.banners && section.banners.length" class="mt-4">
-                            <div class="flex justify-center items-center flex-wrap">
-                                <div v-for="banner in section.banners" :key="banner.id"
-                                     class="w-full flex flex-col justify-center items-center">
-
-                                    <!-- Название баннера -->
-                                    <template v-if="banner.link">
-                                        <Link :href="banner.link">
-                                            <h3 class="mb-3 tracking-wide text-2xl
-                                                       font-semibold text-slate-500 dark:text-slate-200">
-                                                {{ banner.title }}
-                                            </h3>
-                                        </Link>
-                                    </template>
-                                    <template v-else>
-                                        <h3 class="mb-3 tracking-wide text-xl
-                                                   font-semibold text-slate-500 dark:text-slate-200">
-                                            {{ banner.title }}
-                                        </h3>
-                                    </template>
-
-                                    <!-- Изображение баннера -->
-                                    <!-- Если banner.link не пустой, оборачиваем слайдер в ссылку, иначе просто выводим слайдер -->
-                                    <div v-if="banner.images && banner.images.length > 0">
-                                        <template v-if="banner.link">
-                                            <Link :href="banner.link">
-                                                <BannerImageSlider :images="banner.images"/>
-                                            </Link>
-                                        </template>
-                                        <template v-else>
-                                            <BannerImageSlider :images="banner.images"/>
-                                        </template>
-                                    </div>
-
-                                    <p v-if="banner.short"
-                                       class="max-w-xl w-full mt-3 text-center p-1
-                                              tracking-wider text-lg font-semibold text-slate-600 dark:text-slate-300">
-                                        {{ banner.short }}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
                     </div>
 
                 </div>
 
             </div>
+
+            <div v-else class="text-gray-500 text-lg text-center">
+                {{ t('noData') }}
+            </div>
+
+            <MainBannerSlider
+                v-if="sectionBanners && sectionBanners.length"
+                :banners="sectionBanners"
+            />
 
         </div>
     </DefaultLayout>
