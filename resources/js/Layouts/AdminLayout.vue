@@ -17,7 +17,6 @@ import {useSetting} from '@/composables/settings.js';
 import {usePlugin} from '@/composables/plugins.js';
 
 // Импорт изображения
-import authImage from '../../images/auth-image.jpg';
 import {Container as page} from "vue-smooth-dnd";
 
 const props = defineProps({
@@ -105,8 +104,7 @@ const sidebarTitle = computed(() => {
             </header>
 
             <!-- Page Content -->
-            <main class="flex-grow bg-center border-l border-r border-slate-400"
-                  :style="{ backgroundImage: `url(${authImage})`, backgroundAttachment: 'fixed' }">
+            <main class="flex-grow bg-center border-l border-r border-slate-400">
                 <slot/>
             </main>
 
@@ -134,9 +132,5 @@ const sidebarTitle = computed(() => {
 main {
     width: 100%;
     height: auto;
-    background-size: contain; /* изменяет размер изображения, чтобы оно полностью отображалось */
-    background-repeat: no-repeat; /* предотвращает повторение изображения */
-    background-position: center;
-    background-attachment: fixed; /* делает фон фиксированным при прокрутке */
 }
 </style>
