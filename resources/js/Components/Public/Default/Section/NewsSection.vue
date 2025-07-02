@@ -1,5 +1,5 @@
 <script setup>
-import {ref, computed} from 'vue';
+import {computed} from 'vue';
 import {Link, usePage} from '@inertiajs/vue3';
 import {useI18n} from 'vue-i18n';
 import ArticleImageSlider from "@/Components/Public/Default/Article/ArticleImageSlider.vue";
@@ -9,7 +9,7 @@ const props = defineProps({
     appUrl: String
 });
 
-const {t} = useI18n();
+const { t, locale } = useI18n();
 const {appUrl} = usePage().props;
 
 const getImgSrc = (imgPath) => {
@@ -19,29 +19,9 @@ const getImgSrc = (imgPath) => {
     return `${base}/storage/${path}`;
 };
 
-const itemsPerPage = 4;
-const currentPage = ref(1);
-
-const totalPages = computed(() => {
-    return Math.ceil(props.section.articles.length / itemsPerPage);
-});
-
 const sortedArticles = computed(() => {
     return [...props.section.articles].sort((a, b) => new Date(b.sort) - new Date(a.sort));
 });
-
-const paginatedArticles = computed(() => {
-    const start = (currentPage.value - 1) * itemsPerPage;
-    return sortedArticles.value.slice(start, start + itemsPerPage);
-});
-
-const prevPage = () => {
-    if (currentPage.value > 1) currentPage.value--;
-};
-
-const nextPage = () => {
-    if (currentPage.value < totalPages.value) currentPage.value++;
-};
 
 const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -50,6 +30,11 @@ const formatDate = (dateString) => {
     const year = date.getFullYear();
     return `${day}.${month}.${year}`;
 };
+
+const linkHref = locale.value === 'kk'
+    ? '/rubrics/zhangalyqtar'
+    : '/rubrics/novosti';
+
 </script>
 
 <template>
@@ -62,52 +47,52 @@ const formatDate = (dateString) => {
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
             <!-- Левая колонка — первая статья -->
-            <div v-if="paginatedArticles.length > 0"
+            <div v-if="sortedArticles.length > 0"
                  class="shadow overflow-hidden
                         border-2 border-gray-400 rounded-xl">
 
                 <div class="relative">
 
-                    <Link v-if="paginatedArticles[0].img" :href="`/articles/${paginatedArticles[0].url}`">
-                        <img :src="getImgSrc(paginatedArticles[0].img)" alt="Article image"
+                    <Link v-if="sortedArticles[0].img" :href="`/articles/${sortedArticles[0].url}`">
+                        <img :src="getImgSrc(sortedArticles[0].img)" alt="Article image"
                              class="w-full h-full object-cover"/>
                         <div class="absolute bottom-0 left-0 w-full
                                     bg-black bg-opacity-50 text-white text-sm font-bold p-3">
-                            {{ paginatedArticles[0].title }}
+                            {{ sortedArticles[0].title }}
                         </div>
                     </Link>
 
-                    <Link v-else-if="paginatedArticles[0].images?.length"
-                          :href="`/articles/${paginatedArticles[0].url}`">
+                    <Link v-else-if="sortedArticles[0].images?.length"
+                          :href="`/articles/${sortedArticles[0].url}`">
                         <div class="relative">
                             <ArticleImageSlider
-                                :images="paginatedArticles[0].images"
-                                :link="`/articles/${paginatedArticles[0].url}`"/>
+                                :images="sortedArticles[0].images"
+                                :link="`/articles/${sortedArticles[0].url}`"/>
                             <div class="absolute bottom-0 left-0 w-full
                                         bg-black bg-opacity-50 text-white text-base font-bold p-3">
-                                {{ paginatedArticles[0].title }}
+                                {{ sortedArticles[0].title }}
                             </div>
                         </div>
                     </Link>
 
-                    <Link v-else :href="`/articles/${paginatedArticles[0].url}`"
+                    <Link v-else :href="`/articles/${sortedArticles[0].url}`"
                           class="flex items-center justify-center
                                  bg-gray-200 dark:bg-gray-400 h-64 relative">
                         <span class="text-slate-900 dark:text-slate-100">{{ t('noCurrentImage') }}</span>
 
                         <div class="absolute bottom-0 left-0 w-full
                                     bg-black bg-opacity-50 text-white text-sm font-bold p-0.5">
-                            {{ paginatedArticles[0].title }}
+                            {{ sortedArticles[0].title }}
                         </div>
                     </Link>
 
                 </div>
             </div>
 
-            <!-- Правая колонка — статьи 2–4 -->
+            <!-- Правая колонка — статьи 2–N -->
             <div class="grid grid-cols-1 gap-4">
                 <div
-                    v-for="(article, index) in paginatedArticles.slice(1)"
+                    v-for="(article, index) in sortedArticles.slice(1)"
                     :key="article.id"
                     class="overflow-hidden">
 
@@ -153,31 +138,17 @@ const formatDate = (dateString) => {
 
         </div>
 
-        <!-- Пагинация -->
-        <div v-if="totalPages > 1"
-             class="flex justify-center items-center mt-4 space-x-2 text-xs font-semibold">
-            <button @click="prevPage" :disabled="currentPage === 1"
-                    class="px-3 py-1 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-                     border border-gray-400 dark:border-gray-200 disabled:opacity-50">
-                «
-            </button>
-
-            <span class="text-gray-700 dark:text-gray-200">{{ t('page') }}</span>
-
-            <input type="number"
-                   v-model.number="currentPage"
-                   :min="1"
-                   :max="totalPages"
-                   class="w-12 text-center px-1 py-1 border border-gray-400 dark:border-gray-200 rounded
-                    bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-xs"/>
-
-            <span class="text-gray-700 dark:text-gray-200">{{ t('of') }} {{ totalPages }}</span>
-
-            <button @click="nextPage" :disabled="currentPage === totalPages"
-                    class="px-3 py-1 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-                     border border-gray-400 dark:border-gray-200 disabled:opacity-50">
-                »
-            </button>
+        <div class="w-full flex justify-center items-center py-4">
+            <Link
+                :href="linkHref"
+                class="inline-block px-2 py-0.5 rounded-sm text-sm font-semibold
+                       border border-slate-400 dark:border-slate-500
+                       bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100
+                       hover:text-red-400 dark:hover:text-red-300
+                       transition duration-200 ease-in-out shadow-sm hover:shadow-md">
+                {{ t('watchAll') }} »
+            </Link>
         </div>
+
     </div>
 </template>

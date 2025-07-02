@@ -34,6 +34,8 @@ const isScheduleSection = (title) => {
 const isHiddenSection = (title) => {
     const lower = title?.toLowerCase();
     return [
+        'расписание', 'жаднама', 'schedule',
+        'open ring', 'wbss', 'рейтинг р4р',
         'видео', 'бейне', 'video'
     ].includes(lower);
 };

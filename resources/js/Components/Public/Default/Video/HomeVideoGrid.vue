@@ -113,7 +113,7 @@ const nextPage = () => {
             <div
                 v-for="vid in paginatedVideos"
                 :key="vid.id"
-                class="overflow-hidden bg-white dark:bg-slate-900 shadow-md hover:shadow shadow-gray-400 dark:shadow-gray-950 border border-slate-400"
+                class="overflow-hidden"
             >
                 <div class="relative w-full bg-black aspect-video flex items-center justify-center">
                     <!-- Картинка + кнопка Play -->

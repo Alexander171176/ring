@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\Invokable\RemoveTournamentFromVideoController;
+use App\Http\Controllers\Public\Default\HomeController;
 use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController;
 use Laravel\Fortify\Http\Controllers\EmailVerificationNotificationController;
 use Laravel\Fortify\Http\Controllers\EmailVerificationPromptController;
@@ -88,9 +89,6 @@ Route::group([
     ->middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']) // Защищаем маршрут кэша
     ->name('cache.clear');
 
-    // Используем замыкание для получения настроек один раз
-    $siteLayout = config('site_settings.siteLayout', 'Default');
-
     // Добавить маршрут для страницы технических работ
     Route::get('/maintenance', function () {
         return Inertia::render('Maintenance');
@@ -112,26 +110,25 @@ Route::group([
         ->name('login');
 
     // Публичная часть сайта
-    Route::middleware([CheckDowntime::class])->group(function () use ($siteLayout) {
+    Route::middleware([CheckDowntime::class])->group(function () {
 
         // Публичное API: меню рубрик, зависит от текущего шаблона
-        $publicRubricController = "App\\Http\\Controllers\\Public\\{$siteLayout}\\RubricController";
-        Route::get('/api/menu-rubrics', [$publicRubricController, 'menuRubrics'])->name('api.rubrics.menu');
+        Route::get('/api/menu-rubrics', [\App\Http\Controllers\Public\Default\RubricController::class,
+            'menuRubrics'])->name('api.rubrics.menu');
 
-        $publicHomeController = "App\\Http\\Controllers\\Public\\{$siteLayout}\\HomeController";
-        Route::get('/', [$publicHomeController, 'index'])->name('home');
+        Route::get('/', [\App\Http\Controllers\Public\Default\HomeController::class,
+            'index'])->name('home');
 
-        $publicRubricController = "App\\Http\\Controllers\\Public\\{$siteLayout}\\RubricController";
-        Route::get('/rubrics/{url}', [$publicRubricController, 'show'])->where('url', '.*')->name('public.rubrics.show');
+        Route::get('/rubrics/{url}', [\App\Http\Controllers\Public\Default\RubricController::class,
+            'show'])->where('url', '.*')->name('public.rubrics.show');
 
-        $publicArticleController = "App\\Http\\Controllers\\Public\\{$siteLayout}\\ArticleController";
-        Route::get('/articles/{url}', [$publicArticleController, 'show'])->where('url', '.*')->name('public.articles.show');
+        Route::get('/articles/{url}', [\App\Http\Controllers\Public\Default\ArticleController::class,
+            'show'])->where('url', '.*')->name('public.articles.show');
 
-        $publicTagController = "App\\Http\\Controllers\\Public\\{$siteLayout}\\TagController";
-        Route::get('/tags/{url}', [$publicTagController, 'show'])->where('url', '.*')->name('public.tags.show');
+        Route::get('/tags/{url}', [\App\Http\Controllers\Public\Default\TagController::class,
+            'show'])->where('url', '.*')->name('public.tags.show');
 
-        $publicVideoController = "App\\Http\\Controllers\\Public\\{$siteLayout}\\VideoController";
-        Route::get('/videos/{url}', [$publicVideoController, 'show'])->where('url', '.*')->name('public.videos.show');
+        Route::get('/videos/{url}', [\App\Http\Controllers\Public\Default\VideoController::class, 'show'])->where('url', '.*')->name('public.videos.show');
 
         // TODO: Добавить другие публичные маршруты (поиск, контакты и т.д.)
 

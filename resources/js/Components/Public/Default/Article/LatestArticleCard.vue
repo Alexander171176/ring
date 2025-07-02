@@ -19,12 +19,13 @@ const getImgSrc = (imgPath) => {
           class="flex h-fit rounded-md">
 
         <!-- Изображение слева -->
-        <div class="overflow-hidden w-48 h-auto max-h-28 rounded-md border-2 border-gray-400">
+        <div class="overflow-hidden w-24 md:w-32 lg:w-48
+                    max-h-12 md:max-h-20 lg:max-h-28 rounded-md">
             <img
                 v-if="article.images && article.images.length > 0"
                 :src="article.images[0].webp_url || article.images[0].url"
                 :alt="article.title"
-                class="w-full h-auto object-cover"
+                class="w-full h-fit object-cover"
             />
             <img
                 v-else-if="article.img"

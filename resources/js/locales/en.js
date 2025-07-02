@@ -525,6 +525,7 @@ export default {
     view: 'View',
     viewingLogs: 'Viewing logs',
     views: 'Views',
+    watchAll: 'watch all',
     winner: 'Winner',
     vimeo: 'with Vimeo',
     wins: 'Number of wins',

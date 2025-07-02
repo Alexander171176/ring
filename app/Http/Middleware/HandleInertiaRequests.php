@@ -37,18 +37,25 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         $user = auth()->user();
-        $settings = Setting::all(); // Получение всех настроек из базы данных
-        $plugins = Plugin::all(); // Получение всех плагинов из базы данных
+
+        $isAdminRoute = $request->route()?->getName()
+            ? str_starts_with($request->route()->getName(), 'admin.')
+            : false;
 
         return [
             ...parent::share($request),
-            'plugins' => fn () => PluginSharedResource::collection($plugins)->toArray($request),
-            'settings' => fn () => SettingSharedResource::collection($settings)->toArray($request),
+
+            'settings' => fn () => $isAdminRoute
+                ? SettingSharedResource::collection(Setting::all())->toArray($request)
+                : null,
+
             'user' => fn () => $user ? (new UserSharedResource($user))->toArray($request) : null,
+
             'ziggy' => fn () => [
                 ...(new Ziggy)->toArray(),
                 'location' => $request->url(),
             ],
+
             'locale' => LaravelLocalization::getCurrentLocale(),
             'appUrl' => config('app.url'),
 
@@ -57,8 +64,8 @@ class HandleInertiaRequests extends Middleware
                 'error'   => fn () => $request->session()->get('error'),
                 'warning' => fn () => $request->session()->get('warning'),
                 'info'    => fn () => $request->session()->get('info'),
-                // Добавьте другие ключи flash, если используете
             ],
         ];
     }
+
 }

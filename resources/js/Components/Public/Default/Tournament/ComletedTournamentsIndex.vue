@@ -1,10 +1,9 @@
-<!-- Компонент: CompletedTournamentsIndex.vue -->
 <script setup>
-import {ref, computed, watch} from 'vue';
+import {computed} from 'vue';
 import {Link} from '@inertiajs/vue3';
 import {useI18n} from 'vue-i18n';
 
-const {t} = useI18n();
+const { t, locale } = useI18n();
 
 const props = defineProps({
     tournaments: {
@@ -13,44 +12,21 @@ const props = defineProps({
     }
 });
 
-const currentPage = ref(1);
-const sortOrder = ref('desc'); // 'asc' | 'desc'
-const itemsPerPage = 2;
-
 const completedTournaments = computed(() => {
     return [...props.tournaments]
         .filter(t => t.status === 'completed')
-        .sort((a, b) => {
-            const aTime = new Date(a.tournament_date_time);
-            const bTime = new Date(b.tournament_date_time);
-            return sortOrder.value === 'asc' ? aTime - bTime : bTime - aTime;
-        });
-});
-
-const totalPages = computed(() =>
-    Math.max(1, Math.ceil(completedTournaments.value.length / itemsPerPage))
-);
-
-const paginatedCompleted = computed(() => {
-    const start = (currentPage.value - 1) * itemsPerPage;
-    return completedTournaments.value.slice(start, start + itemsPerPage);
-});
-
-const prevPage = () => {
-    if (currentPage.value > 1) currentPage.value--;
-};
-const nextPage = () => {
-    if (currentPage.value < totalPages.value) currentPage.value++;
-};
-
-watch(sortOrder, () => {
-    currentPage.value = 1;
+        .sort((a, b) => new Date(b.tournament_date_time) - new Date(a.tournament_date_time));
 });
 
 function highlightVs(name) {
     const formatted = name.replaceAll('-', ' ');
     return formatted.replace(/\bvs\b/i, '<span class="text-red-400">vs</span>');
 }
+
+const linkHref = locale.value === 'kk'
+    ? '/rubrics/zhadnama'
+    : '/rubrics/raspisanie';
+
 </script>
 
 <template>
@@ -62,9 +38,9 @@ function highlightVs(name) {
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
-            <div v-for="tournament in paginatedCompleted" :key="tournament.id"
-                 class="overflow-hidden bg-gray-300
-                        border-2 border-blue-800 dark:border-slate-400
+            <div v-for="tournament in completedTournaments" :key="tournament.id"
+                 class="overflow-hidden bg-slate-100 dark:bg-blue-950 rounded-xl
+                        border-1 border-blue-800 dark:border-slate-400
                         shadow-md shadow-gray-400 dark:shadow-gray-900">
 
                 <div>
@@ -74,25 +50,28 @@ function highlightVs(name) {
                             <img :src="tournament.images[0].url"
                                  :alt="tournament.images[0].alt"
                                  class="w-full h-full object-cover"/>
+                            </div>
+                        <!-- Инфо -->
+                        <div class="bg-slate-100 dark:bg-blue-950
+                                    text-gray-700 dark:text-gray-100 text-center">
+                            <h3 class="uppercase font-bold text-sm py-1"
+                                v-html="highlightVs(tournament.name)"></h3>
 
-                            <!-- Инфо наложение -->
-                            <div class="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-center p-1">
-                                <h3 class="uppercase font-semibold text-sm"
-                                    v-html="highlightVs(tournament.name)"></h3>
+                            <div class="flex items-center justify-center
+                                        bg-blue-900 dark:bg-blue-700
+                                        text-xs text-slate-100 mt-1 py-1">
+                                <svg class="w-3 h-3 mr-1 fill-current" viewBox="0 0 16 16">
+                                    <path
+                                        d="M15 2h-2V0h-2v2H9V0H7v2H5V0H3v2H1a1 1 0 00-1 1v12a1 1 0 001 1h14a1 1 0 001-1V3a1 1 0 00-1-1zm-1 12H2V6h12v8z"></path>
+                                </svg>
+                                {{ tournament.tournament_date_time }}
+                            </div>
 
-                                <div class="flex items-center justify-center text-xs text-amber-400 mt-1">
-                                    <svg class="w-3 h-3 mr-1 fill-current" viewBox="0 0 16 16">
-                                        <path
-                                            d="M15 2h-2V0h-2v2H9V0H7v2H5V0H3v2H1a1 1 0 00-1 1v12a1 1 0 001 1h14a1 1 0 001-1V3a1 1 0 00-1-1zm-1 12H2V6h12v8z"></path>
-                                    </svg>
-                                    {{ tournament.tournament_date_time }}
-                                </div>
-
-                                <div v-if="tournament.venue" class="text-xs">
-                                    {{ tournament.venue }}
-                                </div>
+                            <div v-if="tournament.venue" class="text-xs py-1">
+                                {{ tournament.venue }}
                             </div>
                         </div>
+
                     </template>
 
                     <!-- Блок бойцов + Инфо в наложении -->
@@ -161,29 +140,16 @@ function highlightVs(name) {
 
         </div>
 
-        <!-- Пагинация -->
-        <div v-if="totalPages > 1"
-             class="flex flex-row justify-center items-center mt-6 space-y-0 space-x-2 text-xs font-semibold">
-
-            <button @click="prevPage" :disabled="currentPage === 1"
-                    class="px-3 py-1 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-                           border border-gray-400 dark:border-gray-200 disabled:opacity-50">
-                «
-            </button>
-
-            <span class="text-gray-700 dark:text-gray-200">{{ t('page') }}</span>
-
-            <input type="number" v-model.number="currentPage" :min="1" :max="totalPages"
-                   class="w-12 text-center px-1 py-1 border border-gray-400 dark:border-gray-200 rounded
-                          bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-xs"/>
-
-            <span class="text-gray-700 dark:text-gray-200">{{ t('of') }} {{ totalPages }}</span>
-
-            <button @click="nextPage" :disabled="currentPage === totalPages"
-                    class="px-3 py-1 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
-                           border border-gray-400 dark:border-gray-200 disabled:opacity-50">
-                »
-            </button>
+        <div class="w-full flex justify-center items-center py-4">
+            <Link
+                :href="linkHref"
+                class="inline-block px-2 py-0.5 rounded-sm text-sm font-semibold
+                       border border-slate-400 dark:border-slate-500
+                       bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100
+                       hover:text-red-400 dark:hover:text-red-300
+                       transition duration-200 ease-in-out shadow-sm hover:shadow-md">
+                {{ t('watchAll') }} »
+            </Link>
         </div>
 
     </div>

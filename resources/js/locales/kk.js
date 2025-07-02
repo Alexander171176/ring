@@ -527,6 +527,7 @@ export default {
     views: 'Көрулер саны',
     winner: 'Жеңімпаз',
     vimeo: 'Vimeo көмегімен',
+    watchAll: 'барлығын көру',
     wins: 'Жеңістер саны',
     winsByDecision: 'Төрешілер шешімімен жеңістер саны',
     winsByKo: 'Нокаутпен жеңістер саны',

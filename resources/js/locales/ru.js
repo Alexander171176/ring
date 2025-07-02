@@ -527,6 +527,7 @@ export default {
     views: 'Просмотры',
     winner: 'Победитель',
     vimeo: 'с Vimeo',
+    watchAll: 'смотреть все',
     wins: 'Количество побед',
     winsByDecision: 'Количество побед решением судей',
     winsByKo: 'Количество побед нокаутом',

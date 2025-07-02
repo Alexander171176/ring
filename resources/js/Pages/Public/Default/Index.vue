@@ -14,6 +14,7 @@ import HomeVideoGrid from "@/Components/Public/Default/Video/HomeVideoGrid.vue";
 
 const {t} = useI18n();
 const {locale} = usePage().props;
+
 const {
     rightArticles,
     latestArticles,

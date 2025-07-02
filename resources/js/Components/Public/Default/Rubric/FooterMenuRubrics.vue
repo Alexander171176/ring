@@ -38,14 +38,14 @@ watch(currentLocale, fetchRubrics);
     <template v-if="rubricColumns[0].length || rubricColumns[1].length">
 
         <div>
-            <h3 class="text-white text-sm font-bold mb-4 uppercase tracking-wide">
+            <h3 class="text-slate-700 dark:text-slate-100 text-sm font-bold mb-4">
                 {{ t('partitions') }}
             </h3>
             <ul class="space-y-1">
                 <li v-for="rubric in rubricColumns[0]" :key="rubric.id">
                     <Link :href="`/rubrics/${rubric.url}`"
                           class="flex items-center h-7 text-sm font-semibold
-                                 text-slate-300 hover:text-yellow-300
+                                 text-slate-700 hover:text-red-500
                                  dark:text-slate-300 dark:hover:text-yellow-300">
                         {{ rubric.title }}
                     </Link>
@@ -54,14 +54,12 @@ watch(currentLocale, fetchRubrics);
         </div>
 
         <div>
-            <h3 class="text-white text-sm font-bold mb-4 uppercase tracking-wide">
-                {{ t('partitions') }}
-            </h3>
+            <div class="mb-4 h-5"></div>
             <ul class="space-y-1">
                 <li v-for="rubric in rubricColumns[1]" :key="rubric.id">
                     <Link :href="`/rubrics/${rubric.url}`"
                           class="flex items-center h-7 text-sm font-semibold
-                                 text-slate-300 hover:text-yellow-300
+                                 text-slate-700 hover:text-red-500
                                  dark:text-slate-300 dark:hover:text-yellow-300">
                         {{ rubric.title }}
                     </Link>
@@ -71,7 +69,7 @@ watch(currentLocale, fetchRubrics);
                     <a href="https://www.nextgensports.live/" target="_blank"
                        rel="noopener noreferrer"
                        class="flex items-center h-7 text-sm font-semibold
-                              text-slate-300 hover:text-yellow-300
+                              text-slate-700 hover:text-red-500
                               dark:text-slate-300 dark:hover:text-yellow-300">
                         NextGenSports
                     </a>

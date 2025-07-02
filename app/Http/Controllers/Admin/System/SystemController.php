@@ -18,81 +18,54 @@ class SystemController extends Controller
      */
     public function clearCache(): RedirectResponse
     {
-        // TODO: Заменить на реальную проверку прав доступа, например:
-        // $this->authorize('clear cache');
-//        if (!auth()->user()?->can('manage system')) { // Пример проверки права
-//            abort(403, 'У вас нет прав для очистки кэша.');
-//        }
-
-        $messages = []; // Собираем сообщения о результате
+        $messages = [];
 
         try {
-            // 1. Очистка кэша Laravel
+            // 1. Очистка тегированного кэша (если используется tagging)
             try {
-                $success = Cache::flush();
-                if ($success) {
-                    $messages[] = 'Кэш приложения Laravel очищен.';
-                    Log::info('Laravel cache flushed by user: ' . auth()->id());
-                } else {
-                    // Это странно, но может случиться с некоторыми драйверами
-                    Log::warning('Cache::flush() returned false.');
-                    $messages[] = 'Не удалось полностью очистить кэш приложения Laravel.';
+                $tagGroups = ['rubrics', 'articles', 'banners', 'tournaments', 'videos'];
+                foreach ($tagGroups as $tag) {
+                    Cache::tags($tag)->flush();
+                    $messages[] = "Кэш с тегом [{$tag}] успешно очищен.";
                 }
+                Log::info('Очистка тегированного кэша выполнена пользователем: ' . auth()->id());
             } catch (Throwable $e) {
-                Log::error('Error flushing Laravel cache: ' . $e->getMessage());
-                $messages[] = 'Ошибка при очистке кэша приложения Laravel.';
+                Log::error('Ошибка при очистке тегированного кэша: ' . $e->getMessage());
+                $messages[] = 'Ошибка при очистке тегированного кэша.';
             }
 
-            // 2. Очистка Redis (ТОЛЬКО ЕСЛИ НЕОБХОДИМО И БЕЗОПАСНО)
-            // Проверяем, используется ли Redis ВООБЩЕ
-            $redisConfigured = false;
+            // 2. Полная очистка общего кэша Laravel
             try {
-                // Пытаемся получить соединение, не вызывая ошибку, если Redis не настроен
-                if (app()->has('redis') && Redis::connection() instanceof Connection) {
-                    $redisConfigured = true;
-                }
+                Cache::flush();
+                $messages[] = 'Глобальный кэш Laravel очищен.';
+                Log::info('Laravel Cache::flush() выполнен пользователем: ' . auth()->id());
             } catch (Throwable $e) {
-                Log::info('Redis connection not configured or available for flushing.');
+                Log::error('Ошибка Cache::flush(): ' . $e->getMessage());
+                $messages[] = 'Ошибка при полной очистке Laravel Cache.';
             }
 
-            // Если Redis настроен И является драйвером кэша по умолчанию (защита от случайной очистки)
-            if ($redisConfigured && config('cache.default') === 'redis') {
-                Log::warning('Attempting to flush Redis cache (flushdb/flushall) - ensure Redis is used ONLY for Laravel Cache!');
+            // 3. Очистка системных кэшей (конфигурация, маршруты, шаблоны)
+            $artisanCommands = [
+                'config:clear' => 'Кэш конфигурации очищен.',
+                'route:clear'  => 'Кэш маршрутов очищен.',
+                'view:clear'   => 'Кэш представлений очищен.',
+            ];
+
+            foreach ($artisanCommands as $command => $message) {
                 try {
-                    // Используем соединение, указанное для кэша, или default
-                    $redisConnectionName = config('cache.stores.redis.connection', 'default');
-                    // ПЫТАЕМСЯ ОЧИСТИТЬ ТОЛЬКО ТЕКУЩУЮ БАЗУ ДАННЫХ REDIS (безопаснее чем flushAll)
-                    // Убедитесь, что в config/database.php для вашего redis connection указана нужная 'database' => env('REDIS_CACHE_DB', 1)
-                    $connection = Redis::connection($redisConnectionName);
-                    // $connection->flushdb(); // Очищает ТОЛЬКО ТЕКУЩУЮ выбранную БД Redis
-                    // ИЛИ если вы ТОЧНО уверены:
-                    $connection->flushAll(); // Очищает ВСЕ БД на сервере Redis! ОЧЕНЬ ОПАСНО!
-                    $messages[] = 'Кэш Redis очищен (' . (isset($connection) && method_exists($connection, 'flushAll') ? 'flushAll' : 'flushdb') . ').'; // Уточняем команду
-                    Log::info('Redis cache flushed by user: ' . auth()->id() . ' on connection: ' . $redisConnectionName);
+                    Artisan::call($command);
+                    $messages[] = $message;
                 } catch (Throwable $e) {
-                    Log::error('Failed to flush Redis cache: ' . $e->getMessage());
-                    $messages[] = 'Ошибка при очистке кэша Redis.';
+                    Log::error("Ошибка Artisan [{$command}]: " . $e->getMessage());
+                    $messages[] = "Ошибка при {$message}";
                 }
-            } elseif ($redisConfigured) {
-                Log::info('Redis is configured but not the default cache driver. Laravel Cache::flush() should handle Redis cache with prefix. Skipping explicit Redis flush.');
-                // $messages[] = 'Кэш Redis (с префиксом) очищен через Cache::flush().'; // Можно добавить
             }
 
-
-            // 3. Очистка других кэшей Laravel
-            try { Artisan::call('config:clear'); $messages[] = 'Кэш конфигурации очищен.'; } catch (Throwable $e) { Log::error('Error clearing config cache: '.$e->getMessage()); $messages[] = 'Ошибка очистки кэша конфигурации.'; }
-            try { Artisan::call('route:clear'); $messages[] = 'Кэш маршрутов очищен.'; } catch (Throwable $e) { Log::error('Error clearing route cache: '.$e->getMessage()); $messages[] = 'Ошибка очистки кэша маршрутов.'; }
-            try { Artisan::call('view:clear'); $messages[] = 'Кэш представлений очищен.'; } catch (Throwable $e) { Log::error('Error clearing view cache: '.$e->getMessage()); $messages[] = 'Ошибка очистки кэша представлений.'; }
-            // try { Artisan::call('event:clear'); $messages[] = 'Кэш событий очищен.'; } catch (Throwable $e) { Log::error('Error clearing event cache: '.$e->getMessage()); $messages[] = 'Ошибка очистки кэша событий.'; }
-
-            // Собираем итоговое сообщение
-            $finalMessage = implode(' ', $messages);
-            return back()->with('success', $finalMessage ?: 'Кэш успешно очищен!'); // Если сообщений нет
-
+            return back()->with('success', implode(' ', $messages));
         } catch (Throwable $e) {
-            // Общая ошибка процесса
-            Log::critical('Critical error during cache clearing process: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            Log::critical('Критическая ошибка при очистке кэша: ' . $e->getMessage(), ['trace' => $e->getTrace()]);
             return back()->with('error', 'Произошла критическая ошибка при очистке кэша.');
         }
     }
+
 }

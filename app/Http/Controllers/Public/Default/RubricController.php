@@ -20,6 +20,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
@@ -53,132 +54,88 @@ class RubricController extends Controller
     public function show(string $url): Response
     {
         $locale = app()->getLocale();
+        $cacheMinutes = 10;
 
-        $videos = Video::where('activity', 1)
+        $rubric = Cache::remember("rubric:{$url}:{$locale}", $cacheMinutes, function () use ($url, $locale) {
+            return Rubric::with([
+                'sections' => function ($query) use ($locale) {
+                    $query->where('activity', 1)
+                        ->where('locale', $locale)
+                        ->orderBy('sort')
+                        ->with([
+                            'articles' => function ($query) use ($locale) {
+                                $query->where('activity', 1)
+                                    ->where('locale', $locale)
+                                    ->orderBy('sort', 'desc')
+                                    ->with(['images' => fn($q) => $q->orderBy('order'), 'tags']);
+                            },
+                        ]);
+                }
+            ])->where('url', $url)->firstOrFail();
+        });
+
+        $articles = Cache::remember("articles:{$locale}", $cacheMinutes, function () use ($locale) {
+            return Article::where('activity', 1)
+                ->where('locale', $locale)
+                ->where(fn($q) => $q->where('left', true)->orWhere('main', true)->orWhere('right', true))
+                ->with(['images' => fn($q) => $q->orderBy('order'), 'tags'])
+                ->orderBy('sort', 'desc')
+                ->get();
+        });
+
+        $leftArticles = $articles->where('left', true)->values();
+        $mainArticles = $articles->where('main', true)->values();
+        $rightArticles = $articles->where('right', true)->values();
+
+        $leftBanners = Cache::remember("banners:left", $cacheMinutes, fn() =>
+        Banner::where('activity', 1)->where('left', true)
+            ->with(['images' => fn($q) => $q->orderBy('order')])->orderBy('sort')->get()
+        );
+
+        $rightBanners = Cache::remember("banners:right", $cacheMinutes, fn() =>
+        Banner::where('activity', 1)->where('right', true)
+            ->with(['images' => fn($q) => $q->orderBy('order')])->orderBy('sort')->get()
+        );
+
+        $sectionBanners = Cache::remember("banners:sections:{$locale}", $cacheMinutes, function () use ($locale) {
+            return Banner::where('activity', 1)
+                ->whereHas('sections', fn($q) => $q->where('activity', 1)->where('locale', $locale))
+                ->with([
+                    'images' => fn($q) => $q->orderBy('order'),
+                    'sections' => fn($q) => $q->where('activity', 1)->where('locale', $locale),
+                ])
+                ->orderBy('sort')
+                ->get();
+        });
+
+        $allTournaments = Cache::remember("tournaments:{$locale}", $cacheMinutes, function () use ($locale) {
+            return Tournament::query()
+                ->active()
+                ->where('locale', $locale)
+                ->with(['fighterRed', 'fighterBlue', 'winner', 'videos', 'images' => fn($q) => $q->orderBy('order')])
+                ->orderBy('tournament_date_time', 'desc')
+                ->get();
+        });
+
+        $scheduledTournaments = $allTournaments->filter(fn($t) => $t->status === 'scheduled')->values();
+        $completedTournaments = $allTournaments->filter(fn($t) => $t->status === 'completed')->values();
+        $mainTournaments = $allTournaments->filter(fn($t) => $t->main === true)->values();
+
+        $videos = Cache::remember("videos:all", $cacheMinutes, fn() =>
+        Video::where('activity', 1)
+            ->with(['images' => fn($q) => $q->orderBy('order')])
             ->orderBy('published_at', 'desc')
-            ->with(['images' => fn($q) => $q->orderBy('order')])
-            ->get();
+            ->get()
+        );
 
-        $rubric = Rubric::with([
-            'sections' => function ($query) use ($locale) {
-                $query->where('activity', 1)
-                    ->where('locale', $locale)
-                    ->orderBy('sort', 'asc')
-                    ->with([
-                        'articles' => function ($query) use ($locale) {
-                            $query->where('activity', 1)
-                                ->where('locale', $locale)
-                                ->orderBy('sort', 'desc')
-                                ->with([
-                                    'images' => fn($query) => $query->orderBy('order', 'asc'),
-                                    'tags'
-                                ]);
-                        }
-                    ]);
-            }
-        ])
-            ->where('url', $url)
-            ->firstOrFail();
+        $activeArticlesCount = $rubric->sections->sum(fn($section) => $section->articles->count());
 
-        $sectionBanners = Banner::where('activity', 1)
-            ->whereHas('sections', fn($q) => $q->where('activity', 1)->where('locale', $locale))
-            ->with([
-                'images' => fn($q) => $q->orderBy('order'),
-                'sections' => fn($q) => $q->where('activity', 1)->where('locale', $locale),
-            ])
-            ->orderBy('sort')
-            ->get();
-
-        $activeArticlesCount = $rubric->sections->reduce(function ($carry, $section) {
-            return $carry + ($section->articles ? $section->articles->count() : 0);
-        }, 0);
-
-        $leftArticles = Article::where('activity', 1)
-            ->where('locale', $locale)
-            ->where('left', true)
-            ->orderBy('sort', 'desc')
-            ->with(['images' => fn($q) => $q->orderBy('order'), 'tags'])
-            ->get();
-
-        $mainArticles = Article::where('activity', 1)
-            ->where('locale', $locale)
-            ->where('main', true)
-            ->orderBy('sort', 'desc')
-            ->with(['images' => fn($q) => $q->orderBy('order'), 'tags'])
-            ->get();
-
-        $rightArticles = Article::where('activity', 1)
-            ->where('locale', $locale)
-            ->where('right', true)
-            ->orderBy('sort', 'desc')
-            ->with(['images' => fn($q) => $q->orderBy('order'), 'tags'])
-            ->get();
-
-        $leftBanners = Banner::where('activity', 1)
-            ->where('left', true)
-            ->orderBy('sort', 'desc')
-            ->with(['images' => fn($q) => $q->orderBy('order')])
-            ->get();
-
-        $rightBanners = Banner::where('activity', 1)
-            ->where('right', true)
-            ->orderBy('sort', 'desc')
-            ->with(['images' => fn($q) => $q->orderBy('order')])
-            ->get();
-
-        $scheduledTournaments = Tournament::query()
-            ->active()
-            ->where('locale', $locale)
-            ->scheduled()
-            ->orderBy('tournament_date_time', 'desc')
-            ->with([
-                'fighterRed',
-                'fighterBlue',
-                'images' => fn($q) => $q->orderBy('order')
-            ])
-            ->get();
-
-        $completedTournaments = Tournament::query()
-            ->active()
-            ->where('locale', $locale)
-            ->completed()
-            ->orderBy('tournament_date_time', 'desc')
-            ->with([
-                'fighterRed',
-                'fighterBlue',
-                'winner',
-                'images' => fn($q) => $q->orderBy('order')
-            ])
-            ->get();
-
-        $mainTournaments = Tournament::query()
-            ->active()
-            ->where('locale', $locale)
-            ->where('main', true)
-            ->orderBy('tournament_date_time', 'desc')
-            ->with([
-                'videos',
-                'fighterRed',
-                'fighterBlue',
-                'images' => fn($q) => $q->orderBy('order'),
-            ])
-            ->get();
-
-        // Получаем кастомные компоненты
         $components = config('rubrics.custom_components', []);
-
-        // Определяем путь компонента
         $component = $components[$rubric->url] ?? 'Public/Default/Rubrics/Show';
-
-        // Полный путь к физическому .vue-файлу
         $vuePath = resource_path("js/Pages/{$component}.vue");
-
-        // Проверка существования .vue файла
         if (!File::exists($vuePath)) {
-            $component = 'Public/Default/Rubrics/Show'; // fallback
+            $component = 'Public/Default/Rubrics/Show';
         }
-
-        Log::info("Компонент для рубрики '{$rubric->url}': {$component}");
 
         return Inertia::render($component, [
             'rubric' => new RubricResource($rubric),
@@ -191,14 +148,9 @@ class RubricController extends Controller
             'rightArticles' => ArticleResource::collection($rightArticles),
             'leftBanners' => BannerResource::collection($leftBanners),
             'rightBanners' => BannerResource::collection($rightBanners),
-
-            // 🔻 Добавим турниры по статусам:
             'scheduledTournaments' => TournamentResource::collection($scheduledTournaments),
             'completedTournaments' => TournamentResource::collection($completedTournaments),
-
-            // 🔻 Добавим главный турнир
             'mainTournaments' => TournamentResource::collection($mainTournaments),
-
             'videos' => VideoResource::collection($videos),
         ]);
     }
