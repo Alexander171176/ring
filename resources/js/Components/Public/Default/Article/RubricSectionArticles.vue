@@ -1,7 +1,7 @@
 <script setup>
-import {ref, computed, watch} from 'vue';
-import {Link, usePage} from '@inertiajs/vue3';
+import {Link, router, usePage} from '@inertiajs/vue3';
 import {useI18n} from 'vue-i18n';
+import {ref, onMounted, computed, watch} from 'vue';
 import ArticleImageSlider from "@/Components/Public/Default/Article/ArticleImageSlider.vue";
 
 const {t} = useI18n();
@@ -16,11 +16,8 @@ const getImgSrc = (imgPath) => {
 
 const props = defineProps({
     articles: Array,
-    itemsPerPage: {
-        type: Number,
-        default: 2,
-    },
-    sectionTitle: String,
+    pagination: Object,
+    baseUrl: String,
 });
 
 const formatDate = (dateString) => {
@@ -31,46 +28,27 @@ const formatDate = (dateString) => {
     return `${day}.${month}.${year}`;
 };
 
-const viewMode = ref('grid'); // horizontal | grid
+const viewMode = ref('horizontal');
+
+onMounted(() => {
+    const saved = localStorage.getItem('articleViewMode');
+    if (saved === 'grid') viewMode.value = 'grid';
+});
 
 const setViewMode = (mode) => {
     viewMode.value = mode;
+    localStorage.setItem('articleViewMode', mode);
 };
 
-const currentPage = ref(1);
-const sortOrder = ref('desc'); // 'asc' | 'desc'
-
-// Сортированные статьи
-const sortedArticles = computed(() => {
-    return [...props.articles].sort((a, b) => {
-        const aSort = a.sort ?? 0;
-        const bSort = b.sort ?? 0;
-        return sortOrder.value === 'asc' ? aSort - bSort : bSort - aSort;
-    });
-});
-
-const totalPages = computed(() => {
-    return Math.ceil(sortedArticles.value.length / props.itemsPerPage);
-});
-
-const paginatedArticles = computed(() => {
-    const start = (currentPage.value - 1) * props.itemsPerPage;
-    return sortedArticles.value.slice(start, start + props.itemsPerPage);
-});
-
-// Перелистывание
-const nextPage = () => {
-    if (currentPage.value < totalPages.value) currentPage.value++;
+const goToPage = (page) => {
+    if (page >= 1 && page <= props.pagination.lastPage) {
+        router.get(props.baseUrl, {page}, {
+            preserveScroll: true,
+            preserveState: false, // ⬅ ОБЯЗАТЕЛЬНО!
+            only: ['articles', 'pagination'], // ⬅ Чтобы ничего лишнего не дергать
+        });
+    }
 };
-const prevPage = () => {
-    if (currentPage.value > 1) currentPage.value--;
-};
-
-// Следим за сменой сортировки — сбрасываем на первую страницу
-watch(sortOrder, () => {
-    currentPage.value = 1;
-});
-
 </script>
 
 <template>
@@ -85,15 +63,6 @@ watch(sortOrder, () => {
                 </h2>
 
                 <div class="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
-
-                    <!-- Сортировка -->
-                    <select v-model="sortOrder"
-                            class="px-3 py-1 rounded-sm w-full sm:w-44
-                     border border-gray-400 dark:border-gray-200
-                     dark:bg-gray-700 text-sm text-slate-900 dark:text-slate-100">
-                        <option value="asc">{{ t('idAsc') }}</option>
-                        <option value="desc">{{ t('idDesc') }}</option>
-                    </select>
 
                     <!-- Переключатель вида -->
                     <div class="flex justify-end items-center space-x-2">
@@ -129,7 +98,7 @@ watch(sortOrder, () => {
             <div v-if="viewMode === 'grid'"
                  class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
 
-                <div v-for="article in paginatedArticles" :key="article.id"
+                <div v-for="article in articles" :key="article.id"
                      class="p-2 rounded-sm shadow-sm
                        overflow-hidden hover:bg-slate-50 dark:hover:bg-slate-800
                        hover:shadow-lg hover:shadow-gray-400 dark:hover:shadow-gray-700">
@@ -194,9 +163,7 @@ watch(sortOrder, () => {
             <!-- Внутренний контейнер horizontal -->
             <div v-else class="space-y-4">
 
-                <div
-                    v-for="article in paginatedArticles"
-                    :key="article.id"
+                <div v-for="article in articles" :key="article.id"
                     class="col-span-full flex flex-row items-start space-x-3 p-2 shadow-sm rounded-sm
                        overflow-hidden hover:bg-slate-50 dark:hover:bg-slate-800
                        hover:shadow-lg hover:shadow-gray-400 dark:hover:shadow-gray-700">
@@ -251,34 +218,34 @@ watch(sortOrder, () => {
         </div>
 
         <!-- Пагинация -->
-        <div v-if="totalPages > 1"
-             class="flex justify-center items-center mt-4 space-x-2 text-xs font-semibold">
+        <div class="flex items-center justify-center mt-6 space-x-2 text-sm font-medium">
 
             <!-- Кнопка назад -->
-            <button @click="prevPage" :disabled="currentPage === 1"
+            <button @click="goToPage(pagination.currentPage - 1)"
+                    :disabled="pagination.currentPage === 1"
                     class="px-3 py-1 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
                            border border-gray-400 dark:border-gray-200 disabled:opacity-50">
                 «
             </button>
 
-            <!-- Инпут страницы -->
-            <span class="text-gray-700 dark:text-gray-200">{{ t('page') }}</span>
-            <input
-                type="number"
-                v-model.number="currentPage"
-                :min="1"
-                :max="totalPages"
-                class="w-12 text-center px-1 py-1 border border-gray-400 dark:border-gray-200 rounded
-                       bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-xs"
-            />
-            <span class="text-gray-700 dark:text-gray-200">{{ t('of') }} {{ totalPages }}</span>
+            <input type="number"
+                   :value="pagination.currentPage"
+                   @change="e => goToPage(Number(e.target.value))"
+                   :min="1"
+                   :max="pagination.lastPage"
+                   class="w-16 text-center px-3 py-1.5 border border-gray-400 dark:border-gray-200 rounded
+                       bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-xs"/>
+
+            <span>/ {{ pagination.lastPage }}</span>
 
             <!-- Кнопка вперёд -->
-            <button @click="nextPage" :disabled="currentPage === totalPages"
+            <button @click="goToPage(pagination.currentPage + 1)"
+                    :disabled="pagination.currentPage === pagination.lastPage"
                     class="px-3 py-1 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
                            border border-gray-400 dark:border-gray-200 disabled:opacity-50">
                 »
             </button>
+
         </div>
 
     </div>

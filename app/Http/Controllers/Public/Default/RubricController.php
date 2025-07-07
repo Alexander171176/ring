@@ -18,6 +18,7 @@ use App\Models\Admin\Tournament\Tournament;
 use App\Models\Admin\Video\Video;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
@@ -51,50 +52,66 @@ class RubricController extends Controller
     /**
      * Страница показа рубрики
      */
-    public function show(string $url): Response
+    public function show(Request $request, string $url): Response
     {
         $locale = app()->getLocale();
         $cacheMinutes = 10;
+        $search = trim($request->input('search'));
+        $normalizedSearch = str_replace(' ', '-', mb_strtolower($search)); // 👈 добавлено
 
-        $rubric = Cache::remember("rubric:{$url}:{$locale}", $cacheMinutes, function () use ($url, $locale) {
-            return Rubric::with([
-                'sections' => function ($query) use ($locale) {
-                    $query->where('activity', 1)
-                        ->where('locale', $locale)
-                        ->orderBy('sort')
-                        ->with([
-                            'articles' => function ($query) use ($locale) {
-                                $query->where('activity', 1)
-                                    ->where('locale', $locale)
-                                    ->orderBy('sort', 'desc')
-                                    ->with(['images' => fn($q) => $q->orderBy('order'), 'tags']);
-                            },
-                        ]);
-                }
-            ])->where('url', $url)->firstOrFail();
-        });
+        $currentPageArticles = (int) $request->input('page_articles', 1);
+        $currentPageScheduled = (int) $request->input('page_scheduled', 1);
+        $currentPageCompleted = (int) $request->input('page_completed', 1);
 
-        $articles = Cache::remember("articles:{$locale}", $cacheMinutes, function () use ($locale) {
-            return Article::where('activity', 1)
+        $perPage = 8;
+
+        $rubric = Rubric::with([
+            'sections' => fn($q) => $q
+                ->where('activity', 1)
                 ->where('locale', $locale)
-                ->where(fn($q) => $q->where('left', true)->orWhere('main', true)->orWhere('right', true))
-                ->with(['images' => fn($q) => $q->orderBy('order'), 'tags'])
-                ->orderBy('sort', 'desc')
+                ->orderBy('sort')
+        ])->where('url', $url)->firstOrFail();
+
+        $allArticles = $rubric->sections->flatMap(function ($section) use ($locale, $search) {
+            return $section->articles()
+                ->where('activity', 1)
+                ->where('locale', $locale)
+                ->when($search, fn($q) => $q->where('title', 'like', "%$search%"))
+                ->with([
+                    'images' => fn($q) => $q->orderBy('order'),
+                    'tags'
+                ])
                 ->get();
         });
 
-        $leftArticles = $articles->where('left', true)->values();
-        $mainArticles = $articles->where('main', true)->values();
-        $rightArticles = $articles->where('right', true)->values();
+        $allArticles = $allArticles->sortByDesc('published_at')->values();
+
+        $paginatedArticles = new LengthAwarePaginator(
+            $allArticles->forPage($currentPageArticles, $perPage),
+            $allArticles->count(),
+            $perPage,
+            $currentPageArticles,
+            [
+                'path' => request()->url(),
+                'pageName' => 'page_articles',
+                'query' => request()->query(),
+            ]
+        );
+
+        $leftArticles = $paginatedArticles->where('left', true)->values();
+        $mainArticles = $paginatedArticles->where('main', true)->values();
+        $rightArticles = $paginatedArticles->where('right', true)->values();
 
         $leftBanners = Cache::remember("banners:left", $cacheMinutes, fn() =>
         Banner::where('activity', 1)->where('left', true)
-            ->with(['images' => fn($q) => $q->orderBy('order')])->orderBy('sort')->get()
+            ->with(['images' => fn($q) => $q->orderBy('order')])
+            ->orderBy('sort')->get()
         );
 
         $rightBanners = Cache::remember("banners:right", $cacheMinutes, fn() =>
         Banner::where('activity', 1)->where('right', true)
-            ->with(['images' => fn($q) => $q->orderBy('order')])->orderBy('sort')->get()
+            ->with(['images' => fn($q) => $q->orderBy('order')])
+            ->orderBy('sort')->get()
         );
 
         $sectionBanners = Cache::remember("banners:sections:{$locale}", $cacheMinutes, function () use ($locale) {
@@ -108,17 +125,72 @@ class RubricController extends Controller
                 ->get();
         });
 
-        $allTournaments = Cache::remember("tournaments:{$locale}", $cacheMinutes, function () use ($locale) {
-            return Tournament::query()
-                ->active()
+        // ✅ Теперь поиск по name турниров с тире
+        $allTournaments = $search
+            ? Tournament::active()
                 ->where('locale', $locale)
-                ->with(['fighterRed', 'fighterBlue', 'winner', 'videos', 'images' => fn($q) => $q->orderBy('order')])
-                ->orderBy('tournament_date_time', 'desc')
-                ->get();
-        });
+                ->where('name', 'like', "%{$normalizedSearch}%")
+                ->with([
+                    'fighterRed',
+                    'fighterBlue',
+                    'winner',
+                    'videos',
+                    'images' => fn($q) => $q->orderBy('order'),
+                ])
+                ->orderByDesc('tournament_date_time')
+                ->get()
+            : Cache::remember("tournaments:{$locale}", $cacheMinutes, function () use ($locale) {
+                return Tournament::active()
+                    ->where('locale', $locale)
+                    ->with([
+                        'fighterRed',
+                        'fighterBlue',
+                        'winner',
+                        'videos',
+                        'images' => fn($q) => $q->orderBy('order'),
+                    ])
+                    ->orderByDesc('tournament_date_time')
+                    ->get();
+            });
 
-        $scheduledTournaments = $allTournaments->filter(fn($t) => $t->status === 'scheduled')->values();
-        $completedTournaments = $allTournaments->filter(fn($t) => $t->status === 'completed')->values();
+        $scheduledAll = $allTournaments->filter(function ($t) use ($search) {
+            $tournamentName = mb_strtolower(str_replace('-', ' ', $t->name));
+            $searchTerm = mb_strtolower($search);
+            return $t->status === 'scheduled' &&
+                (!$search || str_contains($tournamentName, $searchTerm));
+        })->values();
+
+        $completedAll = $allTournaments->filter(function ($t) use ($search) {
+            $tournamentName = mb_strtolower(str_replace('-', ' ', $t->name));
+            $searchTerm = mb_strtolower($search);
+            return $t->status === 'completed' &&
+                (!$search || str_contains($tournamentName, $searchTerm));
+        })->values();
+
+        $paginatedScheduled = new LengthAwarePaginator(
+            $scheduledAll->forPage($currentPageScheduled, $perPage),
+            $scheduledAll->count(),
+            $perPage,
+            $currentPageScheduled,
+            [
+                'path' => request()->url(),
+                'pageName' => 'page_scheduled',
+                'query' => request()->query(),
+            ]
+        );
+
+        $paginatedCompleted = new LengthAwarePaginator(
+            $completedAll->forPage($currentPageCompleted, $perPage),
+            $completedAll->count(),
+            $perPage,
+            $currentPageCompleted,
+            [
+                'path' => request()->url(),
+                'pageName' => 'page_completed',
+                'query' => request()->query(),
+            ]
+        );
+
         $mainTournaments = $allTournaments->filter(fn($t) => $t->main === true)->values();
 
         $videos = Cache::remember("videos:all", $cacheMinutes, fn() =>
@@ -128,7 +200,7 @@ class RubricController extends Controller
             ->get()
         );
 
-        $activeArticlesCount = $rubric->sections->sum(fn($section) => $section->articles->count());
+        $activeArticlesCount = $allArticles->count();
 
         $components = config('rubrics.custom_components', []);
         $component = $components[$rubric->url] ?? 'Public/Default/Rubrics/Show';
@@ -142,16 +214,39 @@ class RubricController extends Controller
             'sections' => SectionResource::collection($rubric->sections),
             'sectionBanners' => BannerResource::collection($sectionBanners),
             'sectionsCount' => $rubric->sections->count(),
+            'articles' => ArticleResource::collection($paginatedArticles),
+            'pagination' => [
+                'currentPage' => $paginatedArticles->currentPage(),
+                'lastPage' => $paginatedArticles->lastPage(),
+                'perPage' => $paginatedArticles->perPage(),
+                'total' => $paginatedArticles->total(),
+            ],
+            'scheduledTournaments' => TournamentResource::collection($paginatedScheduled),
+            'completedTournaments' => TournamentResource::collection($paginatedCompleted),
+            'mainTournaments' => TournamentResource::collection($mainTournaments),
+            'videos' => VideoResource::collection($videos),
+            'locale' => $locale,
             'activeArticlesCount' => $activeArticlesCount,
+            'filters' => [
+                'search' => $search,
+            ],
             'leftArticles' => ArticleResource::collection($leftArticles),
             'mainArticles' => ArticleResource::collection($mainArticles),
             'rightArticles' => ArticleResource::collection($rightArticles),
             'leftBanners' => BannerResource::collection($leftBanners),
             'rightBanners' => BannerResource::collection($rightBanners),
-            'scheduledTournaments' => TournamentResource::collection($scheduledTournaments),
-            'completedTournaments' => TournamentResource::collection($completedTournaments),
-            'mainTournaments' => TournamentResource::collection($mainTournaments),
-            'videos' => VideoResource::collection($videos),
+            'scheduledPagination' => [
+                'currentPage' => $paginatedScheduled->currentPage(),
+                'lastPage' => $paginatedScheduled->lastPage(),
+                'perPage' => $paginatedScheduled->perPage(),
+                'total' => $paginatedScheduled->total(),
+            ],
+            'completedPagination' => [
+                'currentPage' => $paginatedCompleted->currentPage(),
+                'lastPage' => $paginatedCompleted->lastPage(),
+                'perPage' => $paginatedCompleted->perPage(),
+                'total' => $paginatedCompleted->total(),
+            ],
         ]);
     }
 
