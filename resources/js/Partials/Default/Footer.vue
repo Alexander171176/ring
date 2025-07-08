@@ -4,6 +4,13 @@ import {Link} from "@inertiajs/vue3";
 import FooterMenuRubrics from "@/Components/Public/Default/Rubric/FooterMenuRubrics.vue";
 
 const {t} = useI18n();
+
+function scrollToTop() {
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    });
+}
 </script>
 
 <template>
@@ -161,13 +168,19 @@ const {t} = useI18n();
                 </div>
 
             </div>
-            <!-- Изображение перед </footer> -->
-            <div class="w-full mt-4">
-                <img
-                    src="/storage/image-footer.jpg"
-                    alt="Footer Banner"
-                    class="w-full h-fit object-contain"
-                />
+            <!-- Изображение -->
+            <div class="w-full mt-4 text-center">
+                <button
+                    @click="scrollToTop"
+                    class="w-full"
+                    title="Наверх"
+                >
+                    <img
+                        src="/storage/image-footer.jpg"
+                        alt="Footer Banner"
+                        class="w-full h-fit object-contain cursor-pointer transition hover:opacity-80"
+                    />
+                </button>
             </div>
         </div>
     </footer>
