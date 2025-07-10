@@ -16,6 +16,7 @@ const {
     completedPagination
 } = usePage().props;
 
+// console.log('tournament videos:', tournament.videos);
 // console.log('scheduledTournaments:', scheduledTournaments);
 // console.log('completedTournaments:', completedTournaments);
 // console.log('scheduledPagination:', scheduledPagination);
@@ -166,6 +167,7 @@ const winnerFighter = computed(() => {
                     :tournament="tournament"
                     :winnerFighter="winnerFighter"
                     :highlight-vs="highlightVs"
+                    :videos="tournament.videos"
                 />
 
                 <!-- Таймер -->

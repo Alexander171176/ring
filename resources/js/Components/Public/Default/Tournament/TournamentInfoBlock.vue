@@ -1,27 +1,116 @@
 <script setup>
-import { computed } from 'vue';
+import {computed, ref} from 'vue';
 import { useI18n } from 'vue-i18n';
+import {usePage} from "@inertiajs/vue3";
+
+const { t } = useI18n();
+
+const { appUrl } = usePage().props;
 
 const props = defineProps({
     tournament: Object,
     winnerFighter: String,
     highlightVs: Function,
+    videos: Array
 });
 
-const { t } = useI18n();
+// console.log('Received videos:', props.videos);
+
+const getVideoUrl = (video) => {
+    const source = video.source_type;
+    try {
+        if (source === 'youtube') {
+            const url = new URL(video.external_video_id);
+            const videoId = url.searchParams.get('v');
+            return `https://www.youtube.com/embed/${videoId}`;
+        }
+        if (source === 'vimeo') {
+            const url = new URL(video.external_video_id);
+            const videoId = url.pathname.split('/').pop();
+            return `https://player.vimeo.com/video/${videoId}`;
+        }
+        if (source === 'local') {
+            if (video.video_url) return video.video_url;
+            return `${appUrl}/storage/${video.external_video_id}`;
+        }
+        if (source === 'code') {
+            return video.video_code || video.embed_code || null;
+        }
+    } catch (e) {
+        console.error('❌ Ошибка разбора видео:', e);
+        return null;
+    }
+    return null;
+};
+
+const activeSlide = ref(0); // 0 — это изображение, 1+ — это видео
+
+
 </script>
 
 <template>
     <div class="flex flex-col lg:flex-row lg:gap-6 items-start w-full">
 
-        <!-- Левая колонка — изображение -->
+        <!-- Левая колонка — слайдер изображение/видео -->
         <div v-if="tournament.images?.length" class="w-full lg:w-2/3">
-            <img :src="tournament.images[0].url"
-                 :alt="tournament.images[0].alt"
-                 class="w-full h-auto object-cover rounded-xl
-                        border-2 border-gray-400 dark:border-gray-600
-                        shadow-lg shadow-gray-400 dark:shadow-gray-950" />
 
+            <!-- Слайд: либо изображение, либо видео -->
+            <div class="relative w-full aspect-video bg-black rounded-xl overflow-hidden shadow-lg border-2 border-gray-400 dark:border-gray-600">
+
+                <!-- Изображение турнира -->
+                <img
+                    v-if="activeSlide === 0"
+                    :src="tournament.images[0].url"
+                    :alt="tournament.images[0].alt"
+                    class="w-full h-full object-cover"
+                />
+
+                <!-- Видео: отображается если выбрано -->
+                <template v-else-if="activeSlide > 0 && videos?.[activeSlide - 1]">
+                    <template v-if="videos[activeSlide - 1].source_type === 'code'">
+                        <div class="w-full h-full" v-html="getVideoUrl(videos[activeSlide - 1])"></div>
+                    </template>
+
+                    <iframe v-else-if="['youtube', 'vimeo'].includes(videos[activeSlide - 1].source_type)"
+                            class="w-full h-full"
+                            :src="getVideoUrl(videos[activeSlide - 1])"
+                            frameborder="0"
+                            allow="fullscreen; picture-in-picture"
+                            allowfullscreen>
+                    </iframe>
+
+                    <video v-else-if="videos[activeSlide - 1].source_type === 'local'"
+                           class="w-full h-full object-contain"
+                           controls>
+                        <source :src="getVideoUrl(videos[activeSlide - 1])" type="video/mp4" />
+                        {{ t('videoNotSupported') }}
+                    </video>
+                </template>
+
+                <!-- 🔘 Точки навигации: только если есть видео -->
+                <div v-if="videos?.length"
+                     class="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex justify-center items-center gap-2 z-10">
+
+                    <!-- Первая точка — изображение -->
+                    <button
+                        @click="activeSlide = 0"
+                        class="w-3 h-3 rounded-full transition"
+                        :class="activeSlide === 0 ? 'bg-red-500' : 'bg-gray-400 dark:bg-gray-600'">
+                    </button>
+
+                    <!-- Остальные точки — видео -->
+                    <button
+                        v-for="(video, index) in videos"
+                        :key="video.id"
+                        @click="activeSlide = index + 1"
+                        class="w-3 h-3 rounded-full transition"
+                        :class="activeSlide === index + 1 ? 'bg-red-500' : 'bg-gray-400 dark:bg-gray-600'">
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- Текст под слайдером -->
             <div v-if="tournament.short" class="my-2 xl:my-3">
                 <p class="text-sm text-slate-900 dark:text-slate-100 px-1 py-2">
                     {{ tournament.short }}
@@ -82,5 +171,6 @@ const { t } = useI18n();
             </div>
 
         </div>
+
     </div>
 </template>
