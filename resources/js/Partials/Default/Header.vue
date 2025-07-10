@@ -103,6 +103,31 @@ const placeholderClasses = computed(() => ({
     'header-placeholder': true,
     'active': isNavFixed.value,
 }));
+
+const showUserModal = ref(false);
+
+onMounted(() => {
+    document.addEventListener('click', onClickOutside);
+});
+onUnmounted(() => {
+    document.removeEventListener('click', onClickOutside);
+});
+
+const onClickOutside = (e) => {
+    nextTick(() => {
+        const modal = document.querySelector('.user-modal-dropdown');
+        const button = document.querySelector('.user-profile-button');
+        if (
+            modal &&
+            !modal.contains(e.target) &&
+            button &&
+            !button.contains(e.target)
+        ) {
+            showUserModal.value = false;
+        }
+    });
+};
+
 </script>
 
 <template>
@@ -112,6 +137,7 @@ const placeholderClasses = computed(() => ({
          class="py-0 bg-blue-950
                 border-t border-b border-dashed border-slate-100 dark:border-slate-100
                 relative z-10">
+
         <div class="max-w-12xl mx-auto px-4 sm:px-3 md:px-2 xl:px-6">
             <div class="flex items-center justify-between h-8">
 
@@ -130,41 +156,60 @@ const placeholderClasses = computed(() => ({
                 </div>
 
                 <div class="ml-2 flex items-center">
-                    <LocaleSelectOption v-model="selectedLocale" class="mr-1" />
-                    <div v-if="canLogin" class="flex items-center mr-0">
 
-                        <Link v-if="auth.user" :href="route('profile.show')" :title="t('profile')"
-                              class="transition duration-300 text-white hover:text-blue-600">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">
+                    <LocaleSelectOption v-model="selectedLocale" class="mr-1" />
+
+                    <div v-if="canLogin" class="relative flex items-center mr-0">
+
+                        <!-- Иконка профиля -->
+                        <button @click="showUserModal = !showUserModal"
+                                class="user-profile-button text-white hover:text-blue-600 transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24">
                                 <path fill="currentColor" d="M12 3.75a3.75 3.75 0 1 0 0 7.5a3.75 3.75 0 0 0 0-7.5m-4 9.5A3.75 3.75 0 0 0 4.25 17v1.188c0 .754.546 1.396 1.29 1.517c4.278.699 8.642.699 12.92 0a1.537 1.537 0 0 0 1.29-1.517V17A3.75 3.75 0 0 0 16 13.25h-.34c-.185 0-.369.03-.544.086l-.866.283a7.251 7.251 0 0 1-4.5 0l-.866-.283a1.752 1.752 0 0 0-.543-.086z"/>
                             </svg>
-                        </Link>
+                        </button>
 
-                        <form v-if="auth.user" @submit.prevent="logout">
-                            <LogoutIcon :title="t('logout')" />
-                        </form>
+                        <!-- Модалка со ссылками -->
+                        <div v-if="showUserModal"
+                             class="user-modal-dropdown absolute right-0 top-8 w-36
+                                    bg-gray-50 dark:bg-gray-600
+                                    border border-gray-300 dark:border-gray-700 rounded
+                                    shadow-md shadow-gray-400 dark:shadow-gray-800 z-50 text-sm">
 
-                        <template v-else>
-                            <Link v-if="canRegister" :href="route('register')" :title="t('register')"
-                                  class="flex justify-center items-center p-0 mr-1">
-                                <svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 24 24"
-                                     class="text-white hover:text-blue-600">
-                                    <path fill="currentColor" d="M23,1H1A1,1,0,0,0,0,2V22a1,1,0,0,0,1,1H23a1,1,0,0,0,1-1V2A1,1,0,0,0,23,1ZM7,3A1,1,0,1,1,6,4,1,1,0,0,1,7,3ZM3,3A1,1,0,1,1,2,4,1,1,0,0,1,3,3ZM22,21H2V7H22Z"></path>
-                                    <path fill="currentColor" d="M20.851,12.475A1,1,0,0,0,20,12H11.445a4,4,0,1,0,0,4H14l1.5,1L17,16h2a1,1,0,0,0,.895-.553l1-2A1,1,0,0,0,20.851,12.475ZM7,15a1,1,0,1,1,1-1A1,1,0,0,1,7,15Z"></path>
-                                </svg>
-                            </Link>
-                            <Link :href="route('login')" :title="t('login')"
-                                  class="flex justify-center items-center p-0 mr-1">
-                                <svg xmlns="http://www.w3.org/2000/svg" height="18" width="18" viewBox="0 0 24 24"
-                                     class="text-white hover:text-blue-600">
-                                    <path fill="currentColor" d="M20,10H4c-1.105,0-2,.895-2,2v10c0,1.105,.895,2,2,2H20c1.105,0,2-.895,2-2V12c0-1.105-.895-2-2-2Zm-8,9c-1.105,0-2-.895-2-2s.895-2,2-2,2,.895,2,2-.895,2-2,2Z"></path>
-                                    <path fill="currentColor" d="M18,8h-2v-2c.023-2.184-1.727-3.974-3.911-4h-.042c-2.197-.038-4.009,1.711-4.047,3.908,0,.001,0,.002,0,.003v2.089h-2v-2.1C6.033,2.636,8.685,.006,11.949,0h.061c3.302-.006,5.984,2.666,5.99,5.968,0,.014,0,.028,0,.042v1.99Z"></path>
-                                </svg>
-                            </Link>
-                        </template>
-
+                            <div class="flex flex-col p-2 space-y-1">
+                                <template v-if="auth.user">
+                                    <Link :href="route('profile.show')"
+                                          class="text-slate-900 dark:text-slate-100
+                                                 hover:text-blue-600 dark:hover:text-blue-400 font-semibold">
+                                        {{ t('profile') }}
+                                    </Link>
+                                    <form @submit.prevent="logout">
+                                        <button type="submit"
+                                                class="text-left w-full
+                                                       text-slate-900 dark:text-slate-100
+                                                       hover:text-blue-600 dark:hover:text-blue-400 font-semibold">
+                                            {{ t('logout') }}
+                                        </button>
+                                    </form>
+                                </template>
+                                <template v-else>
+                                    <Link :href="route('login')"
+                                          class="text-slate-900 dark:text-slate-100
+                                                 hover:text-blue-600 dark:hover:text-blue-400 font-semibold">
+                                        {{ t('login') }}
+                                    </Link>
+                                    <Link v-if="canRegister" :href="route('register')"
+                                          class="text-slate-900 dark:text-slate-100
+                                                 hover:text-blue-600 dark:hover:text-blue-400 font-semibold">
+                                        {{ t('register') }}
+                                    </Link>
+                                </template>
+                            </div>
+                        </div>
                     </div>
+
                     <ThemeToggle/>
+
                 </div>
 
                 <div class="-me-2 flex items-center md:hidden">
@@ -188,20 +233,26 @@ const placeholderClasses = computed(() => ({
         </div>
 
         <div :class="{ block: showingNavigationDropdown, hidden: !showingNavigationDropdown }" class="md:hidden">
+
             <MobileTopMenuRubrics :isOpen="showingNavigationDropdown" />
+
             <div v-if="canLogin" class="pb-1 space-y-1 bg-gray-200 dark:bg-gray-700">
+
                 <ResponsiveNavLink v-if="auth.user" :href="route('dashboard')">
                     {{ t('profile') }}
                 </ResponsiveNavLink>
+
                 <form v-if="auth.user" @submit.prevent="logout" class="w-full">
                     <LogoutButton>{{ t('logout') }}</LogoutButton>
                 </form>
+
                 <template v-else>
                     <ResponsiveNavLink :href="route('login')">{{ t('login') }}</ResponsiveNavLink>
                     <ResponsiveNavLink v-if="canRegister" :href="route('register')">
                         {{ t('register') }}
                     </ResponsiveNavLink>
                 </template>
+
             </div>
         </div>
 

@@ -52,7 +52,7 @@ onBeforeUnmount(stopAutoSlide);
             @mouseleave="isPaused = false">
 
             <!-- Точки -->
-            <div class="absolute top-0 left-1/2 transform -translate-x-1/2 flex space-x-2 z-10">
+            <div class="absolute bottom-5 left-1/2 transform -translate-x-1/2 flex space-x-2 z-10">
             <span
                 v-for="(article, index) in filteredArticles"
                 :key="article.id"
