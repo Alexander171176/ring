@@ -277,7 +277,7 @@ onBeforeUnmount(() => {
                    class="w-16 text-center px-3 py-1.5 border border-gray-400 dark:border-gray-200 rounded
                           bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-xs"/>
 
-            <span>/ {{ pagination.lastPage }}</span>
+            <span class="text-gray-700 dark:text-gray-200">/ {{ pagination.lastPage }}</span>
 
             <!-- Кнопка вперёд -->
             <button @click="goToPage(pagination.currentPage + 1)"
