@@ -2,7 +2,7 @@
 import {Head, Link, router, usePage} from '@inertiajs/vue3';
 import DefaultLayout from '@/Layouts/DefaultLayout.vue';
 import { useI18n } from 'vue-i18n';
-import {onMounted, onUnmounted, ref, watch} from "vue";
+import {computed, onMounted, onUnmounted, ref, watch} from "vue";
 import ScheduledTournamentsShow from "@/Components/Public/Default/Tournament/ScheduledTournamentsShow.vue";
 import CompletedTournamentsShow from "@/Components/Public/Default/Tournament/CompletedTournamentsShow.vue";
 
@@ -99,6 +99,22 @@ watch(currentPageCompleted, (page) => {
         }, { preserveScroll: true })
     }
 })
+
+const winnerFighter = computed(() => {
+    let nickname = null;
+
+    if (tournament.winner_id === tournament.fighter_red?.id) {
+        nickname = tournament.fighter_red?.nickname;
+    } else if (tournament.winner_id === tournament.fighter_blue?.id) {
+        nickname = tournament.fighter_blue?.nickname;
+    }
+
+    if (nickname) {
+        return nickname.replaceAll('-', ' ').toUpperCase();
+    }
+
+    return null;
+});
 
 </script>
 
@@ -214,9 +230,9 @@ watch(currentPageCompleted, (page) => {
                         <div class="my-1 xl:my-4">
 
                             <!-- Победитель -->
-                            <div v-if="tournament.winner_id"
+                            <div v-if="winnerFighter"
                                  class="text-[10px] sm:text-xs text-slate-700 dark:text-slate-300 font-semibold my-2 xl:my-3">
-                                {{ t('winner') }}: {{ tournament.winner_id }}
+                                {{ t('winner') }}: {{ winnerFighter }}
                             </div>
 
                             <!-- Метод победы (например, "KO", "Submission") -->
@@ -244,7 +260,7 @@ watch(currentPageCompleted, (page) => {
                 </div>
 
                 <!-- Таймер -->
-                <div v-if="!isStarted" class="w-full text-center my-0">
+                <div v-if="!isStarted" class="w-full text-center mt-4">
                     <div v-if="countdown" class="flex justify-center gap-3 flex-wrap">
                         <div class="flex flex-col items-center w-16 h-16 rounded-lg
                                     bg-gray-200 dark:bg-gray-700
