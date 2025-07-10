@@ -15,6 +15,9 @@ class TournamentRequest extends FormRequest
 
     public function rules(): array
     {
+
+        $tournamentId = $this->route('tournament')?->id ?? null; // Используем null safe оператор и null coalescing
+
         return [
             'sort' => ['nullable', 'integer', 'min:0'],
             'activity' => ['required', 'boolean'],
@@ -24,6 +27,12 @@ class TournamentRequest extends FormRequest
             'locale' => ['required', 'string', 'size:2'],
 
             'name' => ['required', 'string', 'max:255'],
+            'url'                => [
+                'required','string','max:500',
+                'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
+                Rule::unique('tournaments')->where(fn($q) => $q->where('locale', $this->input('locale')))
+                    ->ignore($tournamentId),
+            ],
             'short' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
 
@@ -45,6 +54,10 @@ class TournamentRequest extends FormRequest
             'method_of_victory' => ['nullable', 'string', 'max:255'],
             'round_of_finish' => ['nullable', 'integer', 'min:0', 'max:12'],
             'time_of_finish' => ['nullable', 'string', 'max:255'],
+
+            'meta_title'         => 'nullable|string|max:255',
+            'meta_keywords'      => 'nullable|string|max:255',
+            'meta_desc'          => 'nullable|string',
 
             'videos'        => ['nullable','array'],
             'videos.*.id'   => ['required_with:videos','integer','exists:videos,id'],

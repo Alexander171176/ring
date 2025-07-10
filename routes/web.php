@@ -128,7 +128,11 @@ Route::group([
         Route::get('/tags/{url}', [\App\Http\Controllers\Public\Default\TagController::class,
             'show'])->where('url', '.*')->name('public.tags.show');
 
-        Route::get('/videos/{url}', [\App\Http\Controllers\Public\Default\VideoController::class, 'show'])->where('url', '.*')->name('public.videos.show');
+        Route::get('/videos/{url}', [\App\Http\Controllers\Public\Default\VideoController::class,
+            'show'])->where('url', '.*')->name('public.videos.show');
+
+        Route::get('/tournaments/{url}', [\App\Http\Controllers\Public\Default\TournamentController::class,
+            'show'])->where('url', '.*')->name('public.tournaments.show');
 
         // TODO: Добавить другие публичные маршруты (поиск, контакты и т.д.)
 

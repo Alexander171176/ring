@@ -5,6 +5,7 @@
  */
 import {useToast} from 'vue-toastification';
 import {useI18n} from 'vue-i18n';
+import { transliterate } from '@/utils/transliteration';
 import {onMounted, ref} from "vue";
 import {useForm} from '@inertiajs/vue3';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
@@ -25,6 +26,7 @@ import TypeSelect from "@/Components/Admin/Tournament/Select/TypeSelect.vue";
 import StatusSelect from "@/Components/Admin/Tournament/Select/StatusSelect.vue";
 import SelectAthlete from "@/Components/Admin/Tournament/Select/SelectAthlete.vue";
 import VueMultiselect from "vue-multiselect";
+import MetatagsButton from "@/Components/Admin/Buttons/MetatagsButton.vue";
 
 // --- Инициализация ---
 const toast = useToast();
@@ -53,8 +55,12 @@ const form = useForm({
     right: false,
     locale: '',
     name: '', // Название турнира
+    url: '',
     short: '', // Краткое Описание
     description: '', // Описание
+    meta_title: '',
+    meta_keywords: '',
+    meta_desc: '',
     tournament_date_time: '', // Дата проведения
     status: null, // Статус
     venue: '', // Место проведения
@@ -91,6 +97,73 @@ onMounted(() => {
         form.tournament_date_time = formatDate(form.tournament_date_time);
     }
 });
+
+/**
+ * Автоматически генерирует URL из поля name, если URL пуст.
+ */
+const handleUrlInputFocus = () => {
+    if (form.name && form.tournament_date_time) {
+        const namePart = transliterate(form.name.toLowerCase().replace(/\s+/g, '-'));
+        const date = new Date(form.tournament_date_time);
+
+        const datePart = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}-${String(date.getHours()).padStart(2, '0')}-${String(date.getMinutes()).padStart(2, '0')}`;
+
+        form.url = `${namePart}-${datePart}`;
+    }
+};
+
+/**
+ * Обрезает текст до заданной длины, стараясь не разрывать слова при генерации мета-тегов.
+ */
+const truncateText = (text, maxLength, addEllipsis = false) => {
+    if (text.length <= maxLength) return text;
+    const truncated = text.substr(0, text.lastIndexOf(' ', maxLength));
+    return addEllipsis ? `${truncated}...` : truncated;
+};
+
+/**
+ * Генерирует значения для мета-полей (title, keywords, description),
+ * если они не были заполнены вручную.
+ */
+const generateMetaFields = () => {
+    // Генерация meta_title
+    if (form.name && !form.meta_title) {
+        form.meta_title = truncateText(form.name, 160); // Используем вашу функцию truncateText
+    }
+
+    // Генерация meta_keywords из form.short
+    if (!form.meta_keywords && form.short) {
+        // 1. Удаляем HTML-теги (на случай, если они есть в form.short)
+        let text = form.short.replace(/(<([^>]+)>)/gi, "");
+
+        // 2. Удаляем знаки препинания, кроме дефисов внутри слов (опционально)
+        //    Оставляем буквы (включая кириллицу/другие языки), цифры, дефисы и пробелы
+        text = text.replace(/[.,!?;:()\[\]{}"'«»]/g, ''); // Удаляем основную пунктуацию
+        // text = text.replace(/[^\p{L}\p{N}\s-]/gu, ''); // Более строгий вариант: оставить только буквы, цифры, пробелы, дефис
+
+        // 3. Разбиваем текст на слова по пробелам
+        const words = text.split(/\s+/)
+            // 4. Фильтруем пустые строки и короткие слова (например, менее 3 символов), если нужно
+            .filter(word => word && word.length >= 3)
+            // 5. Приводим к нижнему регистру (стандартно для ключевых слов)
+            .map(word => word.toLowerCase())
+            // 6. Удаляем дубликаты слов
+            .filter((value, index, self) => self.indexOf(value) === index);
+
+        // 7. Объединяем слова через запятую и пробел
+        const keywords = words.join(', ');
+
+        // 8. Обрезаем результат до максимальной длины (если нужно)
+        form.meta_keywords = truncateText(keywords, 255); // Используем вашу функцию truncateText
+    }
+
+    // Генерация meta_desc из form.short
+    if (form.short && !form.meta_desc) {
+        // Убираем HTML-теги для описания
+        const descText = form.short.replace(/(<([^>]+)>)/gi, "");
+        form.meta_desc = truncateText(descText, 200, true); // Используем другую длину и добавление ...
+    }
+};
 
 /**
  * Отправляет данные формы для создания.
@@ -231,6 +304,7 @@ const submit = () => {
                         <!-- Дата и время проведения -->
                         <div class="flex flex-row items-center justify-end w-full gap-2">
                             <div class="flex justify-start w-full">
+                                <span class="text-sm text-red-500 dark:text-red-300 font-semibold mr-1">*</span>
                                 <LabelInput for="tournament_date_time" :value="t('date')"
                                             class="mb-1 lg:mb-0 lg:mr-2"/>
                                 <InputText
@@ -238,7 +312,9 @@ const submit = () => {
                                     type="datetime-local"
                                     v-model="form.tournament_date_time"
                                     autocomplete="tournament_date_time"
+                                    required
                                     class="w-full max-w-56"
+
                                 />
                                 <InputError class="mt-1 sm:mt-0" :message="form.errors.tournament_date_time"/>
                             </div>
@@ -275,6 +351,7 @@ const submit = () => {
                         <!-- Количество запланированных раундов -->
                         <div class="flex flex-row items-center justify-end w-full">
                             <div class="h-8 flex items-center">
+                                <span class="text-sm text-red-500 dark:text-red-300 font-semibold mr-1">*</span>
                                 <LabelInput for="rounds_scheduled" :value="t('roundsScheduled')"
                                             class="mr-2 w-auto"/>
                             </div>
@@ -294,6 +371,7 @@ const submit = () => {
 
                         <!-- Поле Страна -->
                         <div class="flex flex-row items-center justify-end w-full">
+                            <span class="text-sm text-red-500 dark:text-red-300 font-semibold mr-1">*</span>
                             <LabelInput for="country" class="mt-4 mr-2">
                                 {{ t('country') }}
                             </LabelInput>
@@ -316,6 +394,7 @@ const submit = () => {
 
                         <!-- Поле Город -->
                         <div class="flex flex-row items-center justify-end w-full">
+                            <span class="text-sm text-red-500 dark:text-red-300 font-semibold mr-1">*</span>
                             <LabelInput for="country" class="mt-4 mr-2">
                                 {{ t('city') }}
                             </LabelInput>
@@ -380,6 +459,22 @@ const submit = () => {
                         <InputError class="mt-2" :message="form.errors.name"/>
                     </div>
 
+                    <!-- Поле URL -->
+                    <div class="mb-3 flex flex-col items-start">
+                        <LabelInput for="url">
+                            <span class="text-red-500 dark:text-red-300 font-semibold">*</span> {{ t('url') }}
+                        </LabelInput>
+                        <InputText
+                            id="url"
+                            type="text"
+                            v-model="form.url"
+                            required
+                            autocomplete="url"
+                            @focus="handleUrlInputFocus"
+                        />
+                        <InputError class="mt-2" :message="form.errors.url"/>
+                    </div>
+
                     <!-- Краткое описание -->
                     <div class="mb-3 flex flex-col items-start">
                         <div class="flex justify-between w-full">
@@ -411,6 +506,63 @@ const submit = () => {
                                         label="title"
                                         track-by="title"
                         />
+                    </div>
+
+                    <div class="mb-3 flex flex-col items-start">
+                        <div class="flex justify-between w-full">
+                            <LabelInput for="meta_title" :value="t('metaTitle')"/>
+                            <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
+                                {{ form.meta_title.length }} / 160 {{ t('characters') }}
+                            </div>
+                        </div>
+                        <InputText
+                            id="meta_title"
+                            type="text"
+                            v-model="form.meta_title"
+                            maxlength="160"
+                            autocomplete="url"
+                        />
+                        <InputError class="mt-2" :message="form.errors.meta_title"/>
+                    </div>
+
+                    <div class="mb-3 flex flex-col items-start">
+                        <div class="flex justify-between w-full">
+                            <LabelInput for="meta_keywords" :value="t('metaKeywords')"/>
+                            <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
+                                {{ form.meta_keywords.length }} / 255 {{ t('characters') }}
+                            </div>
+                        </div>
+                        <InputText
+                            id="meta_keywords"
+                            type="text"
+                            v-model="form.meta_keywords"
+                            maxlength="255"
+                            autocomplete="url"
+                        />
+                        <InputError class="mt-2" :message="form.errors.meta_keywords"/>
+                    </div>
+
+                    <div class="mb-3 flex flex-col items-start">
+                        <div class="flex justify-between w-full">
+                            <LabelInput for="meta_desc" :value="t('metaDescription')"/>
+                            <div class="text-md text-gray-900 dark:text-gray-400 mt-1">
+                                {{ form.meta_desc.length }} / 200 {{ t('characters') }}
+                            </div>
+                        </div>
+                        <MetaDescTextarea v-model="form.meta_desc" maxlength="200" class="w-full"/>
+                        <InputError class="mt-2" :message="form.errors.meta_desc"/>
+                    </div>
+
+                    <div class="flex justify-end mt-4">
+                        <MetatagsButton @click.prevent="generateMetaFields">
+                            <template #icon>
+                                <svg class="w-4 h-4 fill-current text-slate-600 shrink-0 mr-2" viewBox="0 0 16 16">
+                                    <path
+                                        d="M13 7h2v6a1 1 0 01-1 1H4v2l-4-3 4-3v2h9V7zM3 9H1V3a1 1 0 011-1h10V0l4 3-4 3V4H3v5z"></path>
+                                </svg>
+                            </template>
+                            {{ t('generateMetaTags') }}
+                        </MetatagsButton>
                     </div>
 
                     <!-- Изображения турнира -->

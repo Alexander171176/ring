@@ -379,3 +379,7 @@ ____________________________
     `docker exec ring-php-app php artisan make:migration add_main_column_to_banners_table`<br>
     `docker exec ring-php-app php artisan migrate`<br>
     `docker exec ring-php-app php artisan make:controller Admin/Invokable/RemoveTournamentFromVideoController --invokable` <br>
+    `docker exec ring-php-app php artisan make:migration add_seo_fields_to_tournaments_table`<br>
+    `docker exec ring-php-app php artisan migrate`<br>
+    `docker exec ring-php-app php artisan migrate:rollback`<br>
+    `docker exec ring-php-app php artisan make:controller Public/Default/TournamentController` <br>

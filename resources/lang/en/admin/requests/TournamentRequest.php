@@ -24,6 +24,16 @@ return [
 
     'description.string' => 'The description must be a string.',
 
+    'url.required' => 'The tournament URL is required.',
+    'url.string' => 'The tournament URL must be a string.',
+    'url.max' => 'The tournament URL must not exceed 500 characters.',
+    'url.regex' => 'The URL must contain only Latin letters, numbers, and hyphens.',
+    'url.unique' => 'A tournament with this URL already exists.',
+
+    'meta_title.max' => 'Mara header must not exceed 255 characters.',
+    'meta_keywords.max' => 'Meta keywords must not exceed 255 characters.',
+    'meta_desc.string' => 'Meta description must be a string.',
+
     'tournament_date_time.required' => 'The date and time of the tournament are required.',
     'tournament_date_time.date' => 'The date and time of the tournament must be a valid date.',
 
@@ -39,7 +49,7 @@ return [
     'rounds_scheduled.min' => 'The minimum number of rounds is 1.',
     'rounds_scheduled.max' => 'The maximum number of rounds is 12.',
 
-    'is_title_fight.boolean' => 'The "Title fight" field must be Boolean.',
+    'is_title_fight.boolean' => 'The «Title fight» field must be Boolean.',
 
     'fighter_red_id.required' => 'The athlete in the red corner is required.',
     'fighter_red_id.exists' => 'The athlete in the red corner was not found.',

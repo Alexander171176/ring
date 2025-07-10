@@ -130,9 +130,14 @@ const getPrimaryImage = (tournament) => {
                                 </div>
                             </td>
                             <td class="px-2 py-1 whitespace-nowrap w-2/12">
-                                <div class="text-left text-amber-500 dark:text-amber-200"
-                                     :title="tournament.venue">
-                                    {{ tournament.name }}
+                                <div class="text-left">
+                                    <a :href="`/tournaments/${encodeURIComponent(tournament.url)}`"
+                                       class="text-amber-500 dark:text-amber-200 hover:underline
+                                              hover:text-amber-700 dark:hover:text-amber-50"
+                                       target="_blank" rel="noopener noreferrer"
+                                       :title="tournament.venue">
+                                        {{ tournament.name }}
+                                    </a>
                                 </div>
                             </td>
                             <td class="px-2 py-1 whitespace-nowrap w-2/12">

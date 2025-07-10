@@ -24,6 +24,7 @@ class Tournament extends Model
         'right',
         'locale',
         'name',
+        'url',
         'short',
         'description',
         'tournament_date_time',
@@ -40,6 +41,9 @@ class Tournament extends Model
         'method_of_victory',
         'round_of_finish',
         'time_of_finish',
+        'meta_title',
+        'meta_keywords',
+        'meta_desc',
     ];
 
     protected $casts = [

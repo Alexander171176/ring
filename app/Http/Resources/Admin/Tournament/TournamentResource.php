@@ -20,6 +20,7 @@ class TournamentResource extends JsonResource
             'right' => $this->right,         // boolean
             'locale' => $this->locale,
             'name' => $this->name,
+            'url' => $this->url,
             'short' => $this->short,
             'description' => $this->description,
             'tournament_date_time' => $this->tournament_date_time?->format('Y-m-d H:i'),
@@ -44,6 +45,11 @@ class TournamentResource extends JsonResource
                     'id' => $this->fighterRed->id,
                     'nickname' => $this->fighterRed->nickname,
                     'avatar' => $this->fighterRed->avatar,
+                    'date_of_birth' => $this->fighterRed->date_of_birth,
+                    'wins' => $this->fighterRed->wins,
+                    'draws' => $this->fighterRed->draws,
+                    'losses' => $this->fighterRed->losses,
+                    'wins_by_ko' => $this->fighterRed->wins_by_ko,
                 ];
             }),
 
@@ -52,6 +58,11 @@ class TournamentResource extends JsonResource
                     'id' => $this->fighterBlue->id,
                     'nickname' => $this->fighterBlue->nickname,
                     'avatar' => $this->fighterBlue->avatar,
+                    'date_of_birth' => $this->fighterBlue->date_of_birth,
+                    'wins' => $this->fighterBlue->wins,
+                    'draws' => $this->fighterBlue->draws,
+                    'losses' => $this->fighterBlue->losses,
+                    'wins_by_ko' => $this->fighterBlue->wins_by_ko,
                 ];
             }),
 
@@ -65,6 +76,10 @@ class TournamentResource extends JsonResource
 
             'videos' => VideoResource::collection($this->whenLoaded('videos')),
             'images'   => TournamentImageResource::collection($this->whenLoaded('images')),
+
+            'meta_title'    => $this->meta_title,
+            'meta_keywords' => $this->meta_keywords,
+            'meta_desc'     => $this->meta_desc,
 
             'created_at' => $this->created_at?->toDateTimeString(),
             'updated_at' => $this->updated_at?->toDateTimeString(),
