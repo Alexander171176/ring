@@ -64,7 +64,7 @@ const getImgSrc = (imgPath) => {
         <div class="flex flex-col w-full">
 
             <!-- Хлебные крошки -->
-            <nav class="text-left text-sm ml-0 md:ml-4 lg:ml-6 xl:ml-8 mt-4 px-1"
+            <nav class="text-left text-sm ml-0 md:ml-4 lg:ml-6 xl:ml-8 mt-4 px-2"
                  aria-label="Breadcrumb">
                 <ol class="list-reset flex flex-col md:flex-row items-center justify-start space-x-0">
                     <li>
@@ -82,7 +82,7 @@ const getImgSrc = (imgPath) => {
             <!-- Применяем вычисляемый класс к элементу статьи -->
             <article itemscope itemtype="https://schema.org/BlogPosting"
                      class="flex flex-col p-4 selection:bg-red-400 selection:text-white
-                        bg-slate-50 dark:bg-slate-950 mx-auto">
+                        bg-slate-50 dark:bg-blue-950 mx-auto">
 
                 <div class="flex-1 max-w-3xl">
                     <!-- Микроданные для заголовка -->
@@ -120,14 +120,14 @@ const getImgSrc = (imgPath) => {
                     </div>
 
                     <!-- Изображение статьи с плавной сменой (если их больше одного) -->
-                    <div class="p-4 border border-gray-300 rounded shadow-lg">
+                    <div class="">
                         <!-- Условие: если есть article.img -->
                         <div v-if="article.img" class="flex justify-center items-center"
                              itemprop="image" itemscope
                              itemtype="https://schema.org/ImageObject">
                             <img :src="getImgSrc(article.img)"
                                  :alt="article.title"
-                                 class="rounded-md border border-black dark:border-gray-200 w-full">
+                                 class="rounded-lg border border-black dark:border-gray-200 w-full">
                             <meta itemprop="width" content="800"/>
                             <meta itemprop="height" content="600"/>
                         </div>

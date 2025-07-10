@@ -77,12 +77,12 @@ watch(sortOrder, () => {
         <div class="space-y-2">
 
             <!-- Панель управления (сортировка + переключатель вида) -->
-            <div class="flex flex-row justify-end items-center gap-4">
+            <div class="flex flex-row justify-end items-center gap-3">
 
                 <!-- Сортировка -->
                 <div class="flex items-center sm:mr-3">
                     <select v-model="sortOrder"
-                            class="px-3 py-1 w-full sm:w-48 rounded-sm border
+                            class="px-3 py-0.5 w-52 sm:w-48 rounded-sm border
                                    border-gray-400 dark:border-gray-200 dark:bg-gray-700
                                    text-sm text-slate-900 dark:text-slate-100">
                         <option value="asc">{{ t('idAsc') }}</option>
@@ -123,7 +123,7 @@ watch(sortOrder, () => {
                  class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
 
                 <div v-for="article in paginatedArticles" :key="article.id"
-                     class="p-2 rounded-sm shadow-sm
+                     class="py-2 rounded-sm shadow-sm
                        overflow-hidden hover:bg-slate-50 dark:hover:bg-slate-800
                        hover:shadow-lg hover:shadow-gray-400 dark:hover:shadow-gray-700">
 
@@ -179,7 +179,7 @@ watch(sortOrder, () => {
             <div v-else class="space-y-4">
 
                 <div v-for="article in paginatedArticles" :key="article.id"
-                     class="col-span-full flex flex-col sm:flex-row items-start space-x-3 p-2 shadow-sm rounded-sm
+                     class="col-span-full flex flex-col sm:flex-row items-start space-x-3 py-2 shadow-sm rounded-sm
                             overflow-hidden hover:bg-slate-50 dark:hover:bg-slate-800
                             hover:shadow-lg hover:shadow-gray-400 dark:hover:shadow-gray-700">
 

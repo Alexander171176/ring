@@ -47,7 +47,7 @@ const filteredArticles = computed(() => {
             <meta name="DC.language" :content="tag.locale || 'ru'"/>
         </Head>
 
-        <div class="flex-1 p-4 selection:bg-red-400 selection:text-white bg-slate-50 dark:bg-slate-950">
+        <div class="flex-1 p-4 selection:bg-red-400 selection:text-white bg-slate-50 dark:bg-blue-950">
 
             <!-- Хлебные крошки -->
             <nav class="text-sm ml-0 md:ml-4 lg:ml-6 xl:ml-8"
@@ -101,7 +101,7 @@ const filteredArticles = computed(() => {
             <div v-if="filteredArticles.length" class="space-y-8">
 
                 <div class="overflow-hidden">
-                    <div class="p-6">
+                    <div class="">
 
                         <SectionArticlesPagination
                             :articles="filteredArticles"
