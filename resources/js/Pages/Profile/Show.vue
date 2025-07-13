@@ -1,5 +1,5 @@
 <script setup>
-import AppLayout from '@/Layouts/AppLayout.vue'
+import DefaultLayout from "@/Layouts/DefaultLayout.vue";
 import DeleteUserForm from '@/Pages/Profile/Partials/DeleteUserForm.vue'
 import LogoutOtherBrowserSessionsForm from '@/Pages/Profile/Partials/LogoutOtherBrowserSessionsForm.vue'
 import SectionBorder from '@/Components/SectionBorder.vue'
@@ -18,7 +18,7 @@ const { t } = useI18n();
 </script>
 
 <template>
-    <AppLayout :title="t('profile')">
+    <DefaultLayout :title="t('profile')">
         <template #header>
             <TitlePage>
                 {{ t('profile') }}
@@ -57,5 +57,5 @@ const { t } = useI18n();
                 </template>
             </div>
         </div>
-    </AppLayout>
+    </DefaultLayout>
 </template>

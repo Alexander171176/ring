@@ -72,6 +72,14 @@ const getPrimaryImage = (athlete) => {
                               bg-slate-200 dark:bg-cyan-900
                               border border-solid border-gray-300 dark:border-gray-700">
                 <tr>
+                    <th class="px-2 py-3 w-px">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             class="w-4 h-4 fill-current text-slate-800 dark:text-slate-200"
+                             height="24" width="24" viewBox="0 0 24 24">
+                            <path d="M12.707,2.293a1,1,0,0,0-1.414,0l-5,5A1,1,0,0,0,7.707,8.707L12,4.414l4.293,4.293a1,1,0,0,0,1.414-1.414Z"></path>
+                            <path d="M16.293,15.293,12,19.586,7.707,15.293a1,1,0,0,0-1.414,1.414l5,5a1,1,0,0,0,1.414,0l5-5a1,1,0,0,0-1.414-1.414Z"></path>
+                        </svg>
+                    </th>
                     <th class="px-2 py-1 whitespace-nowrap w-1/12">
                         <div class="font-medium text-center">{{ t('id') }}</div>
                     </th>
@@ -164,10 +172,17 @@ const getPrimaryImage = (athlete) => {
 
                 <draggable tag="tbody"
                            v-model="localAthletes"
+                           @end="handleDragEnd"
                            item-key="id"
-                           @end="handleDragEnd">
+                           handle=".handle"
+                >
                     <template #item="{ element: athlete }">
                         <tr class="text-sm font-semibold border-b hover:bg-slate-100 dark:hover:bg-cyan-800">
+                            <td class="px-2 py-1 text-center cursor-move handle">
+                                <svg class="w-4 h-4 text-gray-500 dark:text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M7 4h2v2H7V4zm4 0h2v2h-2V4zM7 8h2v2H7V8zm4 0h2v2h-2V8zM7 12h2v2H7v-2zm4 0h2v2h-2v-2z" />
+                                </svg>
+                            </td>
                             <td class="px-2 py-1 whitespace-nowrap w-1/12">
                                 <div class="text-center text-blue-600 dark:text-blue-200">
                                     {{ athlete.id }}
