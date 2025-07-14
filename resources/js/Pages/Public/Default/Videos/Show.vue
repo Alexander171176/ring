@@ -14,23 +14,37 @@ const formatDate = (dateString) => {
     return `${day}.${month}.${year}`;
 };
 
+const extractVimeoId = (url) => {
+    const regex = /vimeo\.com\/(?:video\/)?(\d+)/;
+    const match = url.match(regex);
+    return match ? match[1] : null;
+};
+
 const getVideoUrl = (video) => {
     const source = video.source_type;
+    const id = video.external_video_id;
+
+    // console.log('🎥 source:', source);
+    // console.log('🎥 external_video_id:', id);
+
     try {
         if (source === 'youtube') {
-            const url = new URL(video.external_video_id);
+            const url = new URL(id);
             const videoId = url.searchParams.get('v');
             return `https://www.youtube.com/embed/${videoId}`;
         }
+
         if (source === 'vimeo') {
-            const url = new URL(video.external_video_id);
-            const videoId = url.pathname.split('/').pop();
-            return `https://player.vimeo.com/video/${videoId}`;
+            const videoId = extractVimeoId(id);
+            const result = videoId ? `https://player.vimeo.com/video/${videoId}` : null;
+            console.log('➡️ Vimeo cleaned src:', result);
+            return result;
         }
+
         if (source === 'local') {
-            if (video.video_url) return video.video_url;
-            return `${appUrl}/storage/${video.external_video_id}`;
+            return video.video_url || `${appUrl}/storage/${id}`;
         }
+
         if (source === 'code') {
             return video.video_code || video.embed_code || null;
         }
@@ -38,8 +52,10 @@ const getVideoUrl = (video) => {
         console.error('❌ Ошибка разбора видео:', e);
         return null;
     }
+
     return null;
 };
+
 </script>
 
 <template>
@@ -83,8 +99,10 @@ const getVideoUrl = (video) => {
                 </ol>
             </nav>
 
-            <div class="flex flex-col p-4 bg-slate-50 dark:bg-slate-950 mx-auto">
-                <div class="flex-1 max-w-3xl">
+            <div class="w-full flex flex-col p-4 bg-slate-50 dark:bg-slate-950 mx-auto">
+
+                <div class="flex-1">
+
                     <header>
                         <div class="flex flex-col items-center justify-center my-1">
 
@@ -140,6 +158,7 @@ const getVideoUrl = (video) => {
                     </div>
 
                 </div>
+
             </div>
 
             <!-- Рекомендованные видео -->

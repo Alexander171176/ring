@@ -16,6 +16,12 @@ const props = defineProps({
 
 // console.log('Received videos:', props.videos);
 
+const extractVimeoId = (url) => {
+    const regex = /vimeo\.com\/(?:video\/)?(\d+)/;
+    const match = url.match(regex);
+    return match ? match[1] : null;
+};
+
 const getVideoUrl = (video) => {
     const source = video.source_type;
     try {
@@ -25,9 +31,8 @@ const getVideoUrl = (video) => {
             return `https://www.youtube.com/embed/${videoId}`;
         }
         if (source === 'vimeo') {
-            const url = new URL(video.external_video_id);
-            const videoId = url.pathname.split('/').pop();
-            return `https://player.vimeo.com/video/${videoId}`;
+            const id = extractVimeoId(video.external_video_id);
+            return id ? `https://player.vimeo.com/video/${id}` : null;
         }
         if (source === 'local') {
             if (video.video_url) return video.video_url;

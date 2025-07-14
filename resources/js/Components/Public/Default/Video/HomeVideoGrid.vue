@@ -29,50 +29,54 @@ const playVideo = (id) => {
     activeVideoId.value = id
 }
 
+const extractVimeoId = (url) => {
+    const regex = /vimeo\.com\/(?:video\/)?(\d+)/;
+    const match = url.match(regex);
+    return match ? match[1] : null;
+};
+
 const getVideoUrl = (video) => {
-    const source = video.source_type
+    const source = video.source_type;
 
     try {
+        // YouTube ─ извлекаем id из ссылки или берём как есть
         if (source === 'youtube') {
-            const ext = video.external_video_id
-            if (!ext && video.display_source) return video.display_source
+            const ext = video.external_video_id;
+            if (!ext && video.display_source) return video.display_source;
 
             if (ext?.startsWith('http')) {
-                const url = new URL(ext)
-                const videoId = url.searchParams.get('v')
-                return videoId ? `https://www.youtube.com/embed/${videoId}` : null
+                const url = new URL(ext);
+                const videoId = url.searchParams.get('v');
+                return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
             }
-
-            return ext ? `https://www.youtube.com/embed/${ext}` : null
+            return ext ? `https://www.youtube.com/embed/${ext}` : null;
         }
 
+        // Vimeo ─ используем extractVimeoId
         if (source === 'vimeo') {
-            const ext = video.external_video_id
-            if (!ext && video.display_source) return video.display_source
+            const ext = video.external_video_id;
+            if (!ext && video.display_source) return video.display_source;
 
-            if (ext?.startsWith('http')) {
-                const url = new URL(ext)
-                const videoId = url.pathname.split('/').pop()
-                return `https://player.vimeo.com/video/${videoId}`
-            }
-
-            return ext ? `https://player.vimeo.com/video/${ext}` : null
+            const id = extractVimeoId(ext);
+            return id ? `https://player.vimeo.com/video/${id}` : null;
         }
 
+        // Локальный файл
         if (source === 'local') {
-            return video.video_url || video.display_source || null
+            return video.video_url || video.display_source || null;
         }
 
+        // Произвольный embed‑код
         if (source === 'code') {
-            return video.video_code || video.embed_code || null
+            return video.video_code || video.embed_code || null;
         }
     } catch (e) {
-        console.error('❌ Ошибка разбора видео:', e)
-        return null
+        console.error('❌ Ошибка разбора видео:', e);
+        return null;
     }
 
-    return null
-}
+    return null;
+};
 
 const formatDate = (dateString) => {
     const date = new Date(dateString)

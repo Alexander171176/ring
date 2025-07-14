@@ -37,6 +37,12 @@ const nextPage = () => {
     if (currentPage.value < totalPages.value) currentPage.value++;
 };
 
+const extractVimeoId = (url) => {
+    const regex = /vimeo\.com\/(?:video\/)?(\d+)/;
+    const match = url.match(regex);
+    return match ? match[1] : null;
+};
+
 const getVideoUrl = (video) => {
 
     const source = video.source_type;
@@ -49,9 +55,8 @@ const getVideoUrl = (video) => {
         }
 
         if (source === 'vimeo') {
-            const url = new URL(video.external_video_id);
-            const videoId = url.pathname.split('/').pop();
-            return `https://player.vimeo.com/video/${videoId}`;
+            const id = extractVimeoId(video.external_video_id);
+            return id ? `https://player.vimeo.com/video/${id}` : null;
         }
 
         if (source === 'local') {
